@@ -2,7 +2,7 @@
 
 int main(){
 
-	printf("juli mamahuevo");
+	printf("juli chupanalgas");
 
 	return 0;
 }
