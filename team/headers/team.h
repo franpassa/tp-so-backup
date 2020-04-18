@@ -6,6 +6,7 @@
 #include<stdlib.h>
 #include<commons/string.h>
 #include<commons/config.h>
+#include<commons/collections/list.h>
 #include<commons/log.h>
 #include<readline/readline.h>
 #include<signal.h>

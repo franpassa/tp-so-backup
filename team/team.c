@@ -1,8 +1,35 @@
 #include "headers/team.h"
 
-	char* get_posicion(char* array,int pos){
-		return string_substring(array,pos*8+2,6);
+	int posicionXEntrenador(int nroEntrenador, char** posicionesEntrenadores){
+		char* posTemp1 = malloc(sizeof(posicionesEntrenadores[0]));
+		posTemp1 = posicionesEntrenadores[nroEntrenador];
+		char** posTemp2 = string_split(posTemp1,"|");
+		int posX = atoi(posTemp2[0]);
+		return posX;
 	}
+
+	int posicionYEntrenador(int nroEntrenador, char** posicionesEntrenadores){
+		char* posTemp1 = posicionesEntrenadores[nroEntrenador];
+		char** posTemp2 = string_split(posTemp1,"|");
+		int posY = atoi(posTemp2[1]);
+		return posY;
+	}
+
+	void liberarEntrenadores(char** posicionesEntrenadores){
+		for(int i=0;i<(sizeof(posicionesEntrenadores)/sizeof(posicionesEntrenadores[0]));i++){
+			free(posicionesEntrenadores[i]);
+		}
+		free(posicionesEntrenadores);
+	}
+
+	struct Entrenador{
+		int posX;
+		int posY;
+		t_list* pokesAtrapados;
+		t_list* pokesObjetivos;
+		int idEntrenador;
+
+	};
 
 int main(){
 
@@ -17,15 +44,17 @@ int main(){
 	t_config* config = config_create(PATH_CONFIG);
 	printf("\n\nArchivo de configuracion leido.\n\n");
 
-	char* string = config_get_string_value(config,"POSICIONES_ENTRENADORES");
+	char** posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
 
-	char* string2 = get_posicion(string,0);
-
-	printf("el string es: %s\n\n", string2);
-
-	char** array = string_get_string_as_array(string2);
-
-	printf("La posicion 0 del array es: %d\n", atoi(array[0]));
+//	int posicion0 = posicionXEntrenador(0,posicionesEntrenadores);
+//
+//	int posicion1 = posicionYEntrenador(0,posicionesEntrenadores);
+//
+//	printf("%d", posicion0);
+//
+//	printf(", %d", posicion1);
+//
+//	liberarEntrenadores(posicionesEntrenadores);
 
 	//Finalizo el programa
 	terminar_programa(socket, logger, config);
@@ -45,5 +74,4 @@ void terminar_programa(int conexion, t_log* logger, t_config* config){
 	close(conexion);
 	log_destroy(logger);
 	config_destroy(config);
-
 }
