@@ -2,6 +2,7 @@
 *.cproject
 *.settings
 */Default/
+*.log
 
 # Prerequisites
 *.d
