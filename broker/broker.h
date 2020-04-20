@@ -18,10 +18,10 @@
 
 typedef struct{
 	uint32_t id;
-	//t_suscriptor enviados;
-	//tipo de mensaje
-	uint32_t ack;
-} t_mensaje;
+	uint32_t mensaje;
+	uint32_t a_quienes_fue_enviado;
+	uint32_t cuantos_lo_recibieron;
+} t_info_mensaje;
 
 typedef struct{
 	uint32_t id;
@@ -46,13 +46,46 @@ t_cola_de_mensajes inicializar_cola(t_cola_de_mensajes nombre_cola){
 void recibir_mensajes(){
 
 	// iniciar hilo
+	//entro un mensaje
+	int id_cola = //sacar info de mensaje
+	char* mensaje = //sacar info de mensaje
+	int id_mensaje = crear_id_mensaje();
 
+	enviar_a_publisher_id(id_mensaje);
+
+	t_info_mensaje nuevo_mensaje;
+	nuevo_mensaje.id = id_mensaje;
+	nuevo_mensaje.mensaje = mensaje;
+	nuevo_mensaje.a_quienes_fue_enviado = NULL;
+	nuevo_mensaje.cuantos_lo_recibieron = NULL;
+
+	agregar_a_cola(id_cola,nuevo_mensaje);
+
+}
+void enviar_a_publisher_id(int id){
+
+}
+void agregar_a_cola (int id_cola, t_info_mensaje mensaje);{
+	switch (id_cola)
+	{
+	case 1:
+			queue_push(NEW_POKEMON.cola, mensaje);
+	case 2:
+			queue_push(APPEARED_POKEMON.cola, mensaje);
+	case 3:
+			queue_push(CATCH_POKEMON.cola, mensaje);
+	case 4:
+			queue_push(CAUGHT_POKEMON.cola, mensaje);
+	case 5:
+			queue_push(GET_POKEMON.cola, mensaje);
+	case 6:
+			queue_push(LOCALIZED_POKEMON.cola, mensaje);
+	}
 }
 
 
-//inicializar_colas()
-//recibir mensaje() -- hilo del broker
-//enviar_mensaje_a_suscriptores() -- a una cola especifica
+//recibir mensaje() -- hilo del broker casi
+//enviar_mensaje_a_suscriptores()
 //estado_de_colas()
 
 //MEMORIA
