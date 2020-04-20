@@ -3,7 +3,30 @@
 
 int main(){
 
-	/*t_cola_de_mensajes nuevo;
+	t_cola_de_mensajes NEW_POKEMON = NULL;
+	inicializar_cola(NEW_POKEMON);
+
+	t_cola_de_mensajes APPEARED_POKEMON = NULL;
+	inicializar_cola(APPEARED_POKEMON);
+
+	t_cola_de_mensajes CATCH_POKEMON = NULL;
+	inicializar_cola(CATCH_POKEMON);
+
+	t_cola_de_mensajes CAUGHT_POKEMON = NULL;
+	inicializar_cola(CAUGHT_POKEMON);
+
+	t_cola_de_mensajes GET_POKEMON = NULL;
+	inicializar_cola(GET_POKEMON);
+
+	t_cola_de_mensajes LOCALIZED_POKEMON = NULL;
+	inicializar_cola(LOCALIZED_POKEMON);
+
+	recibir_mensajes();
+
+	return 0;
+
+}
+/*t_cola_de_mensajes nuevo;
 	nuevo = inicializar_cola();
 	t_suscriptor uno;
 	uno.id=4;
@@ -15,6 +38,3 @@ int main(){
 	printf("%d\n",sub.id);
 	printf("%d\n",sub.id_correlacional);
 	*/
-	return 0;
-
-}

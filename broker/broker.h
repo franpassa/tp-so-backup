@@ -35,15 +35,19 @@ typedef struct{
 }t_cola_de_mensajes;
 
 
-t_cola_de_mensajes inicializar_cola(){
-	t_cola_de_mensajes nueva_cola_de_mensajes;
+t_cola_de_mensajes inicializar_cola(t_cola_de_mensajes nombre_cola){
+
 	t_queue* nueva_cola = queue_create();
-	nueva_cola_de_mensajes.cola = nueva_cola;
-	nueva_cola_de_mensajes.lista_suscriptores = list_create();
-	return nueva_cola_de_mensajes;
+	nombre_cola.cola = nueva_cola;
+	nombre_cola.lista_suscriptores = list_create();
+	return nombre_cola;
 }
 
+void recibir_mensajes(){
 
+	// iniciar hilo
+
+}
 
 
 //inicializar_colas()
