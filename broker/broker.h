@@ -8,10 +8,17 @@
 #ifndef BROKER_H_
 #define BROKER_H_
 
-#include<commons/collections/queue.h>
-#include<commons/collections/list.h>
+#include <commons/collections/queue.h>
+#include <commons/collections/list.h>
 #include <stdint.h>
+#include <pthread.h>
 
+t_cola_de_mensajes NEW_POKEMON;
+t_cola_de_mensajes APPEARED_POKEMON;
+t_cola_de_mensajes CATCH_POKEMON;
+t_cola_de_mensajes CAUGHT_POKEMON;
+t_cola_de_mensajes GET_POKEMON;
+t_cola_de_mensajes LOCALIZED_POKEMON;
 
 typedef struct{
 	uint32_t id;
@@ -22,7 +29,6 @@ typedef struct{
 
 typedef struct{
 	uint32_t id;
-	uint32_t id_correlacional;
 } t_suscriptor;
 
 typedef struct{
@@ -39,10 +45,9 @@ t_cola_de_mensajes inicializar_cola(t_cola_de_mensajes nombre_cola){
 	return nombre_cola;
 }
 
-/*void recibir_mensajes(){
+void recibir_mensajes(){
 
-	// iniciar hilo
-	//entro un mensaje
+	while(1){
 	int id_cola = //sacar info de mensaje
 	char* mensaje = //sacar info de mensaje
 	int id_mensaje = crear_id_mensaje();
@@ -56,45 +61,14 @@ t_cola_de_mensajes inicializar_cola(t_cola_de_mensajes nombre_cola){
 	nuevo_mensaje.cuantos_lo_recibieron = NULL;
 
 	agregar_a_cola(id_cola,nuevo_mensaje);
-
-}*/
+	}
+}
 
 void enviar_a_publisher_id(int id){
 
 }
 
-void agregar_a_cola (int id_cola, t_info_mensaje mensaje){
-	t_cola_de_mensajes NEW_POKEMON;
-	t_cola_de_mensajes APPEARED_POKEMON;
-	t_cola_de_mensajes CATCH_POKEMON;
-	t_cola_de_mensajes CAUGHT_POKEMON;
-	t_cola_de_mensajes GET_POKEMON;
-	t_cola_de_mensajes LOCALIZED_POKEMON;
 
-	void* msg = &mensaje;
-
-	switch (id_cola)
-	{
-	case 1:
-			queue_push(NEW_POKEMON.cola, msg);
-			break;
-	case 2:
-			queue_push(APPEARED_POKEMON.cola, msg);
-			break;
-	case 3:
-			queue_push(CATCH_POKEMON.cola, msg);
-			break;
-	case 4:
-			queue_push(CAUGHT_POKEMON.cola, msg);
-			break;
-	case 5:
-			queue_push(GET_POKEMON.cola, msg);
-			break;
-	case 6:
-			queue_push(LOCALIZED_POKEMON.cola, msg);
-			break;
-	}
-}
 
 
 //recibir mensaje() -- hilo del broker casi
