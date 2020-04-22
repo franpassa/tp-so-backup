@@ -1,3 +1,6 @@
+#ifndef TEAM_H_
+#define TEAM_H_
+
 #define PROGRAM_NAME "team"
 #define PATH_CONFIG "team.config"
 #define PATH_LOG "team.log"
@@ -14,9 +17,21 @@
 #include<sys/socket.h>
 #include<netdb.h>
 #include<string.h>
+#include<stdint.h>
 
-void terminar_programa(int conexion, t_log* logger, t_config* config);
+typedef struct Entrenador{
+	uint32_t posicion[2];
+	t_list* pokesAtrapados;
+	t_list* pokesObjetivos;
+	int idEntrenador;
+}t_entrenador;
+
+t_log* logger;
+t_config* config;
+
+void inicializarPrograma(void);
+void terminar_programa(void);
 t_config* leer_config(void);
 t_log* iniciar_logger(void);
 
-
+#endif /* TEAM_H_ */
