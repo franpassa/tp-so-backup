@@ -2,7 +2,7 @@
 
 int main(){
 
-	inicializarPrograma();
+	inicializarPrograma(); //Inicializo logger y config
 
 	char** posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
 
@@ -10,8 +10,9 @@ int main(){
 
 	printf("La cantidad total de entrenadores es: %d", cant);
 
-	//Finalizo el programa
-	terminar_programa();
+	liberarPosicionesEntrenadores(posicionesEntrenadores);
+
+	terminar_programa(); //Finalizo el programa
 
 	return 0;
 }
