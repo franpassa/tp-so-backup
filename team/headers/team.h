@@ -23,7 +23,7 @@ typedef struct Entrenador{
 	uint32_t posicion[2];
 	t_list* pokesAtrapados;
 	t_list* pokesObjetivos;
-	int idEntrenador;
+	uint32_t idEntrenador;
 }t_entrenador;
 
 t_log* logger;
