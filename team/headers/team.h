@@ -18,6 +18,7 @@
 #include<netdb.h>
 #include<string.h>
 #include<stdint.h>
+#include "entrenadores.h"
 
 typedef struct Entrenador{
 	uint32_t posicion[2];
@@ -33,5 +34,6 @@ void inicializarPrograma(void);
 void terminar_programa(void);
 t_config* leer_config(void);
 t_log* iniciar_logger(void);
+void mostrarString(void*);
 
 #endif /* TEAM_H_ */

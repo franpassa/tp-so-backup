@@ -1,9 +1,9 @@
 #include "../entrenadores.h"
 
 uint32_t posicionXEntrenador(int nroEntrenador, char** posicionesEntrenadores){
-	char* posTemp1 = posicionesEntrenadores[nroEntrenador];
-	char** posTemp2 = string_split(posTemp1,"|");
-	uint32_t posX = atoi(posTemp2[0]);
+	char* posTemp = posicionesEntrenadores[nroEntrenador];
+	char** pos = string_split(posTemp,"|");
+	uint32_t posX = atoi(pos[0]);
 	return posX;
 }
 
@@ -24,9 +24,24 @@ uint32_t cantidadTotalEntrenadores (char** posicionesEntrenadores){
 	return acum/sizeof(posicionesEntrenadores);
 }
 
-void liberarPosicionesEntrenadores(char** posicionesEntrenadores){
-	for(uint32_t i=0;i<(cantidadTotalEntrenadores(posicionesEntrenadores));i++){
-		free(posicionesEntrenadores[i]);
+void liberarArray(char** array){
+	for(uint32_t i=0;i<(cantidadTotalEntrenadores(array));i++){
+		free(array[i]);
 	}
-	free(posicionesEntrenadores);
+	free(array);
 }
+
+t_list* insertarPokesEntrenador(uint32_t nroEntrenador, t_list* pokemons, char** pokesEntrenadores){
+	void _a_la_lista(char *poke){
+	  if (poke != NULL) {
+	    list_add(pokemons, poke);
+	  }
+	}
+
+	char** pokesEntrenador = string_split(pokesEntrenadores[nroEntrenador],"|");
+	string_iterate_lines(pokesEntrenador,_a_la_lista);
+
+	return pokemons;
+}
+
+
