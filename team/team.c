@@ -13,7 +13,7 @@ int main(){
 
 	printf("La cantidad total de entrenadores es: %d\n\n", cant);
 	printf("La posicion en X del entrenador 0 es: %d\n\n", posX);
-	//printf("La posicion en Y del entrenador 0 es: %d\n\n", posY);
+	printf("La posicion en Y del entrenador 0 es: %d\n\n", posY);
 
 	liberarArray(posicionesEntrenadores);
 
@@ -29,18 +29,18 @@ int main(){
 
 	list_destroy_and_destroy_elements(pokemons,free); // Libero la lista de pokemons del entrenador
 
-	terminar_programa(); //Finalizo el programa
-
 	liberarArray(pokesEntrenadores);
+
+	terminar_programa(); //Finalizo el programa
 
 	return 0;
 }
 
-t_config* leer_config(void) {
+t_config* leer_config() {
 	return config_create(PATH_CONFIG);
 }
 
-void terminar_programa(void){
+void terminar_programa(){
 	log_destroy(logger);
 	config_destroy(config);
 }
@@ -50,15 +50,12 @@ void mostrarString(void *elemento){
 }
 
 void inicializarPrograma(){
-
 	//Leo el archivo de configuracion
 	config = config_create(PATH_CONFIG);
+	printf("Archivo de configuracion leido.\n");
 
 	//Inicializo el log
-
-	logger = log_create(config_get_string_value(config,"LOG_FILE"), PROGRAM_NAME, 1, LOG_LEVEL_INFO);
-
-	log_info(logger, "Log del proceso 'team' creado.\n");
-
-	printf("\n\nArchivo de configuracion leido.\n\n");
+	logger = log_create(config_get_string_value(config,"LOG_FILE"), PROGRAM_NAME, 0, LOG_LEVEL_INFO);
+	log_info(logger, "Log del proceso 'team' creado.");
+	printf("Log del proceso 'team' creado.\n\n");
 }

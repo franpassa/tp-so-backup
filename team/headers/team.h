@@ -21,7 +21,8 @@
 #include "entrenadores.h"
 
 typedef struct Entrenador{
-	uint32_t posicion[2];
+	uint32_t posicionX;
+	uint32_t posicionY;
 	t_list* pokesAtrapados;
 	t_list* pokesObjetivos;
 	uint32_t idEntrenador;
@@ -30,10 +31,9 @@ typedef struct Entrenador{
 t_log* logger;
 t_config* config;
 
-void inicializarPrograma(void);
-void terminar_programa(void);
-t_config* leer_config(void);
-t_log* iniciar_logger(void);
+void inicializarPrograma();
+void terminar_programa();
+t_config* leer_config();
 void mostrarString(void*);
 
 #endif /* TEAM_H_ */
