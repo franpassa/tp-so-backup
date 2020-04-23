@@ -2,8 +2,8 @@
 #define TEAM_H_
 
 #define PROGRAM_NAME "team"
-#define PATH_CONFIG "team.config"
-#define PATH_LOG "team.log"
+#define PATH_CONFIG "/home/utnso/workspace/tp-2020-1c-Cuarenteam/team/team.config"
+#define PATH_LOG "/home/utnso/workspace/tp-2020-1c-Cuarenteam/team/team.log"
 
 #include<stdio.h>
 #include<stdlib.h>

@@ -4,6 +4,7 @@ uint32_t posicionXEntrenador(int nroEntrenador, char** posicionesEntrenadores){
 	char* posTemp = posicionesEntrenadores[nroEntrenador];
 	char** pos = string_split(posTemp,"|");
 	uint32_t posX = atoi(pos[0]);
+	liberarArray(pos);
 	return posX;
 }
 
@@ -11,6 +12,7 @@ uint32_t posicionYEntrenador(int nroEntrenador, char** posicionesEntrenadores){
 	char* posTemp1 = posicionesEntrenadores[nroEntrenador];
 	char** posTemp2 = string_split(posTemp1,"|");
 	uint32_t posY = atoi(posTemp2[1]);
+	liberarArray(posTemp2);
 	return posY;
 }
 
@@ -32,7 +34,7 @@ void liberarArray(char** array){
 }
 
 t_list* insertarPokesEntrenador(uint32_t nroEntrenador, t_list* pokemons, char** pokesEntrenadores){
-	void _a_la_lista(char *poke){
+	void _a_la_lista(char* poke){
 	  if (poke != NULL) {
 	    list_add(pokemons, poke);
 	  }
@@ -40,6 +42,7 @@ t_list* insertarPokesEntrenador(uint32_t nroEntrenador, t_list* pokemons, char**
 
 	char** pokesEntrenador = string_split(pokesEntrenadores[nroEntrenador],"|");
 	string_iterate_lines(pokesEntrenador,_a_la_lista);
+	free(pokesEntrenador);
 
 	return pokemons;
 }
