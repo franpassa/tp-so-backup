@@ -22,7 +22,7 @@ int main(){
 	char** pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
 	t_list* pokemons = list_create();
 
-	pokemons = insertarPokesEntrenador(1,pokemons,pokesEntrenadores);
+	pokemons = insertarPokesEntrenador(0,pokemons,pokesEntrenadores);
 
 	printf("Los pokemons del entrenador 0 son: \n");
 	list_iterate(pokemons,mostrarString); // Itero la funcion "mostrarString" en la lista
