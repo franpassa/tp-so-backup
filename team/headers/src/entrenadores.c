@@ -47,4 +47,11 @@ t_list* insertarPokesEntrenador(uint32_t nroEntrenador, t_list* pokemons, char**
 	return pokemons;
 }
 
+void liberarEntrenador(t_entrenador* entrenador){
+	list_destroy_and_destroy_elements(entrenador->pokesAtrapados,free);
+	list_destroy_and_destroy_elements(entrenador->pokesObjetivos,free);
+	free(entrenador);
+}
+
+
 

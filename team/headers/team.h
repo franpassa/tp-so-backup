@@ -20,14 +20,6 @@
 #include<stdint.h>
 #include "entrenadores.h"
 
-typedef struct Entrenador{
-	uint32_t posicionX;
-	uint32_t posicionY;
-	t_list* pokesAtrapados;
-	t_list* pokesObjetivos;
-	uint32_t idEntrenador;
-}t_entrenador;
-
 t_log* logger;
 t_config* config;
 

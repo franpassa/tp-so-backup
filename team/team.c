@@ -4,32 +4,35 @@ int main(){
 
 	inicializarPrograma(); //Inicializo logger y config
 
-	/*PRUEBA POSICIONES ENTRENADORES*/
 	char** posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
+	char** pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
+	char** pokesObjetivos = config_get_array_value(config, "OBJETIVOS_ENTRENADORES");
 
-	uint32_t cant = cantidadTotalEntrenadores(posicionesEntrenadores);
-	uint32_t posX = posicionXEntrenador(0,posicionesEntrenadores);
-	uint32_t posY = posicionYEntrenador(0,posicionesEntrenadores);
+	//t_list* entrenadores = list_create();
 
-	printf("La cantidad total de entrenadores es: %d\n\n", cant);
-	printf("La posicion en X del entrenador 0 es: %d\n\n", posX);
-	printf("La posicion en Y del entrenador 0 es: %d\n\n", posY);
+	//for(uint32_t i=0;i<cantidadTotalEntrenadores(posicionesEntrenadores);i++){
+		t_entrenador* entrenador = malloc(sizeof(t_entrenador));
+		entrenador->pokesAtrapados = list_create();
+		entrenador->pokesObjetivos = list_create();
+
+		entrenador->posicionX = posicionXEntrenador(0,posicionesEntrenadores);
+		entrenador->posicionY = posicionYEntrenador(0,posicionesEntrenadores);
+		entrenador->pokesAtrapados = insertarPokesEntrenador(0,entrenador->pokesAtrapados,pokesEntrenadores);
+		entrenador->pokesObjetivos = insertarPokesEntrenador(0,entrenador->pokesObjetivos,pokesObjetivos);
+		entrenador->idEntrenador = 0;
+
+	//	list_add(entrenadores,entrenador);
+	//}
+
+	list_iterate(((t_entrenador*)entrenador)->pokesAtrapados,mostrarString);
+
+	liberarEntrenador(entrenador);
+
 
 	liberarArray(posicionesEntrenadores);
-
-	/*PRUEBA POKEMONES ENTRENADORES*/
-
-	char** pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
-	t_list* pokemons = list_create();
-
-	pokemons = insertarPokesEntrenador(0,pokemons,pokesEntrenadores);
-
-	printf("Los pokemons del entrenador 0 son: \n");
-	list_iterate(pokemons,mostrarString); // Itero la funcion "mostrarString" en la lista
-
-	list_destroy_and_destroy_elements(pokemons,free); // Libero la lista de pokemons del entrenador
-
 	liberarArray(pokesEntrenadores);
+	liberarArray(pokesObjetivos);
+	//list_destroy_and_destroy_elements(entrenadores,free);
 
 	terminar_programa(); //Finalizo el programa
 
