@@ -54,4 +54,29 @@ void liberarEntrenador(t_entrenador* entrenador){
 }
 
 
+void crearListaDeEntrenadores(t_list* entrenadores, char** posicionesEntrenadores, char** pokesEntrenadores, char** pokesObjetivos)
+{
 
+
+	for(uint32_t i=0;i<cantidadTotalEntrenadores(posicionesEntrenadores);i++)
+	{
+		t_entrenador* entrenador = malloc(sizeof(t_entrenador));
+		entrenador->pokesAtrapados = list_create();
+		entrenador->pokesObjetivos = list_create();
+
+		entrenador->posicionX = posicionXEntrenador(i,posicionesEntrenadores);
+		entrenador->posicionY = posicionYEntrenador(i,posicionesEntrenadores);
+		entrenador->pokesAtrapados = insertarPokesEntrenador(i,entrenador->pokesAtrapados,pokesEntrenadores);
+		entrenador->pokesObjetivos = insertarPokesEntrenador(i,entrenador->pokesObjetivos,pokesObjetivos);
+		entrenador->idEntrenador = i;
+
+		list_add(entrenadores,entrenador);
+	}
+
+
+
+	liberarArray(posicionesEntrenadores);
+	liberarArray(pokesEntrenadores);
+	liberarArray(pokesObjetivos);
+	list_destroy_and_destroy_elements(entrenadores,liberarEntrenador);
+}

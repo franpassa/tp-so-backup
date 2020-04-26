@@ -3,7 +3,8 @@
 
 #include "team.h"
 
-typedef struct Entrenador{
+typedef struct Entrenador
+{
 	uint32_t posicionX;
 	uint32_t posicionY;
 	t_list* pokesAtrapados;
@@ -17,5 +18,5 @@ void liberarArray(char** posicionesEntrenadores);
 uint32_t cantidadTotalEntrenadores (char** posicionesEntrenadores);
 t_list* insertarPokesEntrenador(uint32_t nroEntrenador, t_list* pokemons, char** pokesEntrenadores);
 void liberarEntrenador(t_entrenador* entrenador);
-
+void crearListaDeEntrenadores(t_list* entrenadores, char** posicionesEntrenadores, char** pokesEntrenadores, char** pokesObjetivos);
 #endif /* ENTRENADOR_H_ */
