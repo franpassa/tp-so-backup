@@ -73,10 +73,5 @@ void crearListaDeEntrenadores(t_list* entrenadores, char** posicionesEntrenadore
 		list_add(entrenadores,entrenador);
 	}
 
-
-
-	liberarArray(posicionesEntrenadores);
-	liberarArray(pokesEntrenadores);
-	liberarArray(pokesObjetivos);
 	list_destroy_and_destroy_elements(entrenadores,liberarEntrenador);
 }

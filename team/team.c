@@ -7,8 +7,15 @@ int main(){
 	char** posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
 	char** pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
 	char** pokesObjetivos = config_get_array_value(config, "OBJETIVOS_ENTRENADORES");
-	t_list* entrenadores = list_create();
+
+	t_list* entrenadores = list_create(); //Esta lista se libera dentro de "crearListaEntrenadores"
+
 	crearListaDeEntrenadores(entrenadores,posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
+
+	liberarArray(posicionesEntrenadores);
+	liberarArray(pokesEntrenadores);
+	liberarArray(pokesObjetivos);
+
 	terminar_programa(); //Finalizo el programa
 
 	return 0;
