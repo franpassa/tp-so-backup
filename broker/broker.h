@@ -8,17 +8,15 @@
 #ifndef BROKER_H_
 #define BROKER_H_
 
+#include <stdio.h>
 #include <commons/collections/queue.h>
 #include <commons/collections/list.h>
+#include <commons/log.h>
 #include <stdint.h>
 #include <pthread.h>
+#include<commons/config.h>
+#include<sys/socket.h>
 
-t_cola_de_mensajes NEW_POKEMON;
-t_cola_de_mensajes APPEARED_POKEMON;
-t_cola_de_mensajes CATCH_POKEMON;
-t_cola_de_mensajes CAUGHT_POKEMON;
-t_cola_de_mensajes GET_POKEMON;
-t_cola_de_mensajes LOCALIZED_POKEMON;
 
 typedef struct{
 	uint32_t id;
@@ -36,6 +34,20 @@ typedef struct{
 	t_list* lista_suscriptores;
 }t_cola_de_mensajes;
 
+t_cola_de_mensajes NEW_POKEMON;
+t_cola_de_mensajes APPEARED_POKEMON;
+t_cola_de_mensajes CATCH_POKEMON;
+t_cola_de_mensajes CAUGHT_POKEMON;
+t_cola_de_mensajes GET_POKEMON;
+t_cola_de_mensajes LOCALIZED_POKEMON;
+
+t_log* logger;
+t_config* config;
+
+t_log* iniciar_logger(void);
+t_config* leer_config(void);
+void terminar_programa(t_log*, t_config*);
+
 
 t_cola_de_mensajes inicializar_cola(t_cola_de_mensajes nombre_cola){
 
@@ -45,7 +57,7 @@ t_cola_de_mensajes inicializar_cola(t_cola_de_mensajes nombre_cola){
 	return nombre_cola;
 }
 
-void recibir_mensajes(){
+/*void recibir_mensajes(){
 	int id_cola,id_tipo;
 
 	while(1){
@@ -55,7 +67,7 @@ void recibir_mensajes(){
 
 	if (si tipo es original){
 		char* mensaje = //sacar info de mensaje
-			if (*/mensaje no esta en cola/){
+			if (mensaje no esta en cola/){
 				int id_mensaje = crear_id_mensaje();
 
 				enviar_a_publisher_id(id_mensaje);
@@ -72,8 +84,8 @@ void recibir_mensajes(){
 		int id_correlativo = // sacar info de mensaje
 		confirmar_mensaje(id_cola , id_correlativo);
 	}
-}
-]
+}*/
+
 void enviar_a_publisher_id(int id){
 
 }

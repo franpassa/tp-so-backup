@@ -1,7 +1,9 @@
-#include <stdio.h>
 #include "broker.h"
 
 int main(){
+
+	char* ip;
+	char* puerto;
 
 	NEW_POKEMON = inicializar_cola(NEW_POKEMON);
 	APPEARED_POKEMON = inicializar_cola(APPEARED_POKEMON);
@@ -10,13 +12,25 @@ int main(){
 	GET_POKEMON = inicializar_cola(GET_POKEMON);
 	LOCALIZED_POKEMON = inicializar_cola(LOCALIZED_POKEMON);
 
-	pthread_t hilo_recibir, hilo_enviar;
+	logger = iniciar_logger();
 
-	pthread_create(&hilo_recibir,NULL,(void*) recibir_mensajes,NULL);
-	pthread_create(&hilo_enviar,NULL,(void*) enviar_mensajes,NULL);
+	log_info(logger,"Broker");
 
-	pthread_join(hilo_recibir, NULL);
-	pthread_join(hilo_enviar, NULL);
+	config = leer_config();
+
+	ip = config_get_string_value(config,"IP_BROKER");
+	puerto = config_get_string_value(config,"PUERTO_BROKER");
+
+	log_info(logger,ip);
+	log_info(logger,puerto);
+
+	//pthread_t hilo_recibir, hilo_enviar;
+
+	//pthread_create(&hilo_recibir,NULL,(void*) recibir_mensajes,NULL);
+	//pthread_create(&hilo_enviar,NULL,(void*) enviar_mensajes,NULL);
+
+	//pthread_join(hilo_recibir, NULL);
+	//pthread_join(hilo_enviar, NULL);
 	return 0;
 
 }
@@ -47,6 +61,26 @@ void agregar_a_cola (int id_cola, t_info_mensaje mensaje){
 			break;
 	}
 }
+
+t_log* iniciar_logger(void)
+{
+	return log_create("log", "broker", 1, LOG_LEVEL_INFO);
+
+}
+
+
+t_config* leer_config(void)
+{
+	 return config_create("broker.config");
+}
+
+void terminar_programa(t_log* logger, t_config* config)
+{
+		log_destroy(logger);
+		config_destroy(config);
+
+}
+
 /*t_cola_de_mensajes nuevo;
 	nuevo = inicializar_cola();
 	t_suscriptor uno;
