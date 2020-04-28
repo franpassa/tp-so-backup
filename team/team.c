@@ -1,23 +1,49 @@
-#include "team.h"
+#include "headers/team.h"
 
 int main(){
 
-	int socket = 0;
+	inicializarPrograma(); //Inicializo logger y config
 
-	//Inicializo el log
-	t_log* logger = iniciar_logger();
+	char** posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
+	char** pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
+	char** pokesObjetivos = config_get_array_value(config, "OBJETIVOS_ENTRENADORES");
 
-	log_info(logger, "Log del proceso 'team' creado.");
+	t_list* entrenadores = list_create(); //Esta lista se libera dentro de "crearListaEntrenadores"
 
-	//Pruebo archivo de configuracion
-	t_config* config = config_create(PATH_CONFIG);
+	crearListaDeEntrenadores(entrenadores,posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
 
-	char* nombre = config_get_string_value(config, "NOMBRE");
+	printf("El id del entrenador 0 es: %d", ((t_entrenador*)list_get(entrenadores,0))->idEntrenador);
 
-	printf("\nEl nombre es: %s", nombre);
+	liberarArray(posicionesEntrenadores);
+	liberarArray(pokesEntrenadores);
+	liberarArray(pokesObjetivos);
+	list_destroy_and_destroy_elements(entrenadores,liberarEntrenador);
 
-	//Finalizo el programa
-	terminar_programa(socket, logger, config);
+	terminar_programa(); //Finalizo el programa
 
 	return 0;
+}
+
+t_config* leer_config() {
+	return config_create(PATH_CONFIG);
+}
+
+void terminar_programa(){
+	log_destroy(logger);
+	config_destroy(config);
+}
+
+void mostrarString(void *elemento){
+  printf("%s\n", (char *)elemento);
+}
+
+void inicializarPrograma(){
+	//Leo el archivo de configuracion
+	config = config_create(PATH_CONFIG);
+	printf("Archivo de configuracion leido.\n");
+
+	//Inicializo el log
+	logger = log_create(config_get_string_value(config,"LOG_FILE"), PROGRAM_NAME, 0, LOG_LEVEL_INFO);
+	log_info(logger, "Log del proceso 'team' creado.");
+	printf("Log del proceso 'team' creado.\n\n");
 }
