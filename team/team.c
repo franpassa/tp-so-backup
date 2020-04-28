@@ -1,5 +1,9 @@
 #include "headers/team.h"
 
+void* obtenerPokesObjetivos(void* entrenador){
+	return ((t_entrenador*)entrenador)->pokesObjetivos;
+}
+
 int main(){
 
 	inicializarPrograma(); //Inicializo logger y config
@@ -8,16 +12,21 @@ int main(){
 	char** pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
 	char** pokesObjetivos = config_get_array_value(config, "OBJETIVOS_ENTRENADORES");
 
-	t_list* entrenadores = list_create(); //Esta lista se libera dentro de "crearListaEntrenadores"
+	t_list* entrenadores = list_create();
 
 	crearListaDeEntrenadores(entrenadores,posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
 
-	printf("El id del entrenador 0 es: %d", ((t_entrenador*)list_get(entrenadores,0))->idEntrenador);
+	t_list* pokesObjetivoGlobal = list_create();
+
+	pokesObjetivoGlobal = crearListaPokesObjetivos(pokesObjetivoGlobal,entrenadores);
+
+	list_iterate(pokesObjetivoGlobal,mostrarString);
 
 	liberarArray(posicionesEntrenadores);
 	liberarArray(pokesEntrenadores);
 	liberarArray(pokesObjetivos);
 	list_destroy_and_destroy_elements(entrenadores,liberarEntrenador);
+	list_destroy(pokesObjetivoGlobal);
 
 	terminar_programa(); //Finalizo el programa
 

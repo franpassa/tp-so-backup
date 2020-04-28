@@ -47,9 +47,9 @@ t_list* insertarPokesEntrenador(uint32_t nroEntrenador, t_list* pokemons, char**
 	return pokemons;
 }
 
-void liberarEntrenador(t_entrenador* entrenador){
-	list_destroy_and_destroy_elements(entrenador->pokesAtrapados,free);
-	list_destroy_and_destroy_elements(entrenador->pokesObjetivos,free);
+void liberarEntrenador(void* entrenador){
+	list_destroy_and_destroy_elements(((t_entrenador*)entrenador)->pokesAtrapados,free);
+	list_destroy_and_destroy_elements(((t_entrenador*)entrenador)->pokesObjetivos,free);
 	free(entrenador);
 }
 
@@ -70,4 +70,11 @@ void crearListaDeEntrenadores(t_list* entrenadores, char** posicionesEntrenadore
 
 		list_add(entrenadores,entrenador);
 	}
+}
+
+t_list* crearListaPokesObjetivos(t_list* pokesObjetivos, t_list* entrenadores){
+	for(int i = 0;i<list_size(entrenadores);i++){
+		list_add_all(pokesObjetivos,((t_entrenador*)list_get(entrenadores,i))->pokesObjetivos);
+	}
+	return pokesObjetivos;
 }
