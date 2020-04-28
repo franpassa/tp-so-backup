@@ -36,4 +36,4 @@ t_log* logger;
 
 void inicializar_bloques(char* punto_montaje, int cantidad);
 
-#endif /* GAME_CARD_H_ */
+#endif GAME_CARD_H_
