@@ -12,9 +12,12 @@ int main(){
 
 	crearListaDeEntrenadores(entrenadores,posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
 
+	printf("El id del entrenador 0 es: %d", ((t_entrenador*)list_get(entrenadores,0))->idEntrenador);
+
 	liberarArray(posicionesEntrenadores);
 	liberarArray(pokesEntrenadores);
 	liberarArray(pokesObjetivos);
+	list_destroy_and_destroy_elements(entrenadores,liberarEntrenador);
 
 	terminar_programa(); //Finalizo el programa
 
