@@ -23,9 +23,15 @@
 t_log* logger;
 t_config* config;
 
+typedef struct Especie{
+	char* especie;
+	uint32_t cantidad;
+}t_especie;
+
 void inicializarPrograma();
 void terminar_programa();
 t_config* leer_config();
 void mostrarString(void*);
+uint32_t cantidadDePokemons(char* especie, t_list* lista);
 
 #endif /* TEAM_H_ */
