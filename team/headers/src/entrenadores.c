@@ -72,9 +72,8 @@ void crearListaDeEntrenadores(t_list* entrenadores, char** posicionesEntrenadore
 	}
 }
 
-t_list* crearListaPokesObjetivos(t_list* pokesObjetivos, t_list* entrenadores){
+void crearListaPokesObjetivos(t_list* pokesObjetivos, t_list* entrenadores){
 	for(uint32_t i = 0;i<list_size(entrenadores);i++){
 		list_add_all(pokesObjetivos,((t_entrenador*)list_get(entrenadores,i))->pokesObjetivos);
 	}
-	return pokesObjetivos;
 }

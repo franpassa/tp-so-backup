@@ -14,7 +14,7 @@ int main(){
 
 	t_list* pokesObjetivoGlobal = list_create();
 
-	pokesObjetivoGlobal = crearListaPokesObjetivos(pokesObjetivoGlobal,entrenadores);
+	crearListaPokesObjetivos(pokesObjetivoGlobal,entrenadores);
 
 	list_iterate(pokesObjetivoGlobal,mostrarString);
 
@@ -22,26 +22,9 @@ int main(){
 
 	printf("\nLa cantidad son: %d\n\n",cantidad);
 
-	char* temp = malloc(sizeof(char));
-
-	t_list* listaEvaluados = list_create();
 	t_list* listaObjetivos = list_create();
 
-	bool esDistinto(void* uno){
-		return strcmp((char*)uno,temp)!=0;
-	}
-
-	for(int i=0;i<list_size(pokesObjetivoGlobal);i++){
-		t_especie* especieTemporal = malloc(sizeof(t_especie));
-		temp = list_get(pokesObjetivoGlobal,i);
-
-		if(list_all_satisfy(listaEvaluados,esDistinto)){
-			especieTemporal->especie = temp;
-			especieTemporal->cantidad = cantidadDePokemons(temp,pokesObjetivoGlobal);
-			list_add(listaObjetivos,especieTemporal);
-			list_add(listaEvaluados,temp);
-		}
-	}
+	crearListaObjetivoGlobal(listaObjetivos,pokesObjetivoGlobal);
 
 	printf("El pokemon de nombre %s",((t_especie*)list_get(listaObjetivos,0))->especie);
 	printf(" aparece %d veces",((t_especie*)list_get(listaObjetivos,0))->cantidad);
@@ -53,6 +36,7 @@ int main(){
 	liberarArray(pokesObjetivos);
 	list_destroy_and_destroy_elements(entrenadores,liberarEntrenador);
 	list_destroy(pokesObjetivoGlobal);
+	//list_destroy(listaObjetivos);
 
 	terminar_programa(); //Finalizo el programa
 
@@ -92,4 +76,31 @@ uint32_t cantidadDePokemons(char* especie, t_list* lista){
 		}
 	}
 	return cantidad;
+}
+
+void crearListaObjetivoGlobal(t_list* listaObjetivos,t_list* pokesObjetivoGlobal){
+	char* temp = malloc(sizeof(char));
+
+	t_list* listaEvaluados = list_create();
+
+	bool esDistinto(void* uno){
+		return strcmp((char*)uno,temp)!=0;
+	}
+
+	for(int i=0;i<list_size(pokesObjetivoGlobal);i++){
+		t_especie* especieTemporal = malloc(sizeof(t_especie));
+		temp = list_get(pokesObjetivoGlobal,i);
+
+		if(list_all_satisfy(listaEvaluados,esDistinto)){
+			especieTemporal->especie = temp;
+			especieTemporal->cantidad = cantidadDePokemons(temp,pokesObjetivoGlobal);
+			list_add(listaObjetivos,especieTemporal);
+			list_add(listaEvaluados,temp);
+		}
+	}
+}
+
+void liberarPokemon(void* pokemon){
+	free(((t_especie*)pokemon)->especie);
+	free(pokemon);
 }
