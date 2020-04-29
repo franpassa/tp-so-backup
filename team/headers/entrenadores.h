@@ -19,6 +19,6 @@ uint32_t cantidadTotalEntrenadores (char** posicionesEntrenadores);
 t_list* insertarPokesEntrenador(uint32_t nroEntrenador, t_list* pokemons, char** pokesEntrenadores);
 void liberarEntrenador(void* entrenador);
 void crearListaDeEntrenadores(t_list* entrenadores, char** posicionesEntrenadores, char** pokesEntrenadores, char** pokesObjetivos);
-void crearListaPokesObjetivos(t_list* pokesObjetivos, t_list* entrenadores);
+t_list* crearListaPokesObjetivos(t_list* entrenadores);
 
 #endif /* ENTRENADOR_H_ */

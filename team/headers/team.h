@@ -33,7 +33,7 @@ void terminar_programa();
 t_config* leer_config();
 void mostrarString(void*);
 uint32_t cantidadDePokemons(char* especie, t_list* lista);
-void crearListaObjetivoGlobal(t_list* listaObjetivos,t_list* pokesObjetivoGlobal);
+t_list* crearListaObjetivoGlobal(t_list* pokesObjetivoGlobal);
 void liberarPokemon(void* pokemon);
 
 #endif /* TEAM_H_ */

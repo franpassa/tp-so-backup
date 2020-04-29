@@ -12,9 +12,7 @@ int main(){
 
 	crearListaDeEntrenadores(entrenadores,posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
 
-	t_list* pokesObjetivoGlobal = list_create();
-
-	crearListaPokesObjetivos(pokesObjetivoGlobal,entrenadores);
+	t_list* pokesObjetivoGlobal = crearListaPokesObjetivos(entrenadores);
 
 	list_iterate(pokesObjetivoGlobal,mostrarString);
 
@@ -22,21 +20,20 @@ int main(){
 
 	printf("\nLa cantidad son: %d\n\n",cantidad);
 
-	t_list* listaObjetivos = list_create();
+	t_list* listaObjetivos = crearListaObjetivoGlobal(pokesObjetivoGlobal);
 
-	crearListaObjetivoGlobal(listaObjetivos,pokesObjetivoGlobal);
-
-	printf("El pokemon de nombre %s",((t_especie*)list_get(listaObjetivos,1))->especie);
-	printf(" aparece %d veces",((t_especie*)list_get(listaObjetivos,1))->cantidad);
+	printf("La cantidad de pokemons sin repetir son: %d\n",list_size(listaObjetivos));
+	printf("El pokemon de nombre %s",((t_especie*) list_get(listaObjetivos,0))->especie);
+	printf(" aparece %d veces\n",((t_especie*)list_get(listaObjetivos,0))->cantidad);
 
 
 	/* LIBERO ELEMENTOS */
 	liberarArray(posicionesEntrenadores);
 	liberarArray(pokesEntrenadores);
 	liberarArray(pokesObjetivos);
+	list_destroy_and_destroy_elements(pokesObjetivoGlobal, free);
 	list_destroy_and_destroy_elements(entrenadores,liberarEntrenador);
-	list_destroy(pokesObjetivoGlobal);
-	list_destroy_and_destroy_elements(listaObjetivos,free);
+	list_destroy_and_destroy_elements(listaObjetivos,liberarPokemon);
 
 	terminar_programa(); //Finalizo el programa
 
@@ -78,28 +75,39 @@ uint32_t cantidadDePokemons(char* especie, t_list* lista){
 	return cantidad;
 }
 
-void crearListaObjetivoGlobal(t_list* listaObjetivos,t_list* pokesObjetivoGlobal){
-	t_list* listaEvaluados = list_create();
+t_list* crearListaObjetivoGlobal(t_list* pokesObjetivoGlobal){
 
-	for(int i=0;i<list_size(pokesObjetivoGlobal);i++){
-		t_especie* especieTemporal = malloc(sizeof(t_especie));
+	t_list* objetivoGlobal = list_create();
 
-		bool esDistinto(void* uno){
-			return strcmp((char*)uno,list_get(pokesObjetivoGlobal,i))!=0;
+	for(int i=0; i < list_size(pokesObjetivoGlobal); i++){
+
+		char* pokemon = (char*) list_get(pokesObjetivoGlobal, i);
+
+		bool es_el_mismo(t_especie* especie){
+			return string_equals_ignore_case(pokemon, especie->especie);
 		}
 
-		if(list_all_satisfy(listaEvaluados,esDistinto)){
-			especieTemporal->especie = list_get(pokesObjetivoGlobal,i);
-			especieTemporal->cantidad = cantidadDePokemons(list_get(pokesObjetivoGlobal,i),pokesObjetivoGlobal);
-			list_add(listaObjetivos,especieTemporal);
-			list_add(listaEvaluados,list_get(pokesObjetivoGlobal,i));
+		t_especie* pokemon_ya_en_lista = list_find(objetivoGlobal, (void*) es_el_mismo);
+
+		if(pokemon_ya_en_lista == NULL){
+
+			char* copia_pokemon = string_duplicate(pokemon);
+			t_especie* nueva_especie = malloc(sizeof(t_especie));
+			nueva_especie->especie = copia_pokemon;
+			nueva_especie->cantidad = 1;
+
+		} else {
+			pokemon_ya_en_lista->cantidad++;
 		}
+
 	}
 
-	list_destroy(listaEvaluados);
+	return objetivoGlobal;
 }
 
+
 void liberarPokemon(void* pokemon){
-	free(((t_especie*)pokemon)->especie);
-	free(pokemon);
+	t_especie* liberar = (t_especie*)pokemon;
+	free(liberar->especie);
+	free(liberar);
 }

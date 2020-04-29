@@ -72,8 +72,22 @@ void crearListaDeEntrenadores(t_list* entrenadores, char** posicionesEntrenadore
 	}
 }
 
-void crearListaPokesObjetivos(t_list* pokesObjetivos, t_list* entrenadores){
-	for(uint32_t i = 0;i<list_size(entrenadores);i++){
-		list_add_all(pokesObjetivos,((t_entrenador*)list_get(entrenadores,i))->pokesObjetivos);
+t_list* crearListaPokesObjetivos(t_list* entrenadores){
+
+	t_list* pokesObjetivo = list_create();
+
+	for(int i = 0; i < list_size(entrenadores); i++){
+
+		t_entrenador* entrenador = (t_entrenador*) list_get(entrenadores, i);
+		t_list* pokemons_entrenador = (t_list*) entrenador->pokesObjetivos;
+
+		for(int j = 0; j < list_size(pokemons_entrenador); j++){
+			char* pokemon = list_get(pokemons_entrenador, j);
+			char* copia_pokemon = string_duplicate(pokemon);
+			list_add(pokesObjetivo, copia_pokemon);
+
+		}
 	}
+
+	return pokesObjetivo;
 }
