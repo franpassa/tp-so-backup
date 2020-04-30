@@ -35,7 +35,7 @@ int suscribirse_a_queue(queue_name cola, char* ip, char* puerto){
 
 }
 
-void enviar_mensaje(queue_name cola, void* estructura_mensaje, int socket_receptor){
+int enviar_mensaje(queue_name cola, void* estructura_mensaje, int socket_receptor){
 
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
@@ -85,8 +85,6 @@ void enviar_mensaje(queue_name cola, void* estructura_mensaje, int socket_recept
 			paquete->buffer->size = sizeof(uint32_t) * 2 + msg_get->tamanio_nombre;
 			stream = malloc(paquete->buffer->size);
 
-			memcpy(stream + offset, &(msg_get->id_mensaje), sizeof(uint32_t));
-			offset += sizeof(uint32_t);
 			memcpy(stream + offset, &(msg_get->tamanio_nombre), sizeof(uint32_t));
 			offset += sizeof(uint32_t);
 			memcpy(stream + offset, msg_get->nombre_pokemon, msg_get->tamanio_nombre);
@@ -119,8 +117,6 @@ void enviar_mensaje(queue_name cola, void* estructura_mensaje, int socket_recept
 			paquete->buffer->size = sizeof(uint32_t) * 4 + msg_catch->tamanio_nombre;
 			stream = malloc(paquete->buffer->size);
 
-			memcpy(stream + offset, &(msg_catch->id_mensaje), sizeof(uint32_t));
-			offset += sizeof(uint32_t);
 			memcpy(stream + offset, &(msg_catch->tamanio_nombre), sizeof(uint32_t));
 			offset += sizeof(uint32_t);
 			memcpy(stream + offset, msg_catch->nombre_pokemon, msg_catch->tamanio_nombre);
@@ -144,7 +140,8 @@ void enviar_mensaje(queue_name cola, void* estructura_mensaje, int socket_recept
 			break;
 	}
 
-	int total_bytes = paquete->buffer->size + sizeof(queue_name) + sizeof(uint32_t);
+	// El tamaño total sería: id_cola (4) + id_mensaje (4) + buffer_size (4) + stream (buffer_size)
+	int total_bytes = paquete->buffer->size + sizeof(queue_name) + 2 * sizeof(uint32_t);
 
 	paquete->buffer->stream = stream;
 	void* a_enviar = serializar_paquete(paquete, total_bytes);
@@ -155,8 +152,12 @@ void enviar_mensaje(queue_name cola, void* estructura_mensaje, int socket_recept
 	free(paquete->buffer);
 	free(paquete);
 	free(a_enviar);
-}
 
+	int id;
+	recv(socket_receptor, &id, sizeof(int), MSG_WAITALL);
+
+	return id;
+}
 
 void* serializar_paquete(t_paquete* paquete, int bytes){
 
@@ -170,4 +171,141 @@ void* serializar_paquete(t_paquete* paquete, int bytes){
 	memcpy(a_enviar + offset, paquete->buffer->stream, paquete->buffer->size);
 
 	return a_enviar;
+}
+
+void confirmar_recepcion(queue_name cola, uint32_t id_mensaje, int socket){
+	t_paquete* paquete = malloc(sizeof(t_paquete));
+
+	paquete->cola_msg = cola;
+	paquete->buffer = malloc(sizeof(t_buffer));
+	paquete->buffer->size = 0;
+	paquete->buffer->stream = malloc(sizeof(uint32_t));
+
+	memcpy(paquete->buffer->stream, &(id_mensaje), sizeof(uint32_t));
+}
+
+// Devuelve NULL si por alguna razón la cola del mensaje recibido es diferente a la recibida x parámetro
+void* recibir_mensaje(queue_name cola, int socket){
+
+	t_paquete* paquete = malloc(sizeof(t_paquete));
+
+	recv(socket, &(paquete->cola_msg), sizeof(queue_name), MSG_WAITALL);
+
+	if(cola != paquete->cola_msg) return NULL;
+
+	paquete->buffer = malloc(sizeof(t_buffer));
+	recv(socket, &(paquete->buffer->size), sizeof(queue_name), MSG_WAITALL);
+
+	paquete->buffer->stream = malloc(paquete->buffer->size);
+	recv(socket, paquete->buffer->stream, paquete->buffer->size, MSG_WAITALL);
+
+	void* stream = paquete->buffer->stream;
+	uint32_t offset = 0;
+
+	switch(cola){
+
+			case NEW_POKEMON: ;
+				new_pokemon_msg* msg_new = malloc(sizeof(new_pokemon_msg));
+
+				memcpy(&(msg_new->tamanio_nombre), stream + offset, sizeof(uint32_t));
+				offset += sizeof(uint32_t);
+				msg_new->nombre_pokemon = malloc(msg_new->tamanio_nombre);
+				memcpy(msg_new->nombre_pokemon, stream + offset, msg_new->tamanio_nombre);
+				offset += msg_new->tamanio_nombre;
+				memcpy(&(msg_new->coordenada_X), stream + offset, sizeof(uint32_t));
+				offset += sizeof(uint32_t);
+				memcpy(&(msg_new->coordenada_Y), stream + offset, sizeof(uint32_t));
+				offset += sizeof(uint32_t);
+				memcpy(&(msg_new->cantidad_pokemon), stream + offset, sizeof(uint32_t));
+
+				free_paquete(paquete);
+
+				return (void*) msg_new;
+
+			case APPEARED_POKEMON: ;
+				appeared_pokemon_msg* msg_appeared = malloc(sizeof(appeared_pokemon_msg));
+
+				memcpy(&(msg_appeared->tamanio_nombre), stream + offset, sizeof(uint32_t));
+				offset += sizeof(uint32_t);
+				msg_appeared->nombre_pokemon = malloc(msg_appeared->tamanio_nombre);
+				memcpy(msg_appeared->nombre_pokemon, stream + offset, msg_appeared->tamanio_nombre);
+				offset += msg_appeared->tamanio_nombre;
+				memcpy(&(msg_appeared->coordenada_X), stream + offset, sizeof(uint32_t));
+				offset += sizeof(uint32_t);
+				memcpy(&(msg_appeared->coordenada_Y), stream + offset, sizeof(uint32_t));
+
+				free_paquete(paquete);
+
+				return (void*) msg_appeared;
+
+			case GET_POKEMON: ;
+				get_pokemon_msg* msg_get = malloc(sizeof(get_pokemon_msg));
+
+				memcpy(&(msg_get->tamanio_nombre), stream + offset, sizeof(uint32_t));
+				offset += sizeof(uint32_t);
+				msg_get->nombre_pokemon = malloc(msg_get->tamanio_nombre);
+				memcpy(msg_get->nombre_pokemon, stream + offset, msg_get->tamanio_nombre);
+
+				free_paquete(paquete);
+
+				return (void*) msg_get;
+
+			case LOCALIZED_POKEMON: ;
+				localized_pokemon_msg* msg_localized = malloc(sizeof(localized_pokemon_msg));
+
+				memcpy(&(msg_localized->id_correlativo), stream + offset, sizeof(uint32_t));
+				offset += sizeof(uint32_t);
+				memcpy(&(msg_localized->tamanio_nombre), stream + offset, sizeof(uint32_t));
+				offset += sizeof(uint32_t);
+				msg_localized->nombre_pokemon = malloc(msg_localized->tamanio_nombre);
+				memcpy(msg_localized->nombre_pokemon, stream + offset, msg_localized->tamanio_nombre);
+				offset += msg_localized->tamanio_nombre;
+				memcpy(&(msg_localized->cantidad_posiciones), stream + offset, sizeof(uint32_t));
+				offset += sizeof(uint32_t);
+
+				uint32_t tamanio_pares_coordenadas = sizeof(uint32_t) * msg_localized->cantidad_posiciones * 2;
+
+				msg_localized->pares_coordenadas = malloc(tamanio_pares_coordenadas);
+				memcpy(msg_localized->pares_coordenadas, stream + offset, tamanio_pares_coordenadas);
+
+				free_paquete(paquete);
+
+				return (void*) msg_localized;
+
+			case CATCH_POKEMON: ;
+				catch_pokemon_msg* msg_catch = malloc(sizeof(catch_pokemon_msg));
+
+				memcpy(&(msg_catch->tamanio_nombre), stream + offset, sizeof(uint32_t));
+				offset += sizeof(uint32_t);
+				msg_catch->nombre_pokemon = malloc(msg_catch->tamanio_nombre);
+				memcpy(msg_catch->nombre_pokemon, stream + offset, msg_catch->tamanio_nombre);
+				offset += msg_catch->tamanio_nombre;
+				memcpy(&(msg_catch->coordenada_X), stream + offset, sizeof(uint32_t));
+				offset += sizeof(uint32_t);
+				memcpy(&(msg_catch->coordenada_Y), stream + offset, sizeof(uint32_t));
+
+				free_paquete(paquete);
+
+				return (void*) msg_catch;
+
+			case CAUGHT_POKEMON: ;
+				caught_pokemon_msg* msg_caught = malloc(sizeof(caught_pokemon_msg));
+
+				memcpy(&(msg_caught->id_correlativo), stream + offset, sizeof(uint32_t));
+				offset += sizeof(uint32_t);
+				memcpy(&(msg_caught->resultado), stream + offset, sizeof(uint32_t));
+
+				free_paquete(paquete);
+
+				return (void*) msg_caught;
+		}
+
+	return NULL;
+
+}
+
+void free_paquete(t_paquete* paquete){
+	free(paquete->buffer->stream);
+	free(paquete->buffer);
+	free(paquete);
 }

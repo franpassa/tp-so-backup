@@ -1,11 +1,8 @@
 #include "headers/game_card.h"
 
 void inicializar(){
-	config = config_create(CONFIG_PATH);
-	if(config == NULL){
-		printf("Error abriendo el archivo de configuración\n");
-		exit(-1);
-	}
+
+
 
 	logger = log_create(LOG_PATH, "Game Card", false, LOG_LEVEL_INFO);
 

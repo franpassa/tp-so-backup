@@ -1,5 +1,9 @@
 #include "game_card.h"
 
+t_bitarray* inicializar_filesystem(char* punto_montaje){
+
+}
+
 void inicializar_bloques(char* punto_montaje, int cantidad){
 
 	char* blocks_path = string_new();

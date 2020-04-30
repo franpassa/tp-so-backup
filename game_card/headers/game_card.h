@@ -19,6 +19,7 @@
 #include <commons/log.h>
 #include <commons/config.h>
 #include <commons/string.h>
+#include <commons/bitarray.h>
 
 // -------- Cuarenteam libs --------
 
@@ -36,8 +37,16 @@ t_log* logger;
 
 // -------- Funciones --------
 
+// --- General ---
+
+t_config* get_config(char* config_path);
+t_log* crear_log(char* log_path);
+
 // --- Filesystem ---
 
+t_bitarray* inicializar_filesystem(char* punto_montaje);
 void inicializar_bloques(char* punto_montaje, int cantidad);
+
+
 
 #endif
