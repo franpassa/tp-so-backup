@@ -23,8 +23,8 @@ int main(){
 	t_list* listaObjetivos = crearListaObjetivoGlobal(pokesObjetivoGlobal);
 
 	printf("La cantidad de pokemons sin repetir son: %d\n",list_size(listaObjetivos));
-	printf("El pokemon de nombre %s",((t_especie*) list_get(listaObjetivos,0))->especie);
-	printf(" aparece %d veces\n",((t_especie*)list_get(listaObjetivos,0))->cantidad);
+	printf("El pokemon de nombre %s",((t_especie*) list_get(listaObjetivos,1))->especie);
+	printf(" aparece %d veces\n",((t_especie*)list_get(listaObjetivos,1))->cantidad);
 
 
 	/* LIBERO ELEMENTOS */
@@ -95,7 +95,7 @@ t_list* crearListaObjetivoGlobal(t_list* pokesObjetivoGlobal){
 			t_especie* nueva_especie = malloc(sizeof(t_especie));
 			nueva_especie->especie = copia_pokemon;
 			nueva_especie->cantidad = 1;
-
+			list_add(objetivoGlobal,nueva_especie);
 		} else {
 			pokemon_ya_en_lista->cantidad++;
 		}
