@@ -19,6 +19,7 @@
 #include<string.h>
 #include<stdint.h>
 #include "entrenadores.h"
+#include "pokemon.h"
 
 t_log* logger;
 t_config* config;
