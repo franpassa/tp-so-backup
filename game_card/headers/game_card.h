@@ -20,6 +20,10 @@
 #include <commons/config.h>
 #include <commons/string.h>
 
+// -------- Cuarenteam libs --------
+
+#include <conexiones.h>
+
 // -------- Constantes --------
 
 #define CONFIG_PATH "game_card.config"
@@ -36,4 +40,4 @@ t_log* logger;
 
 void inicializar_bloques(char* punto_montaje, int cantidad);
 
-#endif GAME_CARD_H_
+#endif
