@@ -1,8 +1,8 @@
 libcuarenteam.so: conexiones.o
-	gcc -shared -o libcuarenteam.so conexiones.o
+	gcc -shared -g -o libcuarenteam.so conexiones.o
 
 conexiones.o: conexiones.c conexiones.h
-	gcc -c -Wall -Werror -fpic conexiones.c
+	gcc -c -Wall -g -Werror -fpic conexiones.c
 
 install: libcuarenteam.so
 	cp -u libcuarenteam.so /usr/lib
@@ -10,4 +10,4 @@ install: libcuarenteam.so
 
 clean: # Finalmente creamos una tarea para eliminar todos los .o y el binario
 	-rm -f *.o
-	-rm -f $(TARGET)
+	-rm -f libcuarenteam.so

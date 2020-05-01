@@ -38,7 +38,6 @@ typedef struct {
 } appeared_pokemon_msg;
 
 typedef struct {
-	uint32_t id_mensaje;
 	uint32_t tamanio_nombre;
 	char* nombre_pokemon;
 } get_pokemon_msg;
@@ -52,7 +51,6 @@ typedef struct {
 } localized_pokemon_msg;
 
 typedef struct {
-	uint32_t id_mensaje;
 	uint32_t tamanio_nombre;
 	char* nombre_pokemon;
 	uint32_t coordenada_X;
@@ -77,12 +75,10 @@ typedef struct {
 } t_paquete;
 
 void free_paquete(t_paquete* paquete);
-
-
 int suscribirse_a_queue(queue_name cola, char* ip, char* puerto);
-void enviar_mensaje(queue_name cola, void* mensaje, int socket);
-
+int enviar_mensaje(queue_name cola, void* mensaje, int socket);
+void confirmar_recepcion(queue_name cola, uint32_t id_mensaje, int socket);
+void* recibir_mensaje(queue_name cola, int socket);
 void* serializar_paquete(t_paquete* paquete, int bytes);
-
 
 #endif
