@@ -1,5 +1,6 @@
 #include "headers/team.h"
 #include <conexiones.h>
+#include <time.h>
 
 int main(){
 
@@ -35,6 +36,22 @@ int main(){
 	list_destroy_and_destroy_elements(pokesObjetivoGlobal, free);
 	list_destroy_and_destroy_elements(entrenadores,liberarEntrenador);
 	list_destroy_and_destroy_elements(listaObjetivos,liberarPokemon);
+
+
+
+	char*  ipBroker = config_get_string_value(config,"IP_BROKER");
+	char* puertoBroker = config_get_string_value(config,"PUERTO_BROKER");
+	int  tiempoDeReconexion = config_get_int_value("TIEMPO_RECONEXION");
+	while(1)
+	{
+		if(suscribirse_a_queue(APPEARED_POKEMON,ipBroker,puertoBroker) == -1)
+		{
+			printf("esperando Nueva Conexion");
+
+		}
+		sleep(tiempoDeReconexion);
+
+	}
 
 	terminar_programa(); //Finalizo el programa
 

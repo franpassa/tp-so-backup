@@ -5,6 +5,7 @@
 #define PATH_CONFIG "/home/utnso/workspace/tp-2020-1c-Cuarenteam/team/team.config"
 #define PATH_LOG "/home/utnso/workspace/tp-2020-1c-Cuarenteam/team/team.log"
 
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<commons/string.h>
