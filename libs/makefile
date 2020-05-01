@@ -1,3 +1,5 @@
+all: libcuarenteam.so
+
 libcuarenteam.so: conexiones.o
 	gcc -shared -g -o libcuarenteam.so conexiones.o
 

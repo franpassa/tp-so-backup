@@ -32,7 +32,6 @@ int suscribirse_a_queue(queue_name cola, char* ip, char* puerto){
 		// Si la respuesta es -1, hubo un error en la suscripción.
 		return respuesta_broker;
 	}
-
 }
 
 int enviar_mensaje(queue_name cola, void* estructura_mensaje, int socket_receptor){
@@ -309,3 +308,71 @@ void free_paquete(t_paquete* paquete){
 	free(paquete->buffer);
 	free(paquete);
 }
+
+// ------------------ Constructores
+
+new_pokemon_msg* new_msg(char* nombre_pokemon, uint32_t x, uint32_t y, uint32_t cantidad){
+	new_pokemon_msg* msg = malloc(sizeof(new_pokemon_msg));
+
+	msg->tamanio_nombre = strlen(nombre_pokemon) + 1;
+	msg->nombre_pokemon = nombre_pokemon;
+	msg->coordenada_X = x;
+	msg->coordenada_Y = y;
+	msg->cantidad_pokemon = cantidad;
+
+	return msg;
+}
+
+appeared_pokemon_msg* appeared_msg(char* nombre_pokemon, uint32_t x, uint32_t y){
+	appeared_pokemon_msg* msg = malloc(sizeof(appeared_pokemon_msg));
+
+	msg->tamanio_nombre = strlen(nombre_pokemon) + 1;
+	msg->nombre_pokemon = nombre_pokemon;
+	msg->coordenada_X = x;
+	msg->coordenada_Y = y;
+
+	return msg;
+}
+
+get_pokemon_msg* get_msg(char* nombre_pokemon){
+	get_pokemon_msg* msg = malloc(sizeof(get_pokemon_msg));
+
+	msg->tamanio_nombre = strlen(nombre_pokemon) + 1;
+	msg->nombre_pokemon = nombre_pokemon;
+
+	return msg;
+}
+
+localized_pokemon_msg* localized_msg(uint32_t id_corr, char* nombre_pokemon, uint32_t cant_posiciones, uint32_t* pares){
+	localized_pokemon_msg* msg = malloc(sizeof(localized_pokemon_msg));
+
+	msg->id_correlativo = id_corr;
+	msg->tamanio_nombre = strlen(nombre_pokemon) + 1;
+	msg->nombre_pokemon = nombre_pokemon;
+	msg->cantidad_posiciones = cant_posiciones;
+	msg->pares_coordenadas = pares;
+
+	return msg;
+}
+
+catch_pokemon_msg* catch_msg(char* nombre_pokemon, uint32_t x, uint32_t y){
+	catch_pokemon_msg* msg = malloc(sizeof(catch_pokemon_msg));
+
+	msg->tamanio_nombre = strlen(nombre_pokemon) + 1;
+	msg->nombre_pokemon = nombre_pokemon;
+	msg->coordenada_X = x;
+	msg->coordenada_Y = y;
+
+	return msg;
+}
+
+caught_pokemon_msg* caught_msg(uint32_t id_corr, uint32_t resultado){
+	caught_pokemon_msg* msg = malloc(sizeof(caught_pokemon_msg));
+
+	msg->id_correlativo = id_corr;
+	msg->resultado = resultado;
+
+	return msg;
+}
+
+// ------------------ Fin constructores

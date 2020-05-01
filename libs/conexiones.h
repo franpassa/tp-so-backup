@@ -74,6 +74,13 @@ typedef struct {
 	t_buffer* buffer;
 } t_paquete;
 
+new_pokemon_msg* new_msg(char* nombre_pokemon, uint32_t x, uint32_t y, uint32_t cantidad);
+appeared_pokemon_msg* appeared_msg(char* nombre_pokemon, uint32_t x, uint32_t y);
+get_pokemon_msg* get_msg(char* nombre_pokemon);
+localized_pokemon_msg* localized_msg(uint32_t id_corr, char* nombre_pokemon, uint32_t cant_posiciones, uint32_t* pares);
+catch_pokemon_msg* catch_msg(char* nombre_pokemon, uint32_t x, uint32_t y);
+caught_pokemon_msg* caught_msg(uint32_t id_corr, uint32_t resultado);
+
 void free_paquete(t_paquete* paquete);
 int suscribirse_a_queue(queue_name cola, char* ip, char* puerto);
 int enviar_mensaje(queue_name cola, void* mensaje, int socket);
