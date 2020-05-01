@@ -1,6 +1,18 @@
 #include "headers/team.h"
-#include <conexiones.h>
-#include <time.h>
+
+
+
+void crearHilos(t_list* entrenadores)
+{
+	pthread_t  hiloEntrenador[list_size(entrenadores)];
+	for(int i = 0; i<list_size(entrenadores); i++)
+	{
+		sleep(5);
+		t_entrenador* entrenador_aux = (t_entrenador*)list_get(entrenadores,i);
+		pthread_create(&hiloEntrenador[i],NULL,(void*) mostrarEntrenador, entrenador_aux);
+		pthread_join(hiloEntrenador[i],NULL);
+	}
+}
 
 int main(){
 
@@ -28,7 +40,7 @@ int main(){
 	printf("El pokemon de nombre %s",((t_especie*) list_get(listaObjetivos,1))->especie);
 	printf(" aparece %d veces\n",((t_especie*)list_get(listaObjetivos,1))->cantidad);
 
-
+	crearHilos(entrenadores);
 	/* LIBERO ELEMENTOS */
 	liberarArray(posicionesEntrenadores);
 	liberarArray(pokesEntrenadores);
@@ -37,23 +49,26 @@ int main(){
 	list_destroy_and_destroy_elements(entrenadores,liberarEntrenador);
 	list_destroy_and_destroy_elements(listaObjetivos,liberarPokemon);
 
+	// conectar el team al boker
+//	char*  ipBroker = config_get_string_value(config,"IP_BROKER");
+//	char* puertoBroker = config_get_string_value(config,"PUERTO_BROKER");
+//	int  tiempoDeReconexion = config_get_int_value(config,"TIEMPO_RECONEXION");
 
 
-	char*  ipBroker = config_get_string_value(config,"IP_BROKER");
-	char* puertoBroker = config_get_string_value(config,"PUERTO_BROKER");
-	int  tiempoDeReconexion = config_get_int_value("TIEMPO_RECONEXION");
-	while(1)
+	/*while(1)
 	{
 		if(suscribirse_a_queue(APPEARED_POKEMON,ipBroker,puertoBroker) == -1)
 		{
-			printf("esperando Nueva Conexion");
+			printf("Esperando Nueva Conexion /n");
 
 		}
 		sleep(tiempoDeReconexion);
 
-	}
+	}*/
 
 	terminar_programa(); //Finalizo el programa
+
+
 
 	return 0;
 }

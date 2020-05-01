@@ -19,8 +19,11 @@
 #include<netdb.h>
 #include<string.h>
 #include<stdint.h>
-#include "entrenadores.h"
-#include "pokemon.h"
+#include"entrenadores.h"
+#include"pokemon.h"
+#include<conexiones.h>
+#include<time.h>
+#include<pthread.h>
 
 t_log* logger;
 t_config* config;
