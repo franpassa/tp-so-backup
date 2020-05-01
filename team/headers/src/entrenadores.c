@@ -53,8 +53,10 @@ void liberarEntrenador(void* entrenador){
 	free(entrenador);
 }
 
-void crearListaDeEntrenadores(t_list* entrenadores, char** posicionesEntrenadores, char** pokesEntrenadores, char** pokesObjetivos)
+t_list* crearListaDeEntrenadores(char** posicionesEntrenadores, char** pokesEntrenadores, char** pokesObjetivos)
 {
+	t_list* entrenadores = list_create();
+
 	for(uint32_t i=0;i<cantidadTotalEntrenadores(posicionesEntrenadores);i++)
 	{
 		t_entrenador* entrenador = malloc(sizeof(t_entrenador));
@@ -69,6 +71,8 @@ void crearListaDeEntrenadores(t_list* entrenadores, char** posicionesEntrenadore
 
 		list_add(entrenadores,entrenador);
 	}
+
+	return entrenadores;
 }
 
 t_list* crearListaPokesObjetivos(t_list* entrenadores){
@@ -93,14 +97,13 @@ t_list* crearListaPokesObjetivos(t_list* entrenadores){
 
 void mostrarEntrenador(void* entrenador)
 {
-	printf(" \n\n La identificacion del entrenador es %d: \n ",((t_entrenador*)entrenador)->idEntrenador);
-	printf("La posicion x del entrenador es: %d \n " ,((t_entrenador*)entrenador)->posicionX);
-	printf("La posicion y del entrenador es: %d \n ",((t_entrenador*)entrenador)->posicionY);
-	printf("Los pokemon atrapados del entrenador son: \n ");
+	printf("\n\nLa identificacion del entrenador es: %d\n",((t_entrenador*)entrenador)->idEntrenador);
+	printf("La posicion x del entrenador es: %d\n" ,((t_entrenador*)entrenador)->posicionX);
+	printf("La posicion y del entrenador es: %d\n",((t_entrenador*)entrenador)->posicionY);
+	printf("\nLos pokemon atrapados del entrenador son: \n");
 	list_iterate((((t_entrenador*)entrenador)->pokesAtrapados),mostrarString);
-	printf("Los pokemon objenidos del entrenador son: \n");
+	printf("\nLos pokemon obtenidos del entrenador son: \n");
 	list_iterate((((t_entrenador*)entrenador)->pokesObjetivos),mostrarString);
-
 }
 
 

@@ -18,7 +18,7 @@ void liberarArray(char** posicionesEntrenadores);
 uint32_t cantidadTotalEntrenadores (char** posicionesEntrenadores);
 t_list* insertarPokesEntrenador(uint32_t nroEntrenador, t_list* pokemons, char** pokesEntrenadores);
 void liberarEntrenador(void* entrenador);
-void crearListaDeEntrenadores(t_list* entrenadores, char** posicionesEntrenadores, char** pokesEntrenadores, char** pokesObjetivos);
+t_list* crearListaDeEntrenadores(char** posicionesEntrenadores, char** pokesEntrenadores, char** pokesObjetivos);
 t_list* crearListaPokesObjetivos(t_list* entrenadores);
 void mostrarEntrenador(void* entrenador);
 

@@ -1,7 +1,5 @@
 #include "headers/team.h"
 
-
-
 void crearHilos(t_list* entrenadores)
 {
 	pthread_t  hiloEntrenador[list_size(entrenadores)];
@@ -22,9 +20,7 @@ int main(){
 	char** pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
 	char** pokesObjetivos = config_get_array_value(config, "OBJETIVOS_ENTRENADORES");
 
-	t_list* entrenadores = list_create();
-
-	crearListaDeEntrenadores(entrenadores,posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
+	t_list* entrenadores = crearListaDeEntrenadores(posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
 
 	t_list* pokesObjetivoGlobal = crearListaPokesObjetivos(entrenadores);
 
@@ -41,6 +37,19 @@ int main(){
 	printf(" aparece %d veces\n",((t_especie*)list_get(listaObjetivos,1))->cantidad);
 
 	crearHilos(entrenadores);
+
+	//Prototipo del envio de mensajes GET al Broker (No va a funcionar sin conectarse al broker y obtener el socket)
+
+	/*for(int i=0; i<list_size(listaObjetivos); i++){
+		t_especie* pokemon = (t_especie*) list_get(listaObjetivos,i);
+		char* nombrePokemon = string_duplicate(pokemon->especie);
+		get_pokemon_msg* mensaje = get_msg(nombrePokemon);
+		enviar_mensaje(GET_POKEMON,mensaje,1); //Aca supongo que la conexion con el Broker me devuelve un 1.
+		free(mensaje->nombre_pokemon);
+		free(mensaje);
+	}*/
+
+
 	/* LIBERO ELEMENTOS */
 	liberarArray(posicionesEntrenadores);
 	liberarArray(pokesEntrenadores);
@@ -67,8 +76,6 @@ int main(){
 	}*/
 
 	terminar_programa(); //Finalizo el programa
-
-
 
 	return 0;
 }
