@@ -1,5 +1,19 @@
 #include "headers/team.h"
 
+
+
+void crearHilos(t_list* entrenadores)
+{
+	pthread_t  hiloEntrenador[list_size(entrenadores)];
+	for(int i = 0; i<list_size(entrenadores); i++)
+	{
+		sleep(5);
+		t_entrenador* entrenador_aux = (t_entrenador*)list_get(entrenadores,i);
+		pthread_create(&hiloEntrenador[i],NULL,(void*) mostrarEntrenador, entrenador_aux);
+		pthread_join(hiloEntrenador[i],NULL);
+	}
+}
+
 int main(){
 
 	inicializarPrograma(); //Inicializo logger y config
@@ -26,7 +40,7 @@ int main(){
 	printf("El pokemon de nombre %s",((t_especie*) list_get(listaObjetivos,1))->especie);
 	printf(" aparece %d veces\n",((t_especie*)list_get(listaObjetivos,1))->cantidad);
 
-
+	crearHilos(entrenadores);
 	/* LIBERO ELEMENTOS */
 	liberarArray(posicionesEntrenadores);
 	liberarArray(pokesEntrenadores);
@@ -35,7 +49,26 @@ int main(){
 	list_destroy_and_destroy_elements(entrenadores,liberarEntrenador);
 	list_destroy_and_destroy_elements(listaObjetivos,liberarPokemon);
 
+	// conectar el team al boker
+//	char*  ipBroker = config_get_string_value(config,"IP_BROKER");
+//	char* puertoBroker = config_get_string_value(config,"PUERTO_BROKER");
+//	int  tiempoDeReconexion = config_get_int_value(config,"TIEMPO_RECONEXION");
+
+
+	/*while(1)
+	{
+		if(suscribirse_a_queue(APPEARED_POKEMON,ipBroker,puertoBroker) == -1)
+		{
+			printf("Esperando Nueva Conexion /n");
+
+		}
+		sleep(tiempoDeReconexion);
+
+	}*/
+
 	terminar_programa(); //Finalizo el programa
+
+
 
 	return 0;
 }
@@ -64,50 +97,3 @@ void inicializarPrograma(){
 	printf("Log del proceso 'team' creado.\n\n");
 }
 
-uint32_t cantidadDePokemons(char* especie, t_list* lista){
-	uint32_t cantidad = 0;
-
-	for(uint32_t i=0;i<list_size(lista);i++){
-		if((strcmp(especie,(char*)list_get(lista,i)))==0){
-			cantidad++;
-		}
-	}
-	return cantidad;
-}
-
-t_list* crearListaObjetivoGlobal(t_list* pokesObjetivoGlobal){
-
-	t_list* objetivoGlobal = list_create();
-
-	for(int i=0; i < list_size(pokesObjetivoGlobal); i++){
-
-		char* pokemon = (char*) list_get(pokesObjetivoGlobal, i);
-
-		bool es_el_mismo(t_especie* especie){
-			return string_equals_ignore_case(pokemon, especie->especie);
-		}
-
-		t_especie* pokemon_ya_en_lista = list_find(objetivoGlobal, (void*) es_el_mismo);
-
-		if(pokemon_ya_en_lista == NULL){
-
-			char* copia_pokemon = string_duplicate(pokemon);
-			t_especie* nueva_especie = malloc(sizeof(t_especie));
-			nueva_especie->especie = copia_pokemon;
-			nueva_especie->cantidad = 1;
-			list_add(objetivoGlobal,nueva_especie);
-		} else {
-			pokemon_ya_en_lista->cantidad++;
-		}
-
-	}
-
-	return objetivoGlobal;
-}
-
-
-void liberarPokemon(void* pokemon){
-	t_especie* liberar = (t_especie*)pokemon;
-	free(liberar->especie);
-	free(liberar);
-}

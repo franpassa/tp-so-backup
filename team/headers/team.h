@@ -5,6 +5,7 @@
 #define PATH_CONFIG "/home/utnso/workspace/tp-2020-1c-Cuarenteam/team/team.config"
 #define PATH_LOG "/home/utnso/workspace/tp-2020-1c-Cuarenteam/team/team.log"
 
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<commons/string.h>
@@ -18,7 +19,11 @@
 #include<netdb.h>
 #include<string.h>
 #include<stdint.h>
-#include "entrenadores.h"
+#include"entrenadores.h"
+#include"pokemon.h"
+#include<conexiones.h>
+#include<time.h>
+#include<pthread.h>
 
 t_log* logger;
 t_config* config;
