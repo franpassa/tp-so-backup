@@ -2,7 +2,7 @@
 
 void crearHilos(t_list* entrenadores)
 {
-	pthread_t  hiloEntrenador[list_size(entrenadores)];
+	pthread_t hiloEntrenador[list_size(entrenadores)];
 	for(int i = 0; i<list_size(entrenadores); i++)
 	{
 		sleep(5);
@@ -24,19 +24,9 @@ int main(){
 
 	t_list* pokesObjetivoGlobal = crearListaPokesObjetivos(entrenadores);
 
-	list_iterate(pokesObjetivoGlobal,mostrarString);
-
-	uint32_t cantidad = cantidadDePokemons("Squirtle",pokesObjetivoGlobal);
-
-	printf("\nLa cantidad son: %d\n\n",cantidad);
-
 	t_list* listaObjetivos = crearListaObjetivoGlobal(pokesObjetivoGlobal);
 
-	printf("La cantidad de pokemons sin repetir son: %d\n",list_size(listaObjetivos));
-	printf("El pokemon de nombre %s",((t_especie*) list_get(listaObjetivos,1))->especie);
-	printf(" aparece %d veces\n",((t_especie*)list_get(listaObjetivos,1))->cantidad);
-
-	crearHilos(entrenadores);
+	//crearHilos(entrenadores);
 
 	//Prototipo del envio de mensajes GET al Broker (No va a funcionar sin conectarse al broker y obtener el socket)
 
@@ -49,6 +39,19 @@ int main(){
 		free(mensaje);
 	}*/
 
+	t_list* pokemonsRecibidos = list_create();
+
+	localized_pokemon_msg* pokemons = malloc(sizeof(localized_pokemon_msg));
+	pokemons->cantidad_posiciones = 2;
+	pokemons->id_correlativo = 1;
+	pokemons->nombre_pokemon = "Pikachu";
+	pokemons->tamanio_nombre = sizeof(pokemons->nombre_pokemon);
+	uint32_t pares[4] = {1,2,3,4};
+	pokemons->pares_coordenadas = pares;
+
+	agregarPokemonsRecibidosALista(pokemonsRecibidos,pokemons);
+
+	printf("pokemon: %d",((t_pokemon*)pokemonsRecibidos->head->data)->posicionY);
 
 	/* LIBERO ELEMENTOS */
 	liberarArray(posicionesEntrenadores);
@@ -56,7 +59,9 @@ int main(){
 	liberarArray(pokesObjetivos);
 	list_destroy_and_destroy_elements(pokesObjetivoGlobal, free);
 	list_destroy_and_destroy_elements(entrenadores,liberarEntrenador);
-	list_destroy_and_destroy_elements(listaObjetivos,liberarPokemon);
+	list_destroy_and_destroy_elements(listaObjetivos,liberarEspecie);
+	list_destroy_and_destroy_elements(pokemonsRecibidos,liberarEspecie);
+	free(pokemons);
 
 	// conectar el team al boker
 //	char*  ipBroker = config_get_string_value(config,"IP_BROKER");
@@ -103,4 +108,3 @@ void inicializarPrograma(){
 	log_info(logger, "Log del proceso 'team' creado.");
 	printf("Log del proceso 'team' creado.\n\n");
 }
-
