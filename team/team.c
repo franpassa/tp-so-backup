@@ -1,16 +1,6 @@
 #include "headers/team.h"
-
-void crearHilos(t_list* entrenadores)
-{
-	pthread_t hiloEntrenador[list_size(entrenadores)];
-	for(int i = 0; i<list_size(entrenadores); i++)
-	{
-		sleep(5);
-		t_entrenador* entrenador_aux = (t_entrenador*)list_get(entrenadores,i);
-		pthread_create(&hiloEntrenador[i],NULL,(void*) mostrarEntrenador, entrenador_aux);
-		pthread_join(hiloEntrenador[i],NULL);
-	}
-}
+#include "headers/entrenadores.h"
+#include "headers/pokemon.h"
 
 int main(){
 
@@ -26,7 +16,7 @@ int main(){
 
 	t_list* listaObjetivos = crearListaObjetivoGlobal(pokesObjetivoGlobal);
 
-	//crearHilos(entrenadores);
+	crearHilos(entrenadores);
 
 	//Prototipo del envio de mensajes GET al Broker (No va a funcionar sin conectarse al broker y obtener el socket)
 
@@ -34,7 +24,9 @@ int main(){
 		t_especie* pokemon = (t_especie*) list_get(listaObjetivos,i);
 		char* nombrePokemon = string_duplicate(pokemon->especie);
 		get_pokemon_msg* mensaje = get_msg(nombrePokemon);
-		enviar_mensaje(GET_POKEMON,mensaje,1); //Aca supongo que la conexion con el Broker me devuelve un 1.
+		int conexionGet = connect(socketBroker,ip,puerto);
+		enviar_mensaje(GET_POKEMON,mensaje,conexionGet); //Aca supongo que la conexion con el Broker me devuelve un 1.
+		close(conexionGet);
 		free(mensaje->nombre_pokemon);
 		free(mensaje);
 	}*/
@@ -42,16 +34,16 @@ int main(){
 	t_list* pokemonsRecibidos = list_create();
 
 	localized_pokemon_msg* pokemons = malloc(sizeof(localized_pokemon_msg));
-	pokemons->cantidad_posiciones = 2;
+	pokemons->cantidad_posiciones = 4;
 	pokemons->id_correlativo = 1;
 	pokemons->nombre_pokemon = "Pikachu";
 	pokemons->tamanio_nombre = sizeof(pokemons->nombre_pokemon);
-	uint32_t pares[4] = {1,2,3,4};
+	uint32_t pares[8] = {1,2,3,4,7,8,1,3};
 	pokemons->pares_coordenadas = pares;
 
 	agregarPokemonsRecibidosALista(pokemonsRecibidos,pokemons);
 
-	printf("pokemon: %d",((t_pokemon*)pokemonsRecibidos->head->data)->posicionY);
+	list_iterate(pokemonsRecibidos,mostrarPokemon);
 
 	/* LIBERO ELEMENTOS */
 	liberarArray(posicionesEntrenadores);
