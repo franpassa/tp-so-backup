@@ -12,9 +12,13 @@
 #include <conexiones.h>
 #include <arpa/inet.h>
 #include <semaphore.h>
+#include <signal.h>
 
 #define PUERTO "6009"
 #define PACKAGESIZE 1024
+
+int contador_id = 0;
+int semaforo_id = 1;
 
 typedef struct{
 	uint32_t id;
@@ -58,34 +62,11 @@ t_cola_de_mensajes inicializar_cola(t_cola_de_mensajes nombre_cola){
 	return nombre_cola;
 }
 
-/*void recibir_mensajes(){
-	int id_cola,id_tipo;
+bool revisar_mensaje(int id_cola , t_buffer mensaje);
 
-	while(1){
+void  agregar_a_cola(int id_cola, t_buffer mensaje);
 
-	id_tipo = // sacar info de mensaje
-	id_cola = //sacar info de mensaje
-
-	if (si tipo es original){
-		char* mensaje = //sacar info de mensaje
-			if (mensaje no esta en cola/){
-				int id_mensaje = crear_id_mensaje();
-
-				enviar_a_publisher_id(id_mensaje);
-
-				t_info_mensaje nuevo_mensaje;
-				nuevo_mensaje.id = id_mensaje;
-				nuevo_mensaje.mensaje = mensaje;
-				nuevo_mensaje.a_quienes_fue_enviado = NULL;
-				nuevo_mensaje.cuantos_lo_recibieron = NULL;
-
-				agregar_a_cola(id_cola,nuevo_mensaje);
-				}
-	} else {
-		int id_correlativo = // sacar info de mensaje
-		confirmar_mensaje(id_cola , id_correlativo);
-	}
-}*/
+void confirmar_mensaje(int id_cola ,int  id_mensaje);
 
 void enviar_a_publisher_id(int id){
 
@@ -118,16 +99,8 @@ void iniciar_servidor(void){
 
 		close(listenningSocket);
 
-
 }
 
-//recibir mensaje() -- hilo del broker casi
-//enviar_mensaje_a_suscriptores()
-//estado_de_colas()
-
-//MEMORIA
-//dump_cache()
-//compactar_memoria()
 
 
 
