@@ -1,4 +1,6 @@
 #include "broker.h"
+#include "recibir.h"
+#include "mandar.h"
 
 int contador_id=0;
 int semaforo_id=1;

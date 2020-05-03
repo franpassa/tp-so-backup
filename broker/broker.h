@@ -22,7 +22,7 @@ int semaforo_id = 1;
 
 typedef struct{
 	uint32_t id;
-	uint32_t mensaje;
+	t_paquete paquete;
 	uint32_t a_quienes_fue_enviado;
 	uint32_t cuantos_lo_recibieron;
 } t_info_mensaje;
@@ -71,7 +71,28 @@ void confirmar_mensaje(int id_cola ,int  id_mensaje);
 void enviar_a_publisher_id(int id){
 
 }
-
+t_cola_de_mensajes int_a_nombre_cola(int id){
+	switch (id){
+		case 1:
+			return QUEUE_NEW_POKEMON;
+			break;
+		case 2:
+			return QUEUE_APPEARED_POKEMON;
+			break;
+		case 3:
+			return QUEUE_CATCH_POKEMON;
+			break;
+		case 4:
+			return QUEUE_CAUGHT_POKEMON;
+			break;
+		case 5:
+			return QUEUE_GET_POKEMON;
+			break;
+		case 6:
+			return QUEUE_LOCALIZED_POKEMON;
+			break;
+		}
+}
 //servidor
 void iniciar_servidor(void){
 
