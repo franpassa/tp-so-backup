@@ -1,10 +1,3 @@
-/*
- * broker.h
- *
- *  Created on: 15 abr. 2020
- *      Author: utnso
- */
-
 #ifndef BROKER_H_
 #define BROKER_H_
 
@@ -14,9 +7,14 @@
 #include <commons/log.h>
 #include <stdint.h>
 #include <pthread.h>
-#include<commons/config.h>
-#include<sys/socket.h>
+#include <commons/config.h>
+#include <sys/socket.h>
+#include <conexiones.h>
+#include <arpa/inet.h>
+#include <semaphore.h>
 
+#define PUERTO "6009"
+#define PACKAGESIZE 1024
 
 typedef struct{
 	uint32_t id;
@@ -34,19 +32,22 @@ typedef struct{
 	t_list* lista_suscriptores;
 }t_cola_de_mensajes;
 
-t_cola_de_mensajes NEW_POKEMON;
-t_cola_de_mensajes APPEARED_POKEMON;
-t_cola_de_mensajes CATCH_POKEMON;
-t_cola_de_mensajes CAUGHT_POKEMON;
-t_cola_de_mensajes GET_POKEMON;
-t_cola_de_mensajes LOCALIZED_POKEMON;
+t_cola_de_mensajes QUEUE_NEW_POKEMON;
+t_cola_de_mensajes QUEUE_APPEARED_POKEMON;
+t_cola_de_mensajes QUEUE_CATCH_POKEMON;
+t_cola_de_mensajes QUEUE_CAUGHT_POKEMON;
+t_cola_de_mensajes QUEUE_GET_POKEMON;
+t_cola_de_mensajes QUEUE_LOCALIZED_POKEMON;
 
 t_log* logger;
 t_config* config;
 
+pthread_t thread;
+
 t_log* iniciar_logger(void);
 t_config* leer_config(void);
 void terminar_programa(t_log*, t_config*);
+int crear_nuevo_id();
 
 
 t_cola_de_mensajes inicializar_cola(t_cola_de_mensajes nombre_cola){
@@ -90,8 +91,35 @@ void enviar_a_publisher_id(int id){
 
 }
 
+//servidor
+void iniciar_servidor(void){
+
+		struct addrinfo hints;
+		struct addrinfo *serverInfo;
+
+		memset(&hints, 0, sizeof(hints));
+		hints.ai_family = AF_UNSPEC;
+		hints.ai_flags = AI_PASSIVE;
+		hints.ai_socktype = SOCK_STREAM;
+
+		getaddrinfo(NULL, PUERTO, &hints, &serverInfo);
+
+		int listenningSocket;
+		listenningSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype, serverInfo->ai_protocol);
+
+		bind(listenningSocket,serverInfo->ai_addr, serverInfo->ai_addrlen);
+		freeaddrinfo(serverInfo);
+
+		listen(listenningSocket, SOMAXCONN);
+
+		printf("Estoy escuchando\n");
 
 
+
+		close(listenningSocket);
+
+
+}
 
 //recibir mensaje() -- hilo del broker casi
 //enviar_mensaje_a_suscriptores()

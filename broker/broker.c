@@ -1,17 +1,19 @@
 #include "broker.h"
 
+int contador_id=0;
+int semaforo_id=1;
+
 int main(){
 
-	char* ip;
+	QUEUE_NEW_POKEMON = inicializar_cola(QUEUE_NEW_POKEMON);
+	QUEUE_APPEARED_POKEMON = inicializar_cola(QUEUE_APPEARED_POKEMON);
+	QUEUE_CATCH_POKEMON = inicializar_cola(QUEUE_CATCH_POKEMON);
+	QUEUE_CAUGHT_POKEMON =inicializar_cola(QUEUE_CAUGHT_POKEMON);
+	QUEUE_GET_POKEMON = inicializar_cola(QUEUE_GET_POKEMON);
+	QUEUE_LOCALIZED_POKEMON = inicializar_cola(QUEUE_LOCALIZED_POKEMON);
+
+	/*char* ip;
 	char* puerto;
-
-	NEW_POKEMON = inicializar_cola(NEW_POKEMON);
-	APPEARED_POKEMON = inicializar_cola(APPEARED_POKEMON);
-	CATCH_POKEMON = inicializar_cola(CATCH_POKEMON);
-	CAUGHT_POKEMON =inicializar_cola(CAUGHT_POKEMON);
-	GET_POKEMON = inicializar_cola(GET_POKEMON);
-	LOCALIZED_POKEMON = inicializar_cola(LOCALIZED_POKEMON);
-
 	logger = iniciar_logger();
 
 	log_info(logger,"Broker");
@@ -24,6 +26,12 @@ int main(){
 	log_info(logger,ip);
 	log_info(logger,puerto);
 
+	terminar_programa(logger,config);
+	free(ip);
+	free(puerto);*/
+
+	iniciar_servidor();
+
 	//pthread_t hilo_recibir, hilo_enviar;
 
 	//pthread_create(&hilo_recibir,NULL,(void*) recibir_mensajes,NULL);
@@ -35,50 +43,55 @@ int main(){
 
 }
 
+//ver enum
+
+
+int crear_nuevo_id(){
+	wait(semaforo_id);
+	contador_id ++;
+	return contador id;
+	signal(semaforo_id);
+
+}
+
 void agregar_a_cola (int id_cola, t_info_mensaje mensaje){
 
 	void* msg = &mensaje;
 
-	switch (id_cola)
-	{
+	switch (id_cola){
 	case 1:
-			queue_push(NEW_POKEMON.cola, msg);
+			queue_push(QUEUE_NEW_POKEMON.cola, msg);
 			break;
 	case 2:
-			queue_push(APPEARED_POKEMON.cola, msg);
+			queue_push(QUEUE_APPEARED_POKEMON.cola, msg);
 			break;
 	case 3:
-			queue_push(CATCH_POKEMON.cola, msg);
+			queue_push(QUEUE_CATCH_POKEMON.cola, msg);
 			break;
 	case 4:
-			queue_push(CAUGHT_POKEMON.cola, msg);
+			queue_push(QUEUE_CAUGHT_POKEMON.cola, msg);
 			break;
 	case 5:
-			queue_push(GET_POKEMON.cola, msg);
+			queue_push(QUEUE_GET_POKEMON.cola, msg);
 			break;
 	case 6:
-			queue_push(LOCALIZED_POKEMON.cola, msg);
+			queue_push(QUEUE_LOCALIZED_POKEMON.cola, msg);
 			break;
 	}
 }
 
-t_log* iniciar_logger(void)
-{
+t_log* iniciar_logger(void){
 	return log_create("log", "broker", 1, LOG_LEVEL_INFO);
-
 }
 
 
-t_config* leer_config(void)
-{
+t_config* leer_config(void){
 	 return config_create("broker.config");
 }
 
-void terminar_programa(t_log* logger, t_config* config)
-{
+void terminar_programa(t_log* logger, t_config* config){
 		log_destroy(logger);
 		config_destroy(config);
-
 }
 
 /*t_cola_de_mensajes nuevo;

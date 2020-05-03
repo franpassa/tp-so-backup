@@ -7,7 +7,6 @@
 
 #include "utils.h"
 
-//TODO
 void* serializar_paquete(t_paquete* paquete, int bytes) {
 
 	void* a_enviar = malloc(bytes);
