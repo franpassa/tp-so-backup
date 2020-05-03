@@ -1,6 +1,7 @@
 #include "headers/team.h"
 #include "headers/entrenadores.h"
 #include "headers/pokemon.h"
+#include "headers/conexiones_team.h"
 
 int main(){
 
@@ -16,35 +17,6 @@ int main(){
 
 	t_list* listaObjetivos = crearListaObjetivoGlobal(pokesObjetivoGlobal);
 
-	crearHilos(entrenadores);
-
-	//Prototipo del envio de mensajes GET al Broker (No va a funcionar sin conectarse al broker y obtener el socket)
-
-	/*for(int i=0; i<list_size(listaObjetivos); i++){
-		t_especie* pokemon = (t_especie*) list_get(listaObjetivos,i);
-		char* nombrePokemon = string_duplicate(pokemon->especie);
-		get_pokemon_msg* mensaje = get_msg(nombrePokemon);
-		int conexionGet = connect(socketBroker,ip,puerto);
-		enviar_mensaje(GET_POKEMON,mensaje,conexionGet); //Aca supongo que la conexion con el Broker me devuelve un 1.
-		close(conexionGet);
-		free(mensaje->nombre_pokemon);
-		free(mensaje);
-	}*/
-
-	t_list* pokemonsRecibidos = list_create();
-
-	localized_pokemon_msg* pokemons = malloc(sizeof(localized_pokemon_msg));
-	pokemons->cantidad_posiciones = 4;
-	pokemons->id_correlativo = 1;
-	pokemons->nombre_pokemon = "Pikachu";
-	pokemons->tamanio_nombre = sizeof(pokemons->nombre_pokemon);
-	uint32_t pares[8] = {1,2,3,4,7,8,1,3};
-	pokemons->pares_coordenadas = pares;
-
-	agregarPokemonsRecibidosALista(pokemonsRecibidos,pokemons);
-
-	list_iterate(pokemonsRecibidos,mostrarPokemon);
-
 	/* LIBERO ELEMENTOS */
 	liberarArray(posicionesEntrenadores);
 	liberarArray(pokesEntrenadores);
@@ -52,25 +24,6 @@ int main(){
 	list_destroy_and_destroy_elements(pokesObjetivoGlobal, free);
 	list_destroy_and_destroy_elements(entrenadores,liberarEntrenador);
 	list_destroy_and_destroy_elements(listaObjetivos,liberarEspecie);
-	list_destroy_and_destroy_elements(pokemonsRecibidos,liberarEspecie);
-	free(pokemons);
-
-	// conectar el team al boker
-//	char*  ipBroker = config_get_string_value(config,"IP_BROKER");
-//	char* puertoBroker = config_get_string_value(config,"PUERTO_BROKER");
-//	int  tiempoDeReconexion = config_get_int_value(config,"TIEMPO_RECONEXION");
-
-
-	/*while(1)
-	{
-		if(suscribirse_a_queue(APPEARED_POKEMON,ipBroker,puertoBroker) == -1)
-		{
-			printf("Esperando Nueva Conexion /n");
-
-		}
-		sleep(tiempoDeReconexion);
-
-	}*/
 
 	terminar_programa(); //Finalizo el programa
 
