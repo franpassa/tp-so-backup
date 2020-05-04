@@ -2,8 +2,7 @@
 #include "recibir.h"
 #include "mandar.h"
 
-int contador_id=0;
-int semaforo_id=1;
+
 
 int main(){
 
@@ -59,6 +58,14 @@ t_config* leer_config(void){
 void terminar_programa(t_log* logger, t_config* config){
 		log_destroy(logger);
 		config_destroy(config);
+}
+
+t_cola_de_mensajes inicializar_cola(t_cola_de_mensajes nombre_cola){
+
+	t_queue* nueva_cola = queue_create();
+	nombre_cola.cola = nueva_cola;
+	nombre_cola.lista_suscriptores = list_create();
+	return nombre_cola;
 }
 
 /*t_cola_de_mensajes nuevo;

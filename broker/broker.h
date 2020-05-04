@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <commons/collections/queue.h>
 #include <commons/collections/list.h>
+#include <commons/string.h>
 #include <commons/log.h>
 #include <stdint.h>
 #include <pthread.h>
@@ -23,7 +24,7 @@ int semaforo_id = 1;
 typedef struct{
 	uint32_t id;
 	t_paquete paquete;
-	uint32_t a_quienes_fue_enviado;
+	t_list a_quienes_fue_enviado;
 	uint32_t cuantos_lo_recibieron;
 } t_info_mensaje;
 
@@ -52,25 +53,40 @@ t_log* iniciar_logger(void);
 t_config* leer_config(void);
 void terminar_programa(t_log*, t_config*);
 int crear_nuevo_id();
+t_cola_de_mensajes inicializar_cola(t_cola_de_mensajes nombre_cola);
+t_cola_de_mensajes int_a_nombre_cola(int id);
 
 
-t_cola_de_mensajes inicializar_cola(t_cola_de_mensajes nombre_cola){
 
-	t_queue* nueva_cola = queue_create();
-	nombre_cola.cola = nueva_cola;
-	nombre_cola.lista_suscriptores = list_create();
-	return nombre_cola;
-}
+// recibir.h
 
-bool revisar_mensaje(int id_cola , t_buffer mensaje);
+bool no_esten_en(t_list* a_los_que_envie,int sub);
 
-void  agregar_a_cola(int id_cola, t_buffer mensaje);
+bool es_el_mismo_mensaje(int id, void* mensaje,void* otro_mensaje);
+
+void  agregar_a_cola(int id_cola, t_paquete* mensaje);
 
 void confirmar_mensaje(int id_cola ,int  id_mensaje);
 
-void enviar_a_publisher_id(int id){
+void enviar_a_publisher_id(int id); // hacer
 
-}
+int crear_nuevo_id();
+
+//mandar.h
+
+void recorrer_cola(t_cola_de_mensajes nombre);
+
+void mandar_mensajes();
+
+void mandar(t_paquete* paquete, int sub);
+
+void enviar_a(t_paquete* paquete,t_list* sin_enviar);
+
+bool revisar_mensaje(int id_cola , t_buffer* mensaje);
+
+bool igual_a(int uno ,int otro);
+
+
 t_cola_de_mensajes int_a_nombre_cola(int id){
 	switch (id){
 		case 1:
@@ -93,6 +109,8 @@ t_cola_de_mensajes int_a_nombre_cola(int id){
 			break;
 		}
 }
+
+
 //servidor
 void iniciar_servidor(void){
 
