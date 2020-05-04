@@ -42,6 +42,25 @@ void recibir_mensajes(){
 	}
 	}
 }
+// hay que hacer apb
+void confirmar_mensaje(int id_cola ,int id_mensaje){
+
+	t_cola_de_mensajes queue = int_a_nombre_cola(id_cola);
+	int control = 0;
+	t_info_mensaje* mensaje = queue_peek(queue.cola);
+	int id_primero = mensaje->id,id_siguiente;
+
+	do{
+		mensaje = queue_pop(queue.cola);
+		if (mensaje->id == id_mensaje){
+			control = 1;
+			mensaje->cuantos_lo_recibieron++;
+		}
+		queue_push(queue.cola ,mensaje);
+		mensaje = queue_peek(queue.cola);
+		id_siguiente = mensaje->id;
+	}while( control == 0 && id_primero != id_siguiente);
+}
 
 int crear_nuevo_id(){
 // agregar semaforo
