@@ -13,12 +13,12 @@
 #include <conexiones.h>
 #include <arpa/inet.h>
 #include <semaphore.h>
-#include <signal.h>
 
 #define PUERTO "6009"
 
 int contador_id = 0;
 int semaforo_id = 1;
+
 
 typedef struct{
 	uint32_t id;
@@ -47,6 +47,12 @@ t_cola_de_mensajes QUEUE_CAUGHT_POKEMON;
 t_cola_de_mensajes QUEUE_GET_POKEMON;
 t_cola_de_mensajes QUEUE_LOCALIZED_POKEMON;
 
+t_list* clientes_new_pokemon;
+t_list* clientes_appeared_pokemon;
+t_list* clientes_catch_pokemon;
+t_list* clientes_caught_pokemon;
+t_list* clientes_get_pokemon;
+t_list* clientes_localized_pokemon;
 
 t_cola_de_mensajes inicializar_cola(t_cola_de_mensajes nombre_cola);
 t_cola_de_mensajes int_a_nombre_cola(int id);
@@ -108,6 +114,7 @@ t_cola_de_mensajes inicializar_cola(t_cola_de_mensajes nombre_cola){
 }
 
 t_cola_de_mensajes int_a_nombre_cola(int id){
+
 	switch (id){
 		case 1:
 			return QUEUE_NEW_POKEMON;
@@ -131,38 +138,9 @@ t_cola_de_mensajes int_a_nombre_cola(int id){
 		default: ;
 			t_cola_de_mensajes queue_null;
 			return queue_null;
-			// caso default para arreglar warning ver
 		}
 }
 
-//servidor
-void iniciar_servidor(void){
-
-		struct addrinfo hints;
-		struct addrinfo *serverInfo;
-
-		memset(&hints, 0, sizeof(hints));
-		hints.ai_family = AF_UNSPEC;
-		hints.ai_flags = AI_PASSIVE;
-		hints.ai_socktype = SOCK_STREAM;
-
-		getaddrinfo(NULL, PUERTO, &hints, &serverInfo);
-
-		int listenningSocket;
-		listenningSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype, serverInfo->ai_protocol);
-
-		bind(listenningSocket,serverInfo->ai_addr, serverInfo->ai_addrlen);
-		freeaddrinfo(serverInfo);
-
-		listen(listenningSocket, SOMAXCONN);
-
-		printf("Estoy escuchando\n");
-
-
-
-		close(listenningSocket);
-
-}
 
 
 
