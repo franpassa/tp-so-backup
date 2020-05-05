@@ -20,6 +20,7 @@ void mandar_mensajes(){
 }
 
 bool igual_a(void* uno ,int otro){
+
 	int nro = (int) uno;
 
 	return  nro == otro ;
@@ -62,10 +63,8 @@ void recorrer_cola(t_cola_de_mensajes nombre){
 		list_add_all(subs,nombre.lista_suscriptores);
 
 		t_list* a_los_q_envie = list_create();
-		list_add_all(a_los_q_envie,subs);
 
 		t_list* sin_enviar=list_create();
-		list_add_all(sin_enviar,subs);
 
 		if (!list_is_empty(subs)){
 
@@ -74,15 +73,12 @@ void recorrer_cola(t_cola_de_mensajes nombre){
 			int id_primero = info->id;
 
 			int id_siguiente;
-			//ver esto despues
-
-			id_primero = id_siguiente;
 
 			do{
 
 				info = queue_pop(nombre.cola);
 
-				a_los_q_envie = info->a_quienes_fue_enviado; // ver manejo de listas
+				list_add_all(a_los_q_envie,info->a_quienes_fue_enviado); // ver manejo de listas
 
 				int sub;
 
@@ -98,7 +94,7 @@ void recorrer_cola(t_cola_de_mensajes nombre){
 
 				info = queue_peek(nombre.cola);
 
-				id_siguiente =  info->id;
+				id_siguiente = info->id;
 
 			}while(id_primero != id_siguiente);
 		}

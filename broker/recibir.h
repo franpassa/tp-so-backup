@@ -30,7 +30,7 @@ void recibir_mensajes(int socket_cliente){ // ver socket por parametro
 
 			int id_mensaje = crear_nuevo_id();
 
-			enviar_a_publisher_id(id_mensaje);
+			enviar_a_publisher_id(id_mensaje); // hacer
 
 			agregar_a_cola(id_cola,paq);
 		}
@@ -142,6 +142,7 @@ bool es_el_mismo_mensaje(int id, void* mensaje,void* otro_mensaje) {
 		break;
 
 	default:
+
 		return false;
 	}
 

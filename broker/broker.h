@@ -16,7 +16,6 @@
 #include <signal.h>
 
 #define PUERTO "6009"
-#define PACKAGESIZE 1024
 
 int contador_id = 0;
 int semaforo_id = 1;
@@ -37,6 +36,10 @@ typedef struct{
 	t_list* lista_suscriptores;
 }t_cola_de_mensajes;
 
+pthread_t thread;
+
+//Cola De Mensajes
+
 t_cola_de_mensajes QUEUE_NEW_POKEMON;
 t_cola_de_mensajes QUEUE_APPEARED_POKEMON;
 t_cola_de_mensajes QUEUE_CATCH_POKEMON;
@@ -44,21 +47,25 @@ t_cola_de_mensajes QUEUE_CAUGHT_POKEMON;
 t_cola_de_mensajes QUEUE_GET_POKEMON;
 t_cola_de_mensajes QUEUE_LOCALIZED_POKEMON;
 
-t_log* logger;
-t_config* config;
 
-pthread_t thread;
-
-t_log* iniciar_logger(void);
-t_config* leer_config(void);
-void terminar_programa(t_log*, t_config*);
-int crear_nuevo_id();
 t_cola_de_mensajes inicializar_cola(t_cola_de_mensajes nombre_cola);
 t_cola_de_mensajes int_a_nombre_cola(int id);
 
+//Loggers y config
+
+t_log* logger;
+t_config* config;
+
+t_log* iniciar_logger(void);
+
+t_config* leer_config(void);
+
+void terminar_programa(t_log*, t_config*);
 
 
 // recibir.h
+
+void recibir_mensajes(int socket_cliente);
 
 bool no_esten_en(t_list* a_los_que_envie,int sub);
 
@@ -69,8 +76,8 @@ void  agregar_a_cola(int id_cola, t_paquete* mensaje);
 void confirmar_mensaje(int id_cola ,int  id_mensaje);
 
 void enviar_a_publisher_id(int id){
-
-}; // hacer
+	// hacer
+};
 
 int crear_nuevo_id();
 
@@ -88,6 +95,17 @@ bool revisar_mensaje(int id_cola , t_buffer* mensaje);
 
 bool igual_a(void* uno ,int otro);
 
+
+t_cola_de_mensajes inicializar_cola(t_cola_de_mensajes nombre_cola){
+
+	t_queue* nueva_cola = queue_create();
+
+	nombre_cola.cola = nueva_cola;
+
+	nombre_cola.lista_suscriptores = list_create();
+
+	return nombre_cola;
+}
 
 t_cola_de_mensajes int_a_nombre_cola(int id){
 	switch (id){
@@ -116,7 +134,6 @@ t_cola_de_mensajes int_a_nombre_cola(int id){
 			// caso default para arreglar warning ver
 		}
 }
-
 
 //servidor
 void iniciar_servidor(void){

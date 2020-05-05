@@ -45,7 +45,6 @@ int main(void){
 
 }
 
-//ver enum
 
 t_log* iniciar_logger(void){
 	return log_create("log", "broker", 1, LOG_LEVEL_INFO);
@@ -61,16 +60,6 @@ void terminar_programa(t_log* logger, t_config* config){
 		config_destroy(config);
 }
 
-t_cola_de_mensajes inicializar_cola(t_cola_de_mensajes nombre_cola){
-
-	t_queue* nueva_cola = queue_create();
-
-	nombre_cola.cola = nueva_cola;
-
-	nombre_cola.lista_suscriptores = list_create();
-
-	return nombre_cola;
-}
 
 /*t_cola_de_mensajes nuevo;
 	nuevo = inicializar_cola();
