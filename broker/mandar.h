@@ -74,6 +74,7 @@ void recorrer_cola(t_cola_de_mensajes nombre){
 			int id_primero = info->id;
 
 			int id_siguiente;
+			//ver esto despues
 
 			id_primero = id_siguiente;
 
