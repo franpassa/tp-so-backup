@@ -4,7 +4,7 @@
 
 
 
-int main(){
+int main(void){
 
 	QUEUE_NEW_POKEMON = inicializar_cola(QUEUE_NEW_POKEMON);
 	QUEUE_APPEARED_POKEMON = inicializar_cola(QUEUE_APPEARED_POKEMON);
@@ -29,7 +29,7 @@ int main(){
 
 	terminar_programa(logger,config);
 	free(ip);
-	free(puerto);*/
+	free(puerto);
 
 	iniciar_servidor();
 
@@ -40,6 +40,7 @@ int main(){
 
 	//pthread_join(hilo_recibir, NULL);
 	//pthread_join(hilo_enviar, NULL);
+	*/
 	return 0;
 
 }
@@ -63,8 +64,11 @@ void terminar_programa(t_log* logger, t_config* config){
 t_cola_de_mensajes inicializar_cola(t_cola_de_mensajes nombre_cola){
 
 	t_queue* nueva_cola = queue_create();
+
 	nombre_cola.cola = nueva_cola;
+
 	nombre_cola.lista_suscriptores = list_create();
+
 	return nombre_cola;
 }
 

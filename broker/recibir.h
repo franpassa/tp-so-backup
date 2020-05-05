@@ -4,16 +4,17 @@
 #include "broker.h"
 
 
-void recibir_mensajes(){
+void recibir_mensajes(int socket_cliente){ // ver socket por parametro
 
 	int id_cola;
-
-	int socket_cliente;
 
 	t_paquete* paq = malloc(sizeof(t_paquete));
 
 	while(1){
+
+	// sino agregar void recibir_socket
 	recv(socket_cliente, &(paq->cola_msg), sizeof(queue_name), MSG_WAITALL);
+
 
 	id_cola = paq->cola_msg;
 
@@ -42,23 +43,29 @@ void recibir_mensajes(){
 	}
 	}
 }
-// hay que hacer apb
+
 void confirmar_mensaje(int id_cola ,int id_mensaje){
 
 	t_cola_de_mensajes queue = int_a_nombre_cola(id_cola);
-	int control = 0;
 	t_info_mensaje* mensaje = queue_peek(queue.cola);
+
+	int control = 0;
 	int id_primero = mensaje->id,id_siguiente;
 
 	do{
 		mensaje = queue_pop(queue.cola);
+
 		if (mensaje->id == id_mensaje){
 			control = 1;
 			mensaje->cuantos_lo_recibieron++;
 		}
+
 		queue_push(queue.cola ,mensaje);
+
 		mensaje = queue_peek(queue.cola);
+
 		id_siguiente = mensaje->id;
+
 	}while( control == 0 && id_primero != id_siguiente);
 }
 
@@ -68,14 +75,14 @@ int crear_nuevo_id(){
 	return contador_id;
 }
 
-void agregar_a_cola(int id_cola,t_paquete* paquete){ // buffer o buffer->stream
+void agregar_a_cola(int id_cola,t_paquete* paquete){
 
 	void* msg = &paquete;
 
 	queue_push(int_a_nombre_cola(id_cola).cola, msg);
 }
 
-bool es_el_mismo_mensaje(int id, void* mensaje,void* otro_mensaje){
+bool es_el_mismo_mensaje(int id, void* mensaje,void* otro_mensaje) {
 
 	switch(id){
 
@@ -134,14 +141,22 @@ bool es_el_mismo_mensaje(int id, void* mensaje,void* otro_mensaje){
 
 		break;
 
+	default:
+		return false;
+	}
+
 }
 
-bool revisar_mensaje(int id, t_buffer* buffer){ // comparar tipos de mensajes
+bool revisar_mensaje(int id, t_buffer* buffer) {
 
 	t_cola_de_mensajes queue_a_revisar = int_a_nombre_cola(id);
 
-	void* elemento;
-	bool resultado = list_any_satisfy(queue_a_revisar.cola->elements, !es_el_mismo_mensaje(id, buffer->stream, elemento));
+	bool no_es_el_mismo_mensaje(void* elemento){
+		return !es_el_mismo_mensaje(id, buffer->stream, elemento);
+	}
+
+	bool resultado = list_any_satisfy(queue_a_revisar.cola->elements, no_es_el_mismo_mensaje);
+
 	return resultado;
 }
 

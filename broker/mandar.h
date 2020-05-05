@@ -19,17 +19,20 @@ void mandar_mensajes(){
 	}
 }
 
-bool igual_a(int uno ,int otro){
+bool igual_a(void* uno ,int otro){
+	int nro = (int) uno;
 
-	return uno == otro;
+	return  nro == otro ;
 
 }
 
-bool no_esten_en(t_list* a_los_que_envie,int sub){
+bool no_esten_en(t_list* a_los_que_envie, int sub) {
 
-	int alguien;
+	bool no_es_igual_a(void* alguien){
+		return !igual_a(alguien ,sub);
+	}
 
-	return !list_any_satisfy(a_los_que_envie,igual_a(sub,alguien));
+	return list_any_satisfy(a_los_que_envie,no_es_igual_a);
 }
 
 void mandar(t_paquete* paquete, int sub){
@@ -37,35 +40,56 @@ void mandar(t_paquete* paquete, int sub){
 	int total_bytes = paquete->buffer->size + sizeof(queue_name) + 2 * sizeof(uint32_t);
 
 	send(sub, paquete, total_bytes, 0);
+
+
 }
 
 void enviar_a(t_paquete* paquete,t_list* sin_enviar){
 
-	int sub;
+	void mandar_a_alguien(void* sub){
+		mandar(paquete,(int) sub);
+	}
 
-	sin_enviar = list_map(sin_enviar, mandar(paquete,sub));
+	sin_enviar = list_map(sin_enviar, (void*) mandar_a_alguien);
+
 }
 
 void recorrer_cola(t_cola_de_mensajes nombre){
 
 	if (!queue_is_empty(nombre.cola)){
 
-		t_list* subs = nombre.lista_suscriptores, a_los_q_envie, sin_enviar;
+		t_list* subs = list_create();
+		list_add_all(subs,nombre.lista_suscriptores);
+
+		t_list* a_los_q_envie = list_create();
+		list_add_all(a_los_q_envie,subs);
+
+		t_list* sin_enviar=list_create();
+		list_add_all(sin_enviar,subs);
 
 		if (!list_is_empty(subs)){
 
 			t_info_mensaje* info = queue_peek(nombre.cola);
 
-			int id_primero = info->id,id_siguiente;
+			int id_primero = info->id;
+
+			int id_siguiente;
+
+			id_primero = id_siguiente;
 
 			do{
+
 				info = queue_pop(nombre.cola);
 
-				a_los_q_envie = info->a_quienes_fue_enviado;
+				a_los_q_envie = info->a_quienes_fue_enviado; // ver manejo de listas
 
 				int sub;
 
-				sin_enviar = list_filter(subs,no_esten_en(a_los_q_envie,sub));
+				bool a_los_que_envie_nuevo(void* lista_enviados){
+					return no_esten_en(a_los_q_envie,sub);
+				}
+
+				sin_enviar = list_filter(subs,a_los_que_envie_nuevo);
 
 				enviar_a(info->paquete,sin_enviar);
 

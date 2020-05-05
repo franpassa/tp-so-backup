@@ -23,8 +23,8 @@ int semaforo_id = 1;
 
 typedef struct{
 	uint32_t id;
-	t_paquete paquete;
-	t_list a_quienes_fue_enviado;
+	t_paquete* paquete;
+	t_list* a_quienes_fue_enviado;
 	uint32_t cuantos_lo_recibieron;
 } t_info_mensaje;
 
@@ -68,7 +68,9 @@ void  agregar_a_cola(int id_cola, t_paquete* mensaje);
 
 void confirmar_mensaje(int id_cola ,int  id_mensaje);
 
-void enviar_a_publisher_id(int id); // hacer
+void enviar_a_publisher_id(int id){
+
+}; // hacer
 
 int crear_nuevo_id();
 
@@ -84,7 +86,7 @@ void enviar_a(t_paquete* paquete,t_list* sin_enviar);
 
 bool revisar_mensaje(int id_cola , t_buffer* mensaje);
 
-bool igual_a(int uno ,int otro);
+bool igual_a(void* uno ,int otro);
 
 
 t_cola_de_mensajes int_a_nombre_cola(int id){
@@ -107,6 +109,11 @@ t_cola_de_mensajes int_a_nombre_cola(int id){
 		case 6:
 			return QUEUE_LOCALIZED_POKEMON;
 			break;
+
+		default: ;
+			t_cola_de_mensajes queue_null;
+			return queue_null;
+			// caso default para arreglar warning ver
 		}
 }
 
