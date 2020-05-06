@@ -1,4 +1,4 @@
-#include "headers/game_card.h"
+#include "utils/game_card.h"
 
 void inicializar(){
 	config = get_config(CONFIG_PATH);
@@ -15,6 +15,8 @@ int main(){
 	inicializar();
 
 	// inicializar_bloques(config_get_string_value(config, "PUNTO_MONTAJE_TALLGRASS"), 10);
+	uint32_t pares_coordenadas[4] = {1, 3, 5, 6};
+	localized_pokemon_msg* msg = localized_msg(21, "pikachu", 2, pares_coordenadas);
 
 	terminar();
 

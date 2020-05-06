@@ -1,4 +1,4 @@
-#include "game_card.h"
+#include "../utils/game_card.h"
 
 t_bitarray* inicializar_filesystem(char* punto_montaje){
 

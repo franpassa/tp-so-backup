@@ -1,4 +1,4 @@
-#include "game_card.h"
+#include "../utils/game_card.h"
 
 t_config* get_config(char* config_path){
 	t_config* mi_config = config_create(config_path);
