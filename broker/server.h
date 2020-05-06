@@ -1,13 +1,5 @@
-/*
- * server.h
- *
- *  Created on: 5 may. 2020
- *      Author: utnso
- */
-
 #ifndef SERVER_H_
 #define SERVER_H_
-
 
 
 #include "broker.h"
@@ -37,7 +29,7 @@ void iniciar_servidor(char* ip,char* puerto){
 }
 
 
-void esperar_cliente(int* socket_servidor){
+void esperar_cliente(int* socket_servidor){ // Hilo esperar_cliente
 
 	while(1){
 		struct sockaddr_in dir_cliente;
@@ -63,37 +55,37 @@ void suscribir_a_cola(int *socket_cliente, int cola) {	// *socket_cliente porque
 
 	case 0:
 
-		list_add(clientes_new_pokemon,socket_cliente);
+		list_add(QUEUE_NEW_POKEMON.lista_suscriptores,socket_cliente);
 
 		break;
 
 	case 1:
 
-		list_add(clientes_appeared_pokemon,socket_cliente);
+		list_add(QUEUE_APPEARED_POKEMON.lista_suscriptores,socket_cliente);
 
 		break;
 
 	case 2:
 
-		list_add(clientes_catch_pokemon,socket_cliente);
+		list_add(QUEUE_CATCH_POKEMON.lista_suscriptores,socket_cliente);
 
 		break;
 
 	case 3:
 
-		list_add(clientes_caught_pokemon,socket_cliente);
+		list_add(QUEUE_CAUGHT_POKEMON.lista_suscriptores,socket_cliente);
 
 		break;
 
 	case 4:
 
-		list_add(clientes_get_pokemon,socket_cliente);
+		list_add(QUEUE_GET_POKEMON.lista_suscriptores,socket_cliente);
 
 		break;
 
 	case 5:
 
-		list_add(clientes_localized_pokemon,socket_cliente);
+		list_add(QUEUE_LOCALIZED_POKEMON.lista_suscriptores,socket_cliente);
 
 		break;
 
@@ -106,6 +98,9 @@ void suscribir_a_cola(int *socket_cliente, int cola) {	// *socket_cliente porque
 
 }
 
+void process_request(int *socket_cliente){
+
+}
 
 
 

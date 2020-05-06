@@ -17,8 +17,7 @@
 #define PUERTO "6009"
 
 int contador_id = 0;
-int semaforo_id = 1;
-
+pthread_mutex_t semaforo_id;
 
 typedef struct{
 	uint32_t id;
@@ -47,17 +46,10 @@ t_cola_de_mensajes QUEUE_CAUGHT_POKEMON;
 t_cola_de_mensajes QUEUE_GET_POKEMON;
 t_cola_de_mensajes QUEUE_LOCALIZED_POKEMON;
 
-t_list* clientes_new_pokemon;
-t_list* clientes_appeared_pokemon;
-t_list* clientes_catch_pokemon;
-t_list* clientes_caught_pokemon;
-t_list* clientes_get_pokemon;
-t_list* clientes_localized_pokemon;
-
 t_cola_de_mensajes inicializar_cola(t_cola_de_mensajes nombre_cola);
 t_cola_de_mensajes int_a_nombre_cola(int id);
 
-//Loggers y config
+//Loggers y Config
 
 t_log* logger;
 t_config* config;
@@ -71,7 +63,7 @@ void terminar_programa(t_log*, t_config*);
 
 // recibir.h
 
-void recibir_mensajes(int socket_cliente);
+void recibir_mensajes();
 
 bool no_esten_en(t_list* a_los_que_envie,int sub);
 

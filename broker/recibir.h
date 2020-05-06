@@ -4,15 +4,16 @@
 #include "broker.h"
 
 
-void recibir_mensajes(int socket_cliente){ // ver socket por parametro
+void recibir_mensajes(){ // ver socket por parametro
 
 	int id_cola;
-
+	int socket_cliente;
 	t_paquete* paq = malloc(sizeof(t_paquete));
 
 	while(1){
 
 	// sino agregar void recibir_socket
+
 	recv(socket_cliente, &(paq->cola_msg), sizeof(queue_name), MSG_WAITALL);
 
 
@@ -70,9 +71,11 @@ void confirmar_mensaje(int id_cola ,int id_mensaje){
 }
 
 int crear_nuevo_id(){
-// agregar semaforo
+
+	pthread_mutex_lock(&semaforo_id);
 	contador_id ++;
 	return contador_id;
+	pthread_mutex_unlock(&semaforo_id);
 }
 
 void agregar_a_cola(int id_cola,t_paquete* paquete){

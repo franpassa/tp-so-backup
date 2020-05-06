@@ -60,11 +60,12 @@ void recorrer_cola(t_cola_de_mensajes nombre){
 	if (!queue_is_empty(nombre.cola)){
 
 		t_list* subs = list_create();
+
 		list_add_all(subs,nombre.lista_suscriptores);
 
 		t_list* a_los_q_envie = list_create();
 
-		t_list* sin_enviar=list_create();
+		t_list* sin_enviar = list_create();
 
 		if (!list_is_empty(subs)){
 
@@ -78,7 +79,7 @@ void recorrer_cola(t_cola_de_mensajes nombre){
 
 				info = queue_pop(nombre.cola);
 
-				list_add_all(a_los_q_envie,info->a_quienes_fue_enviado); // ver manejo de listas
+				list_add_all(a_los_q_envie,info->a_quienes_fue_enviado);
 
 				int sub;
 
