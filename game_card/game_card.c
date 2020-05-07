@@ -14,9 +14,8 @@ int main(){
 
 	inicializar();
 
-	//inicializar_filesystem(config_get_string_value(config, "PUNTO_MONTAJE_TALLGRASS"));
-	char* path = "/home/utnso/Escritorio/Bitmap.bin";
-	t_bitarray* bitarray = crear_bitmap(path, 128 * 8);
+	char* punto_montaje = config_get_string_value(config, "PUNTO_MONTAJE_TALLGRASS");
+	t_bitarray* bitarray = inicializar_filesystem(punto_montaje);
 	print_bitarray(bitarray);
 
 	terminar();

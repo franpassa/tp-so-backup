@@ -8,23 +8,31 @@
 t_bitarray* inicializar_filesystem(char* punto_montaje){
 	t_bitarray* bitarray = NULL;
 
-	char* metadata_path = string_new();
+	// TENGO QUE VERIFICAR QUE EXISTA LA CARPETA 'METADATA' O EL BITMAP.BIN?
+
+	/*char* metadata_path = string_new();
 	string_append_with_format(&metadata_path, "%s/Metadata", punto_montaje);
 
-	DIR* metadata_dir = opendir(metadata_path);
+	DIR* metadata_dir = opendir(metadata_path);*/
 
-	if(metadata_dir){
+	char* bitmap_path = string_new();
+	string_append_with_format(&bitmap_path, "%s/Metadata/Bitmap.bin", punto_montaje);
+	FILE* bitmap_file = fopen(bitmap_path, "r");
+
+	if(bitmap_file){
 		// Caso metadata existente
-		closedir(metadata_dir);
-
-		char* bitmap_path = string_new();
-		string_append_with_format(&bitmap_path, "%s/Bitmap.bin", metadata_path);
-
+		fclose(bitmap_file);
 		bitarray = leer_bitmap(bitmap_path);
-		print_bitarray(bitarray);
 
 	} else if (ENOENT == errno){
 		// Caso metadata NO existente
+		char* path_config = string_new();
+		string_append_with_format(&path_config, "%s/Metadata/Metadata.bin", punto_montaje);
+
+		t_config* config_metadata = config_create(path_config);
+		int bloques = config_get_int_value(config_metadata, "BLOCKS");
+
+		bitarray = crear_bitmap(bitmap_path, bloques);
 
 
 	} else {
@@ -32,7 +40,7 @@ t_bitarray* inicializar_filesystem(char* punto_montaje){
 		terminar_aplicacion("Error desconocido al leer directorio de metadata");
 	}
 
-	free(metadata_path);
+	free(bitmap_path);
 	return bitarray;
 }
 
@@ -132,7 +140,10 @@ t_bitarray* crear_bitmap(char* file_path, int cantidad_bloques){
 
 	if(bitmap_file){
 		char* string_bitarray = string_repeat('0', cantidad_bloques);
+
 		fputs(string_bitarray, bitmap_file);
+		free(string_bitarray);
+
 		fclose(bitmap_file);
 
 		int tam_bytes = cantidad_bloques/8;
@@ -143,4 +154,17 @@ t_bitarray* crear_bitmap(char* file_path, int cantidad_bloques){
 	}
 
 	return bitarray;
+}
+
+void crear_bloques(char* path, int cantidad_bloques){
+
+	FILE* bloque;
+
+	for(int i = 0; i < cantidad_bloques; i++){
+		char* nombre_bloque = string_new();
+		string_append_with_format(&nombre_bloque, "%d.bin", i);
+		bloque = fopen(nombre_bloque, "w");
+		free(nombre_bloque);
+		fclose(bloque);
+	}
 }
