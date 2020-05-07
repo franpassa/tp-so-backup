@@ -13,6 +13,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <dirent.h>
+#include <errno.h>
 
 // -------- Commons --------
 
@@ -41,11 +43,14 @@ t_log* logger;
 
 t_config* get_config(char* config_path);
 t_log* crear_log(char* log_path);
+void terminar_aplicacion(char* mensaje);
 
 // --- Filesystem ---
 
 t_bitarray* inicializar_filesystem(char* punto_montaje);
 void inicializar_bloques(char* punto_montaje, int cantidad);
+t_bitarray* leer_bitmap(char* bitmap_path);
+void print_bitarray(t_bitarray* bitarray);
 
 
 
