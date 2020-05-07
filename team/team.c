@@ -1,10 +1,7 @@
 #include "headers/team.h"
-#include "headers/entrenadores.h"
-#include "headers/pokemon.h"
-#include "headers/conexiones_team.h"
 
-int main(){
-
+int main()
+{
 	inicializarPrograma(); //Inicializo logger y config
 
 	char** posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
@@ -17,6 +14,9 @@ int main(){
 
 	t_list* listaObjetivos = crearListaObjetivoGlobal(pokesObjetivoGlobal);
 
+
+
+
 	/* LIBERO ELEMENTOS */
 	liberarArray(posicionesEntrenadores);
 	liberarArray(pokesEntrenadores);
@@ -24,6 +24,7 @@ int main(){
 	list_destroy_and_destroy_elements(pokesObjetivoGlobal, free);
 	list_destroy_and_destroy_elements(entrenadores,liberarEntrenador);
 	list_destroy_and_destroy_elements(listaObjetivos,liberarEspecie);
+
 
 	terminar_programa(); //Finalizo el programa
 

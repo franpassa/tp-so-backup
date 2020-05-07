@@ -104,6 +104,50 @@ void mostrarEntrenador(void* entrenador)
 	list_iterate((((t_entrenador*)entrenador)->pokesAtrapados),mostrarString);
 	printf("\nLos pokemon obtenidos del entrenador son: \n");
 	list_iterate((((t_entrenador*)entrenador)->pokesObjetivos),mostrarString);
+	mostrarPokemon(((t_entrenador*)entrenador)->pokemonAMoverse);
 }
 
 
+t_entrenador* elEntrenadorMasCercanoAUnPokemonDeLaLista (t_list* listadoDeEntrenadores,t_list* listadoDePokemones)
+{
+	t_entrenador* entrenadorFlag = malloc(sizeof(t_entrenador));
+	for(int i = 0; i < (list_size(listadoDeEntrenadores)-1);i++)
+		{
+			t_entrenador* pos1 = (t_entrenador*)list_get(listadoDeEntrenadores,i);
+			t_entrenador* pos2 = (t_entrenador*)list_get(listadoDeEntrenadores,i+1);
+			for(int j = 0; j < (list_size(listadoDePokemones)-1);j++)
+			{
+				t_pokemon* pokemonBase = (t_pokemon*)list_get(listadoDePokemones,j);
+				t_entrenador* entrenadorMasCercano = elQueEstaMasCerca(pos1,pos2,pokemonBase);
+				entrenadorFlag->posicionX = entrenadorMasCercano->posicionX;
+				entrenadorFlag->posicionY = entrenadorMasCercano->posicionY;
+				entrenadorFlag->pokesAtrapados = entrenadorMasCercano->pokesAtrapados;
+				entrenadorFlag->pokesObjetivos = entrenadorMasCercano->pokesObjetivos;
+				entrenadorFlag->idEntrenador = entrenadorMasCercano->idEntrenador;
+				entrenadorFlag->pokemonAMoverse = pokemonBase;
+			}
+		}
+	return entrenadorFlag;
+}
+
+t_entrenador* elQueEstaMasCerca(void* entrenador1, void* entrenador2,void* pokemon)
+{
+	uint32_t parcial1 = distanciaEntrenadorPokemon((((t_entrenador*)entrenador1)->posicionX),(((t_entrenador*)entrenador1)->posicionY),(((t_pokemon*)pokemon)->posicionX),((t_pokemon*)pokemon)->posicionY);
+	uint32_t parcial2 = distanciaEntrenadorPokemon((((t_entrenador*)entrenador2)->posicionX),(((t_entrenador*)entrenador2)->posicionY),(((t_pokemon*)pokemon)->posicionX),((t_pokemon*)pokemon)->posicionY);
+	if(parcial1 < parcial2)
+	{
+		return entrenador1;
+	}
+	else
+	{
+		return entrenador2;
+	}
+}
+
+uint32_t distanciaEntrenadorPokemon(uint32_t posXEntrenador , uint32_t posYEntrenador, uint32_t posXPokemon, uint32_t PosYPokemon)
+{
+	uint32_t distanciaX = abs(posXEntrenador - posXPokemon);
+	uint32_t distanciaY = abs(posYEntrenador - PosYPokemon);
+	uint32_t distanciaTotal = distanciaX + distanciaY;
+	return distanciaTotal;
+}

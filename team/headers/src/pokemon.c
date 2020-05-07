@@ -67,3 +67,9 @@ void liberarEspecie(void* especie){
 	free(liberar->especie);
 	free(liberar);
 }
+
+void liberarPokemon(void* pokemon){
+	t_pokemon* liberar = (t_pokemon*)pokemon;
+	free(liberar->nombre);
+	free(liberar);
+}

@@ -3,21 +3,16 @@
 
 #include "team.h"
 
-typedef struct Especie{
-	char* especie;
-	uint32_t cantidad;
-}t_especie;
-
-typedef struct Pokemon{
-	char* nombre;
-	uint32_t posicionX;
-	uint32_t posicionY;
-}t_pokemon;
-
+// cantidades
 uint32_t cantidadDePokemonsPorEspecie(char* especie, t_list* lista);
+
+// listas nuevas / modificar listas
 t_list* crearListaObjetivoGlobal(t_list* pokesObjetivoGlobal);
-void liberarEspecie(void* especie);
 void agregarPokemonsRecibidosALista(t_list* pokemonsRecibidos, localized_pokemon_msg* pokemons);
+
+// liberar y mostrar
+void liberarEspecie(void* especie);
+void liberarPokemon(void* pokemon);
 void mostrarPokemon(void* pokemon);
 
 
