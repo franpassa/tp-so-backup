@@ -6,6 +6,8 @@
  * del filesystem desde cero y retorna el bitarray correspondiente.
 */
 t_bitarray* inicializar_filesystem(char* punto_montaje){
+	t_bitarray* bitarray = NULL;
+
 	char* metadata_path = string_new();
 	string_append_with_format(&metadata_path, "%s/Metadata", punto_montaje);
 
@@ -13,12 +15,13 @@ t_bitarray* inicializar_filesystem(char* punto_montaje){
 
 	if(metadata_dir){
 		// Caso metadata existente
+		closedir(metadata_dir);
+
 		char* bitmap_path = string_new();
 		string_append_with_format(&bitmap_path, "%s/Bitmap.bin", metadata_path);
 
-		t_bitarray* bitarray = leer_bitmap(bitmap_path);
+		bitarray = leer_bitmap(bitmap_path);
 		print_bitarray(bitarray);
-		return bitarray;
 
 	} else if (ENOENT == errno){
 		// Caso metadata NO existente
@@ -28,6 +31,9 @@ t_bitarray* inicializar_filesystem(char* punto_montaje){
 		// Otro error, finalizar proceso
 		terminar_aplicacion("Error desconocido al leer directorio de metadata");
 	}
+
+	free(metadata_path);
+	return bitarray;
 }
 
 void inicializar_bloques(char* punto_montaje, int cantidad){
@@ -59,8 +65,9 @@ void inicializar_bloques(char* punto_montaje, int cantidad){
 void print_bitarray(t_bitarray* bitarray){
 	size_t bitarray_size = bitarray_get_max_bit(bitarray);
 	char* bits_string = string_new();
-
+	int j = 0;
 	for(int i = 0; i < bitarray_size; i++){
+		j++;
 		bool bit = bitarray_test_bit(bitarray, i);
 		if(bit){
 			string_append(&bits_string, "1");
@@ -69,11 +76,12 @@ void print_bitarray(t_bitarray* bitarray){
 		}
 	}
 
-	printf("bitarray: %s\n", bits_string);
+	printf("bitarray de largo %d: %s\n", j, bits_string);
 	free(bits_string);
 }
 
 t_bitarray* leer_bitmap(char* bitmap_path){
+	t_bitarray* bitarray = NULL;
 
 	FILE* bitmap_file_ptr = fopen(bitmap_path, "r");
 
@@ -94,10 +102,11 @@ t_bitarray* leer_bitmap(char* bitmap_path){
 	if(file_size == bytes_read){
 		int size_in_bytes = file_size / 8;
 		char* data = malloc(size_in_bytes);
-		t_bitarray* bitarray = bitarray_create_with_mode(data, size_in_bytes, LSB_FIRST);
+		bitarray = bitarray_create_with_mode(data, size_in_bytes, LSB_FIRST);
 
 		for(int i = 0; i < file_size; i++){
 			char bit = buffer[i];
+
 			if(bit == '1'){
 				bitarray_set_bit(bitarray, i);
 			} else if(bit == '0') {
@@ -109,10 +118,29 @@ t_bitarray* leer_bitmap(char* bitmap_path){
 		free(buffer);
 		fclose(bitmap_file_ptr);
 
-		return bitarray;
 	} else {
 		terminar_aplicacion("Error leyendo bitmap");
 	}
 
+	return bitarray;
+}
 
+t_bitarray* crear_bitmap(char* file_path, int cantidad_bloques){
+	t_bitarray* bitarray = NULL;
+
+	FILE* bitmap_file = fopen(file_path, "w");
+
+	if(bitmap_file){
+		char* string_bitarray = string_repeat('0', cantidad_bloques);
+		fputs(string_bitarray, bitmap_file);
+		fclose(bitmap_file);
+
+		int tam_bytes = cantidad_bloques/8;
+		char* bits = calloc(tam_bytes, sizeof(char));
+		bitarray = bitarray_create_with_mode(bits, tam_bytes, LSB_FIRST);
+	} else {
+		terminar_aplicacion("Error creando bitmap");
+	}
+
+	return bitarray;
 }

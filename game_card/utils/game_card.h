@@ -51,6 +51,7 @@ t_bitarray* inicializar_filesystem(char* punto_montaje);
 void inicializar_bloques(char* punto_montaje, int cantidad);
 t_bitarray* leer_bitmap(char* bitmap_path);
 void print_bitarray(t_bitarray* bitarray);
+t_bitarray* crear_bitmap(char* file_path, int cantidad_bloques);
 
 
 
