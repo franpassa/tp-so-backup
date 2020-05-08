@@ -3,6 +3,10 @@
 void inicializar(){
 	config = get_config(CONFIG_PATH);
 	logger = crear_log(LOG_PATH);
+
+	char* punto_montaje = config_get_string_value(config, "PUNTO_MONTAJE_TALLGRASS");
+	fspaths = init_fspaths(punto_montaje);
+	init_fs(fspaths);
 }
 
 void terminar(){
@@ -14,9 +18,11 @@ int main(){
 
 	inicializar();
 
-	char* punto_montaje = config_get_string_value(config, "PUNTO_MONTAJE_TALLGRASS");
-	t_bitarray* bitarray = inicializar_filesystem(punto_montaje);
+	t_bitarray* bitarray = read_bitmap(fspaths->bitmap_file);
 	print_bitarray(bitarray);
+	set_bit(fspaths->bitmap_file, 2, true);
+	t_bitarray* bitarray2 = read_bitmap(fspaths->bitmap_file);
+	print_bitarray(bitarray2);
 
 	terminar();
 

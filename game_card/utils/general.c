@@ -22,3 +22,11 @@ void terminar_aplicacion(char* mensaje){
 	printf("ERROR: %s\n", mensaje);
 	exit(-1);
 }
+
+long get_file_size(FILE* file_ptr){
+	fseek(file_ptr, 0, SEEK_END);
+	long file_size = ftell(file_ptr);
+	fseek(file_ptr, 0, SEEK_SET);
+
+	return file_size;
+}

@@ -13,8 +13,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <dirent.h>
-#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 // -------- Commons --------
 
@@ -32,10 +33,20 @@
 #define CONFIG_PATH "game_card.config"
 #define LOG_PATH "game_card.log"
 
+// -------- Structs --------
+
+typedef struct {
+	char* bitmap_file;
+	char* metadata_file;
+	char* blocks_folder;
+	char* files_folder;
+} t_fspaths;
+
 // -------- Globales --------
 
 t_config* config;
 t_log* logger;
+t_fspaths* fspaths;
 
 // -------- Funciones --------
 
@@ -44,14 +55,17 @@ t_log* logger;
 t_config* get_config(char* config_path);
 t_log* crear_log(char* log_path);
 void terminar_aplicacion(char* mensaje);
+long get_file_size(FILE* file_ptr);
 
 // --- Filesystem ---
 
-t_bitarray* inicializar_filesystem(char* punto_montaje);
-void inicializar_bloques(char* punto_montaje, int cantidad);
-t_bitarray* leer_bitmap(char* bitmap_path);
+void init_fs(t_fspaths* paths);
+void create_blocks(char* punto_montaje, int cantidad);
 void print_bitarray(t_bitarray* bitarray);
-t_bitarray* crear_bitmap(char* file_path, int cantidad_bloques);
+t_bitarray* read_bitmap(char* bitmap_path);
+t_bitarray* create_bitmap(char* file_path, int cantidad_bloques);
+t_fspaths* init_fspaths(char* punto_montaje);
+void set_bit(char* bitmap_path, int index, bool value);
 
 
 
