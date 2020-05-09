@@ -1,6 +1,11 @@
 #ifndef HEADERS_POKEMON_H_
 #define HEADERS_POKEMON_H_
 
+#include <conexiones.h>
+
+#include <stdint.h>
+#include <commons/collections/list.h>
+
 
 typedef struct Especie{
 	char* especie;

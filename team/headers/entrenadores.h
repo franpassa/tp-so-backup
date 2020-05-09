@@ -1,6 +1,7 @@
 #ifndef ENTRENADOR_H_
 #define ENTRENADOR_H_
 
+#include "pokemon.h"
 
 
 typedef enum{

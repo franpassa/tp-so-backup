@@ -96,6 +96,10 @@ t_list* crearListaPokesObjetivos(t_list* entrenadores){
 	return pokesObjetivo;
 }
 
+void mostrarString(void *elemento){
+  printf("%s\n", (char *)elemento);
+}
+
 void mostrarEntrenador(void* entrenador)
 {
 	printf("\n\nLa identificacion del entrenador es: %d\n",((t_entrenador*)entrenador)->idEntrenador);

@@ -59,9 +59,7 @@ void terminar_programa(){
 	config_destroy(config);
 }
 
-void mostrarString(void *elemento){
-  printf("%s\n", (char *)elemento);
-}
+
 
 void inicializarPrograma(){
 	//Leo el archivo de configuracion

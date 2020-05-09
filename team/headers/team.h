@@ -32,7 +32,7 @@
 // interno
 
 #include "entrenadores.h"
-#include "pokemon.h"
+
 
 t_log* logger;
 t_config* config;
