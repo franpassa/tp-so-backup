@@ -10,12 +10,14 @@ void mandar_mensajes(){
 	while(1){
 		cola_actual++;
 
-		if (cola_actual == 7){
+		if (cola_actual == 6){
 
-			cola_actual = 1;
+			cola_actual = 0;
 		}
-
+		pthread_mutex_lock(&sem_cola[cola_actual]);
 		recorrer_cola(int_a_nombre_cola(cola_actual));
+		pthread_mutex_unlock(&sem_cola[cola_actual]);
+
 	}
 }
 

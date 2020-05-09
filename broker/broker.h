@@ -18,6 +18,7 @@
 
 int contador_id = 0;
 pthread_mutex_t semaforo_id;
+pthread_mutex_t sem_cola[6] = (1,1,1,1,1,1);
 
 typedef struct{
 	uint32_t id;
@@ -108,22 +109,22 @@ t_cola_de_mensajes inicializar_cola(t_cola_de_mensajes nombre_cola){
 t_cola_de_mensajes int_a_nombre_cola(int id){
 
 	switch (id){
-		case 1:
+		case 0:
 			return QUEUE_NEW_POKEMON;
 			break;
-		case 2:
+		case 1:
 			return QUEUE_APPEARED_POKEMON;
 			break;
-		case 3:
+		case 2:
 			return QUEUE_CATCH_POKEMON;
 			break;
-		case 4:
+		case 3:
 			return QUEUE_CAUGHT_POKEMON;
 			break;
-		case 5:
+		case 4:
 			return QUEUE_GET_POKEMON;
 			break;
-		case 6:
+		case 5:
 			return QUEUE_LOCALIZED_POKEMON;
 			break;
 
