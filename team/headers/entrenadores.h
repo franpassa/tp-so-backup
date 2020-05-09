@@ -1,8 +1,27 @@
 #ifndef ENTRENADOR_H_
 #define ENTRENADOR_H_
 
-#include <math.h>
-#include "team.h"
+
+
+typedef enum{
+	MOTIVO_CATCH,
+	MOTIVO_NADA,
+	NADA
+}motivo;
+
+typedef struct Entrenador
+{
+	uint32_t posicionX;
+	uint32_t posicionY;
+	t_list* pokesAtrapados;
+	t_list* pokesObjetivos;
+	uint32_t idEntrenador;
+	uint32_t idRecibido;
+	t_pokemon* pokemonAMoverse;
+	motivo motivoBloqueo;
+}t_entrenador;
+
+
 
 // posiciones
 uint32_t posicionXEntrenador(int nroEntrenador, char** posicionesEntrenadores);
@@ -27,6 +46,7 @@ void mostrarEntrenador(void* entrenador);
 t_list* insertarPokesEntrenador(uint32_t nroEntrenador, t_list* pokemons, char** pokesEntrenadores);
 t_list* crearListaDeEntrenadores(char** posicionesEntrenadores, char** pokesEntrenadores, char** pokesObjetivos);
 t_list* crearListaPokesObjetivos(t_list* entrenadores);
+t_pokemon*  pokemonMasCercano (t_entrenador* unEntrenador, t_list* pokemons);
 
 
 #endif /* ENTRENADOR_H_ */

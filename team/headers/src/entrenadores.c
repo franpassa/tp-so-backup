@@ -68,7 +68,8 @@ t_list* crearListaDeEntrenadores(char** posicionesEntrenadores, char** pokesEntr
 		entrenador->pokesAtrapados = insertarPokesEntrenador(i,entrenador->pokesAtrapados,pokesEntrenadores);
 		entrenador->pokesObjetivos = insertarPokesEntrenador(i,entrenador->pokesObjetivos,pokesObjetivos);
 		entrenador->idEntrenador = i;
-
+		entrenador->idRecibido = -1;
+		entrenador->motivoBloqueo = NADA;
 		list_add(entrenadores,entrenador);
 	}
 
@@ -104,50 +105,74 @@ void mostrarEntrenador(void* entrenador)
 	list_iterate((((t_entrenador*)entrenador)->pokesAtrapados),mostrarString);
 	printf("\nLos pokemon obtenidos del entrenador son: \n");
 	list_iterate((((t_entrenador*)entrenador)->pokesObjetivos),mostrarString);
-	mostrarPokemon(((t_entrenador*)entrenador)->pokemonAMoverse);
+	//mostrarPokemon(((t_entrenador*)entrenador)->pokemonAMoverse);
+
+}
+
+// iguala el segundo entrenador al primero
+void igualarEntrenador(t_entrenador* unEntrenador, t_entrenador* otroEntrenador)
+{
+	unEntrenador->idEntrenador = otroEntrenador->idEntrenador;
+	unEntrenador->idRecibido = otroEntrenador->idRecibido;
+	unEntrenador->motivoBloqueo = otroEntrenador->motivoBloqueo;
+	unEntrenador->pokemonAMoverse = otroEntrenador->pokemonAMoverse;
+	unEntrenador->pokesAtrapados = otroEntrenador->pokesAtrapados;
+	unEntrenador->pokesObjetivos = otroEntrenador->pokesObjetivos;
+	unEntrenador->posicionX = otroEntrenador->posicionX;
+	unEntrenador->posicionY = otroEntrenador->posicionY;
+}
+
+void setearEnCeroEntrenador (t_entrenador* unEntrenador)
+{
+	unEntrenador->idEntrenador = 0;
+	unEntrenador->idRecibido = 0;
+	unEntrenador->motivoBloqueo = NADA;
+	unEntrenador->pokemonAMoverse = NULL;
+	unEntrenador->pokesAtrapados = list_create();
+	unEntrenador->pokesObjetivos = list_create();
+	unEntrenador->posicionX = 0;
+	unEntrenador->posicionY = 0;
+
 }
 
 
-t_entrenador* elEntrenadorMasCercanoAUnPokemonDeLaLista (t_list* listadoDeEntrenadores,t_list* listadoDePokemones)
+// devuelve el pokemon de la lista que esta mas cerca a un entrenador
+t_pokemon*  pokemonMasCercano (t_entrenador* unEntrenador, t_list* pokemons)
 {
-	t_entrenador* entrenadorFlag = malloc(sizeof(t_entrenador));
-	for(int i = 0; i < (list_size(listadoDeEntrenadores)-1);i++)
+	t_pokemon* pokemonFlag =  malloc(sizeof(t_pokemon));                   /////////// liberar esta poronga
+	setearEnCeroPokemon(pokemonFlag);
+	igualarPokemons(pokemonFlag,list_get(pokemons,0));
+
+	for(int i = 0; i < (list_size(pokemons)-1); i++)
+	{
+		t_pokemon* pokemonTemporal = list_get(pokemons,i+1);
+		uint32_t distanciaA = distanciaEntrenadorPokemon(unEntrenador->posicionX,unEntrenador->posicionY,pokemonFlag->posicionX,pokemonFlag->posicionY);
+		uint32_t distanciaB = distanciaEntrenadorPokemon(unEntrenador->posicionX,unEntrenador->posicionY,pokemonTemporal->posicionX,pokemonFlag->posicionY);
+		if(distanciaA < distanciaB)
 		{
-			t_entrenador* pos1 = (t_entrenador*)list_get(listadoDeEntrenadores,i);
-			t_entrenador* pos2 = (t_entrenador*)list_get(listadoDeEntrenadores,i+1);
-			for(int j = 0; j < (list_size(listadoDePokemones)-1);j++)
-			{
-				t_pokemon* pokemonBase = (t_pokemon*)list_get(listadoDePokemones,j);
-				t_entrenador* entrenadorMasCercano = elQueEstaMasCerca(pos1,pos2,pokemonBase);
-				entrenadorFlag->posicionX = entrenadorMasCercano->posicionX;
-				entrenadorFlag->posicionY = entrenadorMasCercano->posicionY;
-				entrenadorFlag->pokesAtrapados = entrenadorMasCercano->pokesAtrapados;
-				entrenadorFlag->pokesObjetivos = entrenadorMasCercano->pokesObjetivos;
-				entrenadorFlag->idEntrenador = entrenadorMasCercano->idEntrenador;
-				entrenadorFlag->pokemonAMoverse = pokemonBase;
-			}
+			igualarPokemons(pokemonFlag,pokemonFlag);
 		}
-	return entrenadorFlag;
+		else
+		{
+			igualarPokemons(pokemonFlag,pokemonTemporal);
+		}
+	}
+	return pokemonFlag;
+
 }
 
-t_entrenador* elQueEstaMasCerca(void* entrenador1, void* entrenador2,void* pokemon)
-{
-	uint32_t parcial1 = distanciaEntrenadorPokemon((((t_entrenador*)entrenador1)->posicionX),(((t_entrenador*)entrenador1)->posicionY),(((t_pokemon*)pokemon)->posicionX),((t_pokemon*)pokemon)->posicionY);
-	uint32_t parcial2 = distanciaEntrenadorPokemon((((t_entrenador*)entrenador2)->posicionX),(((t_entrenador*)entrenador2)->posicionY),(((t_pokemon*)pokemon)->posicionX),((t_pokemon*)pokemon)->posicionY);
-	if(parcial1 < parcial2)
-	{
-		return entrenador1;
-	}
-	else
-	{
-		return entrenador2;
-	}
-}
 
-uint32_t distanciaEntrenadorPokemon(uint32_t posXEntrenador , uint32_t posYEntrenador, uint32_t posXPokemon, uint32_t PosYPokemon)
-{
-	uint32_t distanciaX = abs(posXEntrenador - posXPokemon);
-	uint32_t distanciaY = abs(posYEntrenador - PosYPokemon);
-	uint32_t distanciaTotal = distanciaX + distanciaY;
-	return distanciaTotal;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
