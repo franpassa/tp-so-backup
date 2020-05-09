@@ -33,14 +33,18 @@ void recibir_mensajes(){ // ver socket por parametro
 
 			enviar_a_publisher_id(id_mensaje); // hacer
 
+			pthread_mutex_lock(&sem_cola[id_cola]);
 			agregar_a_cola(id_cola,paq);
+			pthread_mutex_unlock(&sem_cola[id_cola]);
 		}
 	}
 	else {
 
 		int id_correlativo = (int) paq->buffer->stream;
 
+		pthread_mutex_lock(&sem_cola[id_cola]);
 		confirmar_mensaje(id_cola , id_correlativo);
+		pthread_mutex_unlock(&sem_cola[id_cola]);
 	}
 	}
 }
