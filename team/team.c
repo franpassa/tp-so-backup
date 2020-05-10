@@ -27,6 +27,33 @@ int main()
 	return 0;
 }
 
+void* estado_exec(void* unEntrenador){
+	t_entrenador* entrenador = (t_entrenador*) unEntrenador;
+	if(entrenador->pokemonAMoverse != NULL){
+		pthread_mutex_lock(&mutexEstadoExec);
+		uint32_t distancia = distanciaEntrenadorPokemon(entrenador->posicionX,entrenador->posicionY,entrenador->pokemonAMoverse->posicionX,entrenador->pokemonAMoverse->posicionY);
+		pthread_mutex_unlock(&mutexEstadoExec);
+		ciclosConsumidos += distancia; //ACUMULO LOS CICLOS DE CPU CONSUMIDOS
+
+		//CONEXION AL BROKER Y ENVIO DE MENSAJE CATCH
+		int conexionExec = crear_conexion(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
+		catch_pokemon_msg* mensaje = catch_msg(entrenador->pokemonAMoverse->nombre,entrenador->pokemonAMoverse->posicionX,entrenador->pokemonAMoverse->posicionY);
+		int idMensajeExec = enviar_mensaje(CATCH_POKEMON,mensaje,conexionExec); /* DONDE METO EL ID?*/
+		close(conexionExec);
+
+		//AGREGO A LA LISTA DE BLOQUEADOS
+		entrenador->posicionX = entrenador->pokemonAMoverse->posicionX;
+		entrenador->posicionY = entrenador->pokemonAMoverse->posicionY;
+		entrenador->pokemonAMoverse = NULL;
+		entrenador->idRecibido = idMensajeExec;
+		entrenador->motivoBloqueo = MOTIVO_CATCH;
+
+		pthread_exit(entrenador);
+	}
+
+	return NULL;
+}
+
 t_config* leer_config() {
 	return config_create(PATH_CONFIG);
 }
@@ -35,8 +62,6 @@ void terminar_programa(){
 	log_destroy(logger);
 	config_destroy(config);
 }
-
-
 
 void inicializarPrograma(){
 	//Leo el archivo de configuracion

@@ -136,7 +136,6 @@ void setearEnCeroEntrenador (t_entrenador* unEntrenador)
 
 }
 
-
 // devuelve el pokemon de la lista que esta mas cerca a un entrenador
 t_pokemon*  pokemonMasCercano (t_entrenador* unEntrenador, t_list* pokemons)
 {
@@ -187,7 +186,6 @@ t_entrenador* entrenadorAPlanificar(t_list* listaEntrenadores, t_list* listaPoke
 	}
 	return entrenadorFlag;
 }
-
 
 
 

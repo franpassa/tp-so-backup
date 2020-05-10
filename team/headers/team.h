@@ -32,6 +32,7 @@
 
 #include "entrenadores.h"
 
+//VARIABLES GLOBALES
 
 t_log* logger;
 t_config* config;
@@ -41,9 +42,16 @@ t_list* estado_bloqueado;
 t_list* estado_ready;
 t_list* estado_exit;
 
+pthread_t planificarEntrenador;
+pthread_mutex_t mutexEstadoExec;
+
+int ciclosConsumidos;
+
+//FUNCIONES
 
 void inicializarPrograma();
 void terminar_programa();
+void* estado_exec(void* unEntrenador);
 
 
 //#endif /* TEAM_H_ */
