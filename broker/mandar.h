@@ -10,26 +10,26 @@ void mandar_mensajes(){
 	while(1){
 		cola_actual++;
 
-		if (cola_actual == 6){
+		if (cola_actual == 7){
 
-			cola_actual = 0;
+			cola_actual = 1;
 		}
-		pthread_mutex_lock(&sem_cola[cola_actual]);
-		recorrer_cola(int_a_nombre_cola(cola_actual));
-		pthread_mutex_unlock(&sem_cola[cola_actual]);
 
+		//pthread_mutex_lock(&sem_cola[cola_actual]);
+		recorrer_cola(int_a_nombre_cola(cola_actual));
+		//pthread_mutex_unlock(&sem_cola[cola_actual]);
 	}
 }
 
-bool igual_a(void* uno ,int otro){
+bool igual_a(void* uno ,uint32_t otro){
 
-	int nro = (int) uno;
+	int nro = (uint32_t) uno;
 
 	return  nro == otro ;
 
 }
 
-bool no_esten_en(t_list* a_los_que_envie, int sub) {
+bool no_esten_en(t_list* a_los_que_envie, uint32_t sub) {
 
 	bool no_es_igual_a(void* alguien){
 		return !igual_a(alguien ,sub);
@@ -38,7 +38,7 @@ bool no_esten_en(t_list* a_los_que_envie, int sub) {
 	return list_any_satisfy(a_los_que_envie,no_es_igual_a);
 }
 
-void mandar(t_paquete* paquete, int sub){
+void mandar(t_paquete* paquete, uint32_t sub){
 
 	int total_bytes = paquete->buffer->size + sizeof(queue_name) + 2 * sizeof(uint32_t);
 
@@ -50,7 +50,7 @@ void mandar(t_paquete* paquete, int sub){
 void enviar_a(t_paquete* paquete,t_list* sin_enviar){
 
 	void mandar_a_alguien(void* sub){
-		mandar(paquete,(int) sub);
+		mandar(paquete,(uint32_t) sub);
 	}
 
 	sin_enviar = list_map(sin_enviar, (void*) mandar_a_alguien);
@@ -73,9 +73,9 @@ void recorrer_cola(t_cola_de_mensajes nombre){
 
 			t_info_mensaje* info = queue_peek(nombre.cola);
 
-			int id_primero = info->id;
+			uint32_t id_primero = info->id;
 
-			int id_siguiente;
+			uint32_t id_siguiente;
 
 			do{
 
@@ -83,7 +83,7 @@ void recorrer_cola(t_cola_de_mensajes nombre){
 
 				list_add_all(a_los_q_envie,info->a_quienes_fue_enviado);
 
-				int sub;
+				uint32_t sub;
 
 				bool a_los_que_envie_nuevo(void* lista_enviados){
 					return no_esten_en(a_los_q_envie,sub);

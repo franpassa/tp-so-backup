@@ -1,46 +1,38 @@
 #include "broker.h"
 #include "recibir.h"
 #include "mandar.h"
+#include "server.h"
 
-
-
-int main(void){
-
+void inicializar_colas(){
 	QUEUE_NEW_POKEMON = inicializar_cola(QUEUE_NEW_POKEMON);
 	QUEUE_APPEARED_POKEMON = inicializar_cola(QUEUE_APPEARED_POKEMON);
 	QUEUE_CATCH_POKEMON = inicializar_cola(QUEUE_CATCH_POKEMON);
 	QUEUE_CAUGHT_POKEMON =inicializar_cola(QUEUE_CAUGHT_POKEMON);
 	QUEUE_GET_POKEMON = inicializar_cola(QUEUE_GET_POKEMON);
 	QUEUE_LOCALIZED_POKEMON = inicializar_cola(QUEUE_LOCALIZED_POKEMON);
+}
 
-	/*char* ip;
-	char* puerto;
-	logger = iniciar_logger();
-
-	log_info(logger,"Broker");
+int main(){
+	// ver archivos
 
 	config = leer_config();
+	logger = iniciar_logger();
 
-	ip = config_get_string_value(config,"IP_BROKER");
-	puerto = config_get_string_value(config,"PUERTO_BROKER");
+	inicializar_colas();
 
-	log_info(logger,ip);
-	log_info(logger,puerto);
 
-	terminar_programa(logger,config);
-	free(ip);
-	free(puerto);
+	pthread_t hilo_servidor;
 
-	iniciar_servidor();
+	pthread_create(&hilo_servidor,NULL,(void*) iniciar_servidor,NULL);
 
-	//pthread_t hilo_recibir, hilo_enviar;
+
+	pthread_join(hilo_servidor,NULL);
 
 	//pthread_create(&hilo_recibir,NULL,(void*) recibir_mensajes,NULL);
 	//pthread_create(&hilo_enviar,NULL,(void*) enviar_mensajes,NULL);
-
 	//pthread_join(hilo_recibir, NULL);
 	//pthread_join(hilo_enviar, NULL);
-	*/
+
 	return 0;
 
 }

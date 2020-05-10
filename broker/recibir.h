@@ -4,17 +4,15 @@
 #include "broker.h"
 
 
-void recibir_mensajes(){ // ver socket por parametro
+void recibir_mensajes(int socket_escucha){
 
-	int id_cola;
-	int socket_cliente;
+	uint32_t id_cola;
+
 	t_paquete* paq = malloc(sizeof(t_paquete));
 
 	while(1){
 
-	// sino agregar void recibir_socket
-
-	recv(socket_cliente, &(paq->cola_msg), sizeof(queue_name), MSG_WAITALL);
+	recv(socket_escucha, &(paq->cola_msg), sizeof(queue_name), MSG_WAITALL);
 
 
 	id_cola = paq->cola_msg;
@@ -22,40 +20,40 @@ void recibir_mensajes(){ // ver socket por parametro
 	if (paq->buffer->size != 0){
 
 		paq->buffer = malloc(sizeof(t_buffer));
-		recv(socket_cliente, &(paq->buffer->size), sizeof(queue_name), MSG_WAITALL);
+		recv(socket_escucha, &(paq->buffer->size), sizeof(queue_name), MSG_WAITALL);
 
 		paq->buffer->stream = malloc(paq->buffer->size);
-		recv(socket_cliente, paq->buffer->stream, paq->buffer->size, MSG_WAITALL);
+		recv(socket_escucha, paq->buffer->stream, paq->buffer->size, MSG_WAITALL);
 
 		if (revisar_mensaje(id_cola,paq->buffer)){
 
-			int id_mensaje = crear_nuevo_id();
+			uint32_t id_mensaje = crear_nuevo_id();
 
 			enviar_a_publisher_id(id_mensaje); // hacer
 
-			pthread_mutex_lock(&sem_cola[id_cola]);
+			//pthread_mutex_lock(&sem_cola[id_cola]);
 			agregar_a_cola(id_cola,paq);
-			pthread_mutex_unlock(&sem_cola[id_cola]);
+			//pthread_mutex_unlock(&sem_cola[id_cola]);
 		}
 	}
 	else {
 
-		int id_correlativo = (int) paq->buffer->stream;
+		uint32_t id_correlativo = (uint32_t) paq->buffer->stream;
 
-		pthread_mutex_lock(&sem_cola[id_cola]);
+		//pthread_mutex_lock(&sem_cola[id_cola]);
 		confirmar_mensaje(id_cola , id_correlativo);
-		pthread_mutex_unlock(&sem_cola[id_cola]);
+		//pthread_mutex_unlock(&sem_cola[id_cola]);
 	}
 	}
 }
 
-void confirmar_mensaje(int id_cola ,int id_mensaje){
+void confirmar_mensaje(uint32_t id_cola ,uint32_t id_mensaje){
 
 	t_cola_de_mensajes queue = int_a_nombre_cola(id_cola);
 	t_info_mensaje* mensaje = queue_peek(queue.cola);
 
-	int control = 0;
-	int id_primero = mensaje->id,id_siguiente;
+	uint32_t control = 0;
+	uint32_t id_primero = mensaje->id,id_siguiente;
 
 	do{
 		mensaje = queue_pop(queue.cola);
@@ -82,14 +80,14 @@ int crear_nuevo_id(){
 	pthread_mutex_unlock(&semaforo_id);
 }
 
-void agregar_a_cola(int id_cola,t_paquete* paquete){
+void agregar_a_cola(uint32_t id_cola,t_paquete* paquete){
 
 	void* msg = &paquete;
 
 	queue_push(int_a_nombre_cola(id_cola).cola, msg);
 }
 
-bool es_el_mismo_mensaje(int id, void* mensaje,void* otro_mensaje) {
+bool es_el_mismo_mensaje(uint32_t id, void* mensaje,void* otro_mensaje) {
 
 	switch(id){
 
@@ -155,7 +153,7 @@ bool es_el_mismo_mensaje(int id, void* mensaje,void* otro_mensaje) {
 
 }
 
-bool revisar_mensaje(int id, t_buffer* buffer) {
+bool revisar_mensaje(uint32_t id, t_buffer* buffer) {
 
 	t_cola_de_mensajes queue_a_revisar = int_a_nombre_cola(id);
 
