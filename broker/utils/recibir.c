@@ -1,12 +1,9 @@
-#ifndef RECIBIR_H_
-#define RECIBIR_H_
-
 #include "broker.h"
 
 
 void recibir_mensajes(int socket_escucha){
 
-	uint32_t id_cola;
+	queue_name id_cola;
 
 	t_paquete* paq = malloc(sizeof(t_paquete));
 
@@ -47,25 +44,25 @@ void recibir_mensajes(int socket_escucha){
 	}
 }
 
-void confirmar_mensaje(uint32_t id_cola ,uint32_t id_mensaje){
+void confirmar_mensaje(queue_name id_cola ,uint32_t id_mensaje){
 
-	t_cola_de_mensajes queue = int_a_nombre_cola(id_cola);
-	t_info_mensaje* mensaje = queue_peek(queue.cola);
+	t_cola_de_mensajes* queue = int_a_nombre_cola(id_cola);
+	t_info_mensaje* mensaje = queue_peek(queue->cola);
 
 	uint32_t control = 0;
 	uint32_t id_primero = mensaje->id,id_siguiente;
 
 	do{
-		mensaje = queue_pop(queue.cola);
+		mensaje = queue_pop(queue->cola);
 
 		if (mensaje->id == id_mensaje){
 			control = 1;
 			mensaje->cuantos_lo_recibieron++;
 		}
 
-		queue_push(queue.cola ,mensaje);
+		queue_push(queue->cola ,mensaje);
 
-		mensaje = queue_peek(queue.cola);
+		mensaje = queue_peek(queue->cola);
 
 		id_siguiente = mensaje->id;
 
@@ -84,14 +81,14 @@ void agregar_a_cola(uint32_t id_cola,t_paquete* paquete){
 
 	void* msg = &paquete;
 
-	queue_push(int_a_nombre_cola(id_cola).cola, msg);
+	queue_push(int_a_nombre_cola(id_cola)->cola, msg);
 }
 
-bool es_el_mismo_mensaje(uint32_t id, void* mensaje,void* otro_mensaje) {
+bool es_el_mismo_mensaje(queue_name id, void* mensaje,void* otro_mensaje) {
 
 	switch(id){
 
-	case 1: ;
+	case NEW_POKEMON: ;
 
 		new_pokemon_msg* msg_new = (new_pokemon_msg*) mensaje;
 		new_pokemon_msg* otro_msg_new = (new_pokemon_msg*) otro_mensaje;
@@ -101,7 +98,7 @@ bool es_el_mismo_mensaje(uint32_t id, void* mensaje,void* otro_mensaje) {
 
 		break;
 
-	case 2: ;
+	case APPEARED_POKEMON: ;
 
 		appeared_pokemon_msg* msg_appeared = (appeared_pokemon_msg*) mensaje;
 		appeared_pokemon_msg* otro_msg_appeared = (appeared_pokemon_msg*) otro_mensaje;
@@ -110,7 +107,7 @@ bool es_el_mismo_mensaje(uint32_t id, void* mensaje,void* otro_mensaje) {
 
 		break;
 
-	case 3: ;
+	case GET_POKEMON: ;
 
 		get_pokemon_msg* msg_get = (get_pokemon_msg*) mensaje;
 		get_pokemon_msg* otro_msg_get = (get_pokemon_msg*) otro_mensaje;
@@ -118,7 +115,7 @@ bool es_el_mismo_mensaje(uint32_t id, void* mensaje,void* otro_mensaje) {
 
 		break;
 
-	case 4: ;
+	case LOCALIZED_POKEMON: ;
 
 		localized_pokemon_msg* msg_localized = (localized_pokemon_msg*) mensaje;
 		localized_pokemon_msg* otro_msg_localized = (localized_pokemon_msg*) otro_mensaje;
@@ -128,7 +125,7 @@ bool es_el_mismo_mensaje(uint32_t id, void* mensaje,void* otro_mensaje) {
 
 		break;
 
-	case 5: ;
+	case CATCH_POKEMON: ;
 
 		catch_pokemon_msg* msg_catch = (catch_pokemon_msg*) mensaje;
 		catch_pokemon_msg* otro_msg_catch = (catch_pokemon_msg*) otro_mensaje;
@@ -138,7 +135,7 @@ bool es_el_mismo_mensaje(uint32_t id, void* mensaje,void* otro_mensaje) {
 
 		break;
 
-	case 6: ;
+	case CAUGHT_POKEMON: ;
 
 	    caught_pokemon_msg* msg_caught = (caught_pokemon_msg*) mensaje;
 		caught_pokemon_msg* otro_msg_caught = (caught_pokemon_msg*) otro_mensaje;
@@ -155,16 +152,20 @@ bool es_el_mismo_mensaje(uint32_t id, void* mensaje,void* otro_mensaje) {
 
 bool revisar_mensaje(uint32_t id, t_buffer* buffer) {
 
-	t_cola_de_mensajes queue_a_revisar = int_a_nombre_cola(id);
+	t_cola_de_mensajes* queue_a_revisar = int_a_nombre_cola(id);
 
 	bool no_es_el_mismo_mensaje(void* elemento){
 		return !es_el_mismo_mensaje(id, buffer->stream, elemento);
 	}
 
-	bool resultado = list_any_satisfy(queue_a_revisar.cola->elements, no_es_el_mismo_mensaje);
+	bool resultado = list_any_satisfy(queue_a_revisar->cola->elements, no_es_el_mismo_mensaje);
 
 	return resultado;
 }
 
+void enviar_a_publisher_id(uint32_t id){
+	// hacer
+};
 
-#endif /* RECIBIR_H_ */
+
+

@@ -12,13 +12,17 @@ void terminar(){
 
 int main(){
 
-	inicializar();
+	//inicializar();
 
+	suscribirse_a_queue(CAUGHT_POKEMON,"127.0.0.1","6009");
+
+	while(1);
+/*
 	char* punto_montaje = config_get_string_value(config, "PUNTO_MONTAJE_TALLGRASS");
 	t_bitarray* bitarray = inicializar_filesystem(punto_montaje);
 	print_bitarray(bitarray);
-
-	terminar();
+*/
+	//terminar();
 
 	return EXIT_SUCCESS;
 }

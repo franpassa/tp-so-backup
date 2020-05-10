@@ -1,55 +1,104 @@
-#include "broker.h"
-#include "recibir.h"
-#include "mandar.h"
-#include "server.h"
+#include "utils/broker.h"
 
-void inicializar_colas(){
-	QUEUE_NEW_POKEMON = inicializar_cola(QUEUE_NEW_POKEMON);
-	QUEUE_APPEARED_POKEMON = inicializar_cola(QUEUE_APPEARED_POKEMON);
-	QUEUE_CATCH_POKEMON = inicializar_cola(QUEUE_CATCH_POKEMON);
-	QUEUE_CAUGHT_POKEMON =inicializar_cola(QUEUE_CAUGHT_POKEMON);
-	QUEUE_GET_POKEMON = inicializar_cola(QUEUE_GET_POKEMON);
-	QUEUE_LOCALIZED_POKEMON = inicializar_cola(QUEUE_LOCALIZED_POKEMON);
-}
 
 int main(){
-	// ver archivos
 
-	config = leer_config();
-	logger = iniciar_logger();
-
-	inicializar_colas();
+	inicializar();
 
 
-	pthread_t hilo_servidor;
+	int socket_servidor = iniciar_servidor();
 
-	pthread_create(&hilo_servidor,NULL,(void*) iniciar_servidor,NULL);
-
-
-	pthread_join(hilo_servidor,NULL);
-
-	//pthread_create(&hilo_recibir,NULL,(void*) recibir_mensajes,NULL);
-	//pthread_create(&hilo_enviar,NULL,(void*) enviar_mensajes,NULL);
-	//pthread_join(hilo_recibir, NULL);
-	//pthread_join(hilo_enviar, NULL);
+	pthread_t hilo_recibir;
+	pthread_create(&hilo_recibir, NULL, (void*) esperar_cliente, &socket_servidor);
+	pthread_join(hilo_recibir,NULL);
 
 	return 0;
 
 }
 
+void inicializar_colas(){
+	inicializar_cola(&QUEUE_NEW_POKEMON);
+	inicializar_cola(&QUEUE_APPEARED_POKEMON);
+	inicializar_cola(&QUEUE_CATCH_POKEMON);
+	inicializar_cola(&QUEUE_CAUGHT_POKEMON);
+	inicializar_cola(&QUEUE_GET_POKEMON);
+	inicializar_cola(&QUEUE_LOCALIZED_POKEMON);
+}
 
-t_log* iniciar_logger(void){
-	return log_create("log", "broker", 1, LOG_LEVEL_INFO);
+t_log* iniciar_logger(){
+	return log_create("log", "broker", 1, LOG_LEVEL_INFO); // ver
 }
 
 
-t_config* leer_config(void){
-	 return config_create("broker.config");
+t_config* leer_config(){
+	 t_config* mi_config = config_create("broker.config");
+	 if(mi_config == NULL){
+		 printf("Error inicilizando config");
+		 exit(-1);
+	 }
+
+	 return mi_config;
+
 }
 
 void terminar_programa(t_log* logger, t_config* config){
 		log_destroy(logger);
 		config_destroy(config);
+}
+
+
+void inicializar_cola(t_cola_de_mensajes** nombre_cola){
+
+	*nombre_cola = malloc(sizeof(t_cola_de_mensajes));
+
+	(*nombre_cola)->cola = queue_create();
+	(*nombre_cola)->lista_suscriptores = list_create();
+
+}
+
+t_cola_de_mensajes* int_a_nombre_cola(queue_name id){
+	//tener presente el null if en cada funcion donde usemos
+	t_cola_de_mensajes* cola = NULL;
+
+	switch (id){
+		case NEW_POKEMON:
+			cola = QUEUE_NEW_POKEMON;
+			break;
+
+		case APPEARED_POKEMON:
+			cola = QUEUE_APPEARED_POKEMON;
+			break;
+
+		case CATCH_POKEMON:
+			cola = QUEUE_CATCH_POKEMON;
+			break;
+
+		case CAUGHT_POKEMON:
+			cola = QUEUE_CAUGHT_POKEMON;
+			break;
+
+		case GET_POKEMON:
+			cola = QUEUE_GET_POKEMON;
+			break;
+
+		case LOCALIZED_POKEMON:
+			cola = QUEUE_LOCALIZED_POKEMON;
+			break;
+}
+	return cola;
+}
+
+void inicializar(){
+
+	//config = leer_config();
+	//logger = iniciar_logger();
+
+	contador_id = 0;
+	static const char* valores_colas[6] = {"NEW_POKEMON","APPEARED_POKEMON","CATCH_POKEMON","CAUGHT_POKEMON","GET_POKEMON","LOCALIZED_POKEMON"};
+	memcpy(nombres_colas,valores_colas,sizeof(valores_colas));
+
+	inicializar_colas();
+
 }
 
 
@@ -64,4 +113,4 @@ void terminar_programa(t_log* logger, t_config* config){
 	t_suscriptor sub = *(t_suscriptor*)p2;
 	printf("%d\n",sub.id);
 	printf("%d\n",sub.id_correlacional);
-	*/
+*/
