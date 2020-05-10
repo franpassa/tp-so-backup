@@ -1,18 +1,15 @@
-#ifndef MANDAR_H_
-#define MANDAR_H_
-
 #include "broker.h"
 
-int cola_actual = 0;
-
 void mandar_mensajes(){
+
+	int cola_actual = 0;
 
 	while(1){
 		cola_actual++;
 
-		if (cola_actual == 7){
+		if (cola_actual == 6){
 
-			cola_actual = 1;
+			cola_actual = 0;
 		}
 
 		//pthread_mutex_lock(&sem_cola[cola_actual]);
@@ -20,6 +17,7 @@ void mandar_mensajes(){
 		//pthread_mutex_unlock(&sem_cola[cola_actual]);
 	}
 }
+
 
 bool igual_a(void* uno ,uint32_t otro){
 
@@ -57,13 +55,13 @@ void enviar_a(t_paquete* paquete,t_list* sin_enviar){
 
 }
 
-void recorrer_cola(t_cola_de_mensajes nombre){
+void recorrer_cola(t_cola_de_mensajes* nombre){
 
-	if (!queue_is_empty(nombre.cola)){
+	if (!queue_is_empty(nombre->cola)){
 
 		t_list* subs = list_create();
 
-		list_add_all(subs,nombre.lista_suscriptores);
+		list_add_all(subs,nombre->lista_suscriptores);
 
 		t_list* a_los_q_envie = list_create();
 
@@ -71,7 +69,7 @@ void recorrer_cola(t_cola_de_mensajes nombre){
 
 		if (!list_is_empty(subs)){
 
-			t_info_mensaje* info = queue_peek(nombre.cola);
+			t_info_mensaje* info = queue_peek(nombre->cola);
 
 			uint32_t id_primero = info->id;
 
@@ -79,7 +77,7 @@ void recorrer_cola(t_cola_de_mensajes nombre){
 
 			do{
 
-				info = queue_pop(nombre.cola);
+				info = queue_pop(nombre->cola);
 
 				list_add_all(a_los_q_envie,info->a_quienes_fue_enviado);
 
@@ -93,9 +91,9 @@ void recorrer_cola(t_cola_de_mensajes nombre){
 
 				enviar_a(info->paquete,sin_enviar);
 
-				queue_push(nombre.cola,info);
+				queue_push(nombre->cola,info);
 
-				info = queue_peek(nombre.cola);
+				info = queue_peek(nombre->cola);
 
 				id_siguiente = info->id;
 
@@ -105,4 +103,6 @@ void recorrer_cola(t_cola_de_mensajes nombre){
 	}
 }
 
-#endif /* MANDAR_H_ */
+
+
+
