@@ -93,7 +93,7 @@ void igualarPokemons(t_pokemon* unPokemon, t_pokemon* otroPokemon) // iguala el 
 
 void setearEnCeroPokemon(t_pokemon* unPokemon)
 {
-	unPokemon->nombre = string_new();
+	unPokemon->nombre = NULL;
 	unPokemon->posicionX = 0;
 	unPokemon->posicionY = 0;
 }

@@ -36,9 +36,14 @@
 t_log* logger;
 t_config* config;
 
+t_list* estado_new;
+t_list* estado_bloqueado;
+t_list* estado_ready;
+t_list* estado_exit;
+
+
 void inicializarPrograma();
 void terminar_programa();
-t_config* leer_config();
 
 
 //#endif /* TEAM_H_ */

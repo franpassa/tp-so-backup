@@ -8,21 +8,19 @@ int main()
 	char** pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
 	char** pokesObjetivos = config_get_array_value(config, "OBJETIVOS_ENTRENADORES");
 
-	t_list* entrenadores = crearListaDeEntrenadores(posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
+	estado_new = crearListaDeEntrenadores(posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
 
-	t_list* pokesObjetivoGlobal = crearListaPokesObjetivos(entrenadores);
+	t_list* pokemons_objetivos = crearListaPokesObjetivos(estado_new);
 
-	t_list* listaObjetivos = crearListaObjetivoGlobal(pokesObjetivoGlobal);
-
+	t_list* objetivos_globales = crearListaObjetivoGlobal(pokemons_objetivos);
 
 	/* LIBERO ELEMENTOS */
 	liberarArray(posicionesEntrenadores);
 	liberarArray(pokesEntrenadores);
 	liberarArray(pokesObjetivos);
-	list_destroy_and_destroy_elements(pokesObjetivoGlobal, free);
-	list_destroy_and_destroy_elements(entrenadores,liberarEntrenador);
-	list_destroy_and_destroy_elements(listaObjetivos,liberarEspecie);
-
+	list_destroy_and_destroy_elements(pokemons_objetivos, free);
+	list_destroy_and_destroy_elements(estado_new,liberarEntrenador);
+	list_destroy_and_destroy_elements(objetivos_globales,liberarEspecie);
 
 	terminar_programa(); //Finalizo el programa
 

@@ -74,7 +74,7 @@ free(entrenadorPrueba);
 	t_list* entrenadores123 = list_create();
 	list_add(entrenadores123,entrenadorBase);
 
-	t_entrenador* temporal = elEntrenadorMasCercanoAUnPokemonDeLaLista(entrenadores123,pokemons);
+	t_entrenador* temporal = entrenadorAPlanidicar(entrenadores123,pokemons);
 
 	printf("identificador del entrenador que esta mas cerca = \n  %d \n",temporal->idEntrenador);
 	printf("\n nombre del pokemon a moverse = \n ");
