@@ -26,7 +26,13 @@ void inicializar_colas(){
 }
 
 t_log* iniciar_logger(){
-	return log_create("log", "broker", 1, LOG_LEVEL_INFO); // ver
+	t_log* mi_logger= log_create("log", "broker", 1, LOG_LEVEL_INFO);
+	 if(mi_logger == NULL){
+		 printf("Error inicilizando logger");
+		 exit(-1);
+	 }
+
+	 return mi_logger;
 }
 
 
@@ -57,7 +63,7 @@ void inicializar_cola(t_cola_de_mensajes** nombre_cola){
 }
 
 t_cola_de_mensajes* int_a_nombre_cola(queue_name id){
-	//tener presente el null if en cada funcion donde usemos
+
 	t_cola_de_mensajes* cola = NULL;
 
 	switch (id){

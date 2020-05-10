@@ -30,7 +30,7 @@ int iniciar_servidor() {
 			printf("Error en bind\n");
 			exit(-1);
 		}
-		//if para ver si se bindeo bien
+
 
 		listen(listeningSocket, SOMAXCONN);
 		freeaddrinfo(serverInfo);
@@ -57,7 +57,7 @@ void esperar_cliente(int* socket_servidor) { // Hilo esperar_cliente
 
 		if(recv(socket_cliente, &cola, sizeof(queue_name), MSG_WAITALL) == -1) {
 			perror("Error al recibir el mensaje:");
-			printf("Error recibiendo mensaje\n"); //log de error
+			printf("Error recibiendo mensaje\n");
 			continue; // vuelve al loop
 
 		}
@@ -67,7 +67,7 @@ void esperar_cliente(int* socket_servidor) { // Hilo esperar_cliente
 			printf("%d es un codigo invalido\n", cola);
 		} else {
 			printf("el cliente %d se suscribio a la cola %s\n", socket_cliente, nombres_colas[cola]);
-			//list iterate, printear todo contenido de lista
+			//list iterate, printear contenido de lista
 		}
 
 	}
