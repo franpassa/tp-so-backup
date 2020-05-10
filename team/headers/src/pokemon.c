@@ -55,11 +55,21 @@ void agregarPokemonsRecibidosALista(t_list* pokemonsRecibidos, localized_pokemon
 	}
 }
 
+void mostrarString(void *elemento){
+  printf("%s\n", (char *)elemento);
+}
+
 void mostrarPokemon(void* pokemon){
     printf("El nombre del pokemon es: ");
     mostrarString((((t_pokemon*)pokemon)->nombre));
     printf("La pos en X es: %d\n",((t_pokemon*)pokemon)->posicionX);
     printf("La pos en y es: %d\n",((t_pokemon*)pokemon)->posicionY);
+}
+
+void mostrarEspecie(void* especie)
+{
+	mostrarString(((t_especie*)especie)->especie);
+	printf(" cantidad = %d \n",((t_especie*)especie)->cantidad);
 }
 
 void liberarEspecie(void* especie){

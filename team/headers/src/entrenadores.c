@@ -96,10 +96,6 @@ t_list* crearListaPokesObjetivos(t_list* entrenadores){
 	return pokesObjetivo;
 }
 
-void mostrarString(void *elemento){
-  printf("%s\n", (char *)elemento);
-}
-
 void mostrarEntrenador(void* entrenador)
 {
 	printf("\n\nLa identificacion del entrenador es: %d\n",((t_entrenador*)entrenador)->idEntrenador);
@@ -143,7 +139,7 @@ void setearEnCeroEntrenador (t_entrenador* unEntrenador)
 // devuelve el pokemon de la lista que esta mas cerca a un entrenador
 t_pokemon*  pokemonMasCercano (t_entrenador* unEntrenador, t_list* pokemons)
 {
-	t_pokemon* pokemonFlag =  malloc(sizeof(t_pokemon));                   /////////// liberar esta poronga
+	t_pokemon* pokemonFlag =  malloc(sizeof(t_pokemon));
 	setearEnCeroPokemon(pokemonFlag);
 	igualarPokemons(pokemonFlag,list_get(pokemons,0));
 
@@ -165,6 +161,40 @@ t_pokemon*  pokemonMasCercano (t_entrenador* unEntrenador, t_list* pokemons)
 
 }
 
+t_entrenador* elEntrenadorMasCercanoAUnPokemonDeLaLista (t_list* listaEntrenadores, t_list* listaPokemons)
+{
+	t_entrenador* entrenadorFlag = malloc(sizeof(t_entrenador));
+	igualarEntrenador(entrenadorFlag,list_get(listaEntrenadores,0));
+	if(list_size(listaEntrenadores) < 2)
+	{
+		entrenadorFlag->pokemonAMoverse = pokemonMasCercano(entrenadorFlag,listaPokemons);
+	}
+
+	else
+	{
+		for(int i =  0; i < (list_size(listaEntrenadores)-1); i++)
+		{
+			t_entrenador* entrenadorTemporal = list_get(listaEntrenadores,i+1);
+			t_pokemon* pokemonParcialFlag = pokemonMasCercano(entrenadorFlag,listaPokemons);
+			uint32_t distanciaFlag = distanciaEntrenadorPokemon(entrenadorFlag->posicionX,entrenadorFlag->posicionY,pokemonParcialFlag->posicionX,pokemonParcialFlag->posicionY);
+			t_pokemon* pokemonEntrenadorTemporal= pokemonMasCercano(entrenadorTemporal,listaPokemons);
+			uint32_t distanciaTemporal = distanciaEntrenadorPokemon(entrenadorTemporal->posicionX,entrenadorTemporal->posicionY,pokemonEntrenadorTemporal->posicionX,pokemonEntrenadorTemporal->posicionY);
+			if(distanciaFlag > distanciaTemporal)
+			{
+				igualarEntrenador(entrenadorFlag,entrenadorTemporal);
+				entrenadorFlag->pokemonAMoverse = pokemonParcialFlag;
+
+			}
+			else
+			{
+				igualarEntrenador(entrenadorFlag,entrenadorFlag);
+				entrenadorFlag->pokemonAMoverse = pokemonEntrenadorTemporal;
+			}
+		}
+	}
+	return entrenadorFlag;
+
+}
 
 
 

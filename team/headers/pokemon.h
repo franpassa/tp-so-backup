@@ -5,6 +5,7 @@
 
 #include <stdint.h>
 #include <commons/collections/list.h>
+#include <commons/string.h>
 
 
 typedef struct Especie{
@@ -30,6 +31,9 @@ void agregarPokemonsRecibidosALista(t_list* pokemonsRecibidos, localized_pokemon
 void liberarEspecie(void* especie);
 void liberarPokemon(void* pokemon);
 void mostrarPokemon(void* pokemon);
+void mostrarEspecie(void* pokemon);
+void mostrarString(void*);
+
 
 void igualarPokemons(t_pokemon* unPokemon, t_pokemon* otroPokemon);
 void setearEnCeroPokemon(t_pokemon* unPokemon);

@@ -14,28 +14,7 @@ int main()
 
 	t_list* listaObjetivos = crearListaObjetivoGlobal(pokesObjetivoGlobal);
 
-	t_pokemon* pikachu4 = malloc(sizeof(t_pokemon));
-	pikachu4->nombre = string_new();	 //
-	string_append(&pikachu4->nombre,"pikachu4");
-	pikachu4->posicionX = 12;
-	pikachu4->posicionY = 7;
 
-	t_pokemon* pikachu2 = malloc(sizeof(t_pokemon));
-	pikachu2->nombre = string_new();	 //
-	string_append(&pikachu2->nombre,"pikachu2");
-	pikachu2->posicionX = 2;
-	pikachu2->posicionY = 5;
-
-	t_list* pokemons = list_create();
-	list_add(pokemons,pikachu4);
-	//list_add(pokemons,pikachu2);
-
-	t_entrenador* entrenadorBase = ((list_get(entrenadores,0)));
-
-	printf("a = %d",(distanciaEntrenadorPokemon(entrenadorBase->posicionX,entrenadorBase->posicionY,pikachu2->posicionX,pikachu2->posicionY)));
-	printf("a = %d",(distanciaEntrenadorPokemon(entrenadorBase->posicionX,entrenadorBase->posicionY,pikachu4->posicionX,pikachu4->posicionY)));
-
-	mostrarPokemon(pokemonMasCercano((list_get(entrenadores,0)),pokemons));
 	/* LIBERO ELEMENTOS */
 	liberarArray(posicionesEntrenadores);
 	liberarArray(pokesEntrenadores);
