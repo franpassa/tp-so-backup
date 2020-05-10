@@ -48,6 +48,6 @@ t_list* insertarPokesEntrenador(uint32_t nroEntrenador, t_list* pokemons, char**
 t_list* crearListaDeEntrenadores(char** posicionesEntrenadores, char** pokesEntrenadores, char** pokesObjetivos);
 t_list* crearListaPokesObjetivos(t_list* entrenadores);
 t_pokemon*  pokemonMasCercano (t_entrenador* unEntrenador, t_list* pokemons);
-
+t_entrenador* elEntrenadorMasCercanoAUnPokemonDeLaLista (t_list* listaEntrenadores, t_list* listaPokemons);
 
 #endif /* ENTRENADOR_H_ */

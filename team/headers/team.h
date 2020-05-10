@@ -10,7 +10,6 @@
 // general
 #include <stdio.h>
 #include <stdlib.h>
-#include <commons/string.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>
 #include <commons/log.h>
@@ -40,8 +39,6 @@ t_config* config;
 void inicializarPrograma();
 void terminar_programa();
 t_config* leer_config();
-void mostrarString(void*);
-
 
 
 //#endif /* TEAM_H_ */
