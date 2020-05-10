@@ -1,10 +1,7 @@
 #include "headers/team.h"
-#include "headers/entrenadores.h"
-#include "headers/pokemon.h"
-#include "headers/conexiones_team.h"
 
-int main(){
-
+int main()
+{
 	inicializarPrograma(); //Inicializo logger y config
 
 	char** posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
@@ -17,6 +14,28 @@ int main(){
 
 	t_list* listaObjetivos = crearListaObjetivoGlobal(pokesObjetivoGlobal);
 
+	t_pokemon* pikachu4 = malloc(sizeof(t_pokemon));
+	pikachu4->nombre = string_new();	 //
+	string_append(&pikachu4->nombre,"pikachu4");
+	pikachu4->posicionX = 12;
+	pikachu4->posicionY = 7;
+
+	t_pokemon* pikachu2 = malloc(sizeof(t_pokemon));
+	pikachu2->nombre = string_new();	 //
+	string_append(&pikachu2->nombre,"pikachu2");
+	pikachu2->posicionX = 2;
+	pikachu2->posicionY = 5;
+
+	t_list* pokemons = list_create();
+	list_add(pokemons,pikachu4);
+	//list_add(pokemons,pikachu2);
+
+	t_entrenador* entrenadorBase = ((list_get(entrenadores,0)));
+
+	printf("a = %d",(distanciaEntrenadorPokemon(entrenadorBase->posicionX,entrenadorBase->posicionY,pikachu2->posicionX,pikachu2->posicionY)));
+	printf("a = %d",(distanciaEntrenadorPokemon(entrenadorBase->posicionX,entrenadorBase->posicionY,pikachu4->posicionX,pikachu4->posicionY)));
+
+	mostrarPokemon(pokemonMasCercano((list_get(entrenadores,0)),pokemons));
 	/* LIBERO ELEMENTOS */
 	liberarArray(posicionesEntrenadores);
 	liberarArray(pokesEntrenadores);
@@ -24,6 +43,7 @@ int main(){
 	list_destroy_and_destroy_elements(pokesObjetivoGlobal, free);
 	list_destroy_and_destroy_elements(entrenadores,liberarEntrenador);
 	list_destroy_and_destroy_elements(listaObjetivos,liberarEspecie);
+
 
 	terminar_programa(); //Finalizo el programa
 
@@ -39,9 +59,7 @@ void terminar_programa(){
 	config_destroy(config);
 }
 
-void mostrarString(void *elemento){
-  printf("%s\n", (char *)elemento);
-}
+
 
 void inicializarPrograma(){
 	//Leo el archivo de configuracion

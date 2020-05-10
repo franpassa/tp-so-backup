@@ -1,5 +1,6 @@
 #include "../pokemon.h"
 
+
 uint32_t cantidadDePokemonsPorEspecie(char* especie, t_list* lista){
 	uint32_t cantidad = 0;
 
@@ -54,8 +55,7 @@ void agregarPokemonsRecibidosALista(t_list* pokemonsRecibidos, localized_pokemon
 	}
 }
 
-void mostrarPokemon(void* pokemon)
-{
+void mostrarPokemon(void* pokemon){
     printf("El nombre del pokemon es: ");
     mostrarString((((t_pokemon*)pokemon)->nombre));
     printf("La pos en X es: %d\n",((t_pokemon*)pokemon)->posicionX);
@@ -67,3 +67,34 @@ void liberarEspecie(void* especie){
 	free(liberar->especie);
 	free(liberar);
 }
+
+void liberarPokemon(void* pokemon){
+	t_pokemon* liberar = (t_pokemon*)pokemon;
+	free(liberar->nombre);
+	free(liberar);
+}
+
+void igualarPokemons(t_pokemon* unPokemon, t_pokemon* otroPokemon) // iguala el primer pokemon al segundo
+{
+	unPokemon->nombre = otroPokemon->nombre;
+	unPokemon->posicionX = otroPokemon->posicionX;
+	unPokemon->posicionY = otroPokemon->posicionY;
+}
+
+void setearEnCeroPokemon(t_pokemon* unPokemon)
+{
+	unPokemon->nombre = string_new();
+	unPokemon->posicionX = 0;
+	unPokemon->posicionY = 0;
+}
+
+
+// devuelve la distancia entre un entrenador y un pokemon
+uint32_t distanciaEntrenadorPokemon(uint32_t posXEntrenador , uint32_t posYEntrenador, uint32_t posXPokemon, uint32_t posYPokemon)
+{
+	uint32_t distanciaX = abs(posXEntrenador - posXPokemon);
+	uint32_t distanciaY = abs(posYEntrenador - posYPokemon);
+	uint32_t distanciaTotal = distanciaX + distanciaY;
+	return distanciaTotal;
+}
+

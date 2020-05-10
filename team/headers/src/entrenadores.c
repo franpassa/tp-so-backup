@@ -68,7 +68,8 @@ t_list* crearListaDeEntrenadores(char** posicionesEntrenadores, char** pokesEntr
 		entrenador->pokesAtrapados = insertarPokesEntrenador(i,entrenador->pokesAtrapados,pokesEntrenadores);
 		entrenador->pokesObjetivos = insertarPokesEntrenador(i,entrenador->pokesObjetivos,pokesObjetivos);
 		entrenador->idEntrenador = i;
-
+		entrenador->idRecibido = -1;
+		entrenador->motivoBloqueo = NADA;
 		list_add(entrenadores,entrenador);
 	}
 
@@ -95,6 +96,10 @@ t_list* crearListaPokesObjetivos(t_list* entrenadores){
 	return pokesObjetivo;
 }
 
+void mostrarString(void *elemento){
+  printf("%s\n", (char *)elemento);
+}
+
 void mostrarEntrenador(void* entrenador)
 {
 	printf("\n\nLa identificacion del entrenador es: %d\n",((t_entrenador*)entrenador)->idEntrenador);
@@ -104,6 +109,74 @@ void mostrarEntrenador(void* entrenador)
 	list_iterate((((t_entrenador*)entrenador)->pokesAtrapados),mostrarString);
 	printf("\nLos pokemon obtenidos del entrenador son: \n");
 	list_iterate((((t_entrenador*)entrenador)->pokesObjetivos),mostrarString);
+	//mostrarPokemon(((t_entrenador*)entrenador)->pokemonAMoverse);
+
 }
+
+// iguala el segundo entrenador al primero
+void igualarEntrenador(t_entrenador* unEntrenador, t_entrenador* otroEntrenador)
+{
+	unEntrenador->idEntrenador = otroEntrenador->idEntrenador;
+	unEntrenador->idRecibido = otroEntrenador->idRecibido;
+	unEntrenador->motivoBloqueo = otroEntrenador->motivoBloqueo;
+	unEntrenador->pokemonAMoverse = otroEntrenador->pokemonAMoverse;
+	unEntrenador->pokesAtrapados = otroEntrenador->pokesAtrapados;
+	unEntrenador->pokesObjetivos = otroEntrenador->pokesObjetivos;
+	unEntrenador->posicionX = otroEntrenador->posicionX;
+	unEntrenador->posicionY = otroEntrenador->posicionY;
+}
+
+void setearEnCeroEntrenador (t_entrenador* unEntrenador)
+{
+	unEntrenador->idEntrenador = 0;
+	unEntrenador->idRecibido = 0;
+	unEntrenador->motivoBloqueo = NADA;
+	unEntrenador->pokemonAMoverse = NULL;
+	unEntrenador->pokesAtrapados = list_create();
+	unEntrenador->pokesObjetivos = list_create();
+	unEntrenador->posicionX = 0;
+	unEntrenador->posicionY = 0;
+
+}
+
+
+// devuelve el pokemon de la lista que esta mas cerca a un entrenador
+t_pokemon*  pokemonMasCercano (t_entrenador* unEntrenador, t_list* pokemons)
+{
+	t_pokemon* pokemonFlag =  malloc(sizeof(t_pokemon));                   /////////// liberar esta poronga
+	setearEnCeroPokemon(pokemonFlag);
+	igualarPokemons(pokemonFlag,list_get(pokemons,0));
+
+	for(int i = 0; i < (list_size(pokemons)-1); i++)
+	{
+		t_pokemon* pokemonTemporal = list_get(pokemons,i+1);
+		uint32_t distanciaA = distanciaEntrenadorPokemon(unEntrenador->posicionX,unEntrenador->posicionY,pokemonFlag->posicionX,pokemonFlag->posicionY);
+		uint32_t distanciaB = distanciaEntrenadorPokemon(unEntrenador->posicionX,unEntrenador->posicionY,pokemonTemporal->posicionX,pokemonFlag->posicionY);
+		if(distanciaA < distanciaB)
+		{
+			igualarPokemons(pokemonFlag,pokemonFlag);
+		}
+		else
+		{
+			igualarPokemons(pokemonFlag,pokemonTemporal);
+		}
+	}
+	return pokemonFlag;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
