@@ -137,6 +137,9 @@ int enviar_mensaje(queue_name cola, void* estructura_mensaje, int socket_recepto
 			memcpy(stream + offset, &(msg_caught->resultado), sizeof(uint32_t));
 
 			break;
+
+		default:
+			break;
 	}
 
 	// El tamaño total sería: id_cola (4) + id_mensaje (4) + buffer_size (4) + stream (buffer_size)
@@ -297,6 +300,9 @@ void* recibir_mensaje(queue_name cola, int socket){
 				free_paquete(paquete);
 
 				return (void*) msg_caught;
+
+			case PRODUCTOR:
+				return NULL;
 		}
 
 	return NULL;
