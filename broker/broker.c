@@ -8,9 +8,14 @@ int main(){
 
 	int socket_servidor = iniciar_servidor();
 
-	pthread_t hilo_recibir;
-	pthread_create(&hilo_recibir, NULL, (void*) esperar_cliente, &socket_servidor);
-	pthread_join(hilo_recibir,NULL);
+	pthread_t hilo_suscripciones;
+	pthread_create(&hilo_suscripciones, NULL, (void*) esperar_cliente, &socket_servidor);
+	pthread_t hilo_mensajes;
+	pthread_create(&hilo_mensajes, NULL, (void*) loop_productores, NULL);
+
+
+	pthread_join(hilo_suscripciones,NULL);
+	pthread_join(hilo_mensajes,NULL);
 
 	for(int i = 0; i<6 ;i++){
 		pthread_mutex_init(&(sem_cola[i]),NULL);
@@ -33,7 +38,7 @@ void inicializar_colas(){
 t_log* iniciar_logger(){
 	t_log* mi_logger= log_create("log", "broker", 1, LOG_LEVEL_INFO);
 	 if(mi_logger == NULL){
-		 printf("Error inicilizando logger");
+		 printf("Error inicializando logger");
 		 exit(-1);
 	 }
 
@@ -44,7 +49,7 @@ t_log* iniciar_logger(){
 t_config* leer_config(){
 	 t_config* mi_config = config_create("broker.config");
 	 if(mi_config == NULL){
-		 printf("Error inicilizando config");
+		 printf("Error inicializando config");
 		 exit(-1);
 	 }
 
@@ -95,6 +100,9 @@ t_cola_de_mensajes* int_a_nombre_cola(queue_name id){
 		case LOCALIZED_POKEMON:
 			cola = QUEUE_LOCALIZED_POKEMON;
 			break;
+
+		case PRODUCTOR:
+			break;
 }
 	return cola;
 }
@@ -105,11 +113,13 @@ void inicializar(){
 	//logger = iniciar_logger();
 
 	contador_id = 0;
-	static const char* valores_colas[6] = {"NEW_POKEMON","APPEARED_POKEMON","CATCH_POKEMON","CAUGHT_POKEMON","GET_POKEMON","LOCALIZED_POKEMON"};
+	static const char* valores_colas[7] = {"NEW_POKEMON","APPEARED_POKEMON","CATCH_POKEMON","CAUGHT_POKEMON","GET_POKEMON","LOCALIZED_POKEMON", "PRODUCTOR"};
 	memcpy(nombres_colas,valores_colas,sizeof(valores_colas));
 
-	inicializar_colas();
+	sockets_productores = list_create();
+	pthread_mutex_init(&mutex_productores, NULL);
 
+	inicializar_colas();
 }
 
 

@@ -44,18 +44,21 @@ t_cola_de_mensajes* QUEUE_CAUGHT_POKEMON;
 t_cola_de_mensajes* QUEUE_GET_POKEMON;
 t_cola_de_mensajes* QUEUE_LOCALIZED_POKEMON;
 
+t_list* sockets_productores;
+
 t_log* logger;
 t_config* config;
 
 int contador_id;
-char* nombres_colas[6];
+char* nombres_colas[7];
 
 // SEMAFOROS
 
 pthread_mutex_t semaforo_id;
 pthread_mutex_t semaforo_suscriber;
 pthread_mutex_t sem_cola[6];
-int cont_cola[6];
+pthread_mutex_t mutex_productores;
+int cont_cola[6]; // pthread_mutex_trylock
 
 // FUNCIONES DE QUEUES
 
@@ -79,7 +82,8 @@ int suscribir_a_cola(int,queue_name);
 
 // Recibir
 
-void recibir_mensajes(int);
+void loop_productores();
+void chequear_mensajes(int* socket_cliente);
 void confirmar_mensaje(queue_name,uint32_t);
 int crear_nuevo_id();
 void agregar_a_cola(queue_name,t_paquete*);

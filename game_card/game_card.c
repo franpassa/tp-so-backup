@@ -18,13 +18,21 @@ int main(){
 
 	//inicializar();
 
-	t_bitarray* bitarray = read_bitmap(fspaths->bitmap_file);
+	int socket_broker = conectar_a_broker(PRODUCTOR, "127.0.0.1", "20002");
+
+	while(1){
+		new_pokemon_msg* msg = new_msg("tuhermanaputaconmipingoseahoga", 3, 4, 10);
+		int id = enviar_mensaje(NEW_POKEMON, (void*) msg, socket_broker);
+		printf("id recibido: %d\n", id);
+		sleep(2);
+	}
+	/*t_bitarray* bitarray = read_bitmap(fspaths->bitmap_file);
 	print_bitarray(bitarray);
 	set_bit(fspaths->bitmap_file, 2, true);
 	t_bitarray* bitarray2 = read_bitmap(fspaths->bitmap_file);
-	print_bitarray(bitarray2);
+	print_bitarray(bitarray2);*/
 
-	terminar();
+	//terminar();
 
 	return EXIT_SUCCESS;
 }

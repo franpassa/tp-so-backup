@@ -10,7 +10,7 @@ int iniciar_servidor() {
 		//char* puerto = config_get_string_value(config,"PUERTO_BROKER");
 
 		char* ip = "127.0.0.1";
-		char* puerto = "6009";
+		char* puerto = "20002";
 
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = AF_UNSPEC;
@@ -23,12 +23,12 @@ int iniciar_servidor() {
 
 		if(listeningSocket == -1){
 			perror("Error al asignar socket de escucha\n");
-			exit(-1);
+			exit(1);
 		}
 
 		if(bind(listeningSocket,serverInfo->ai_addr, serverInfo->ai_addrlen) == -1){
-			printf("Error en bind\n");
-			exit(-1);
+			printf("CAMBIA EL PUERTO FORRO, ESTA OCUPADO ESE NO VES?\n");
+			exit(1);
 		}
 
 
@@ -67,68 +67,74 @@ void esperar_cliente(int* socket_servidor) { // Hilo esperar_cliente
 			printf("%d es un codigo invalido\n", cola);
 		} else {
 			printf("el cliente %d se suscribio a la cola %s\n", socket_cliente, nombres_colas[cola]);
+			int codigo_ok = 0;
+			send(socket_cliente, &codigo_ok, sizeof(int), 0);
 			//list iterate, printear contenido de lista
 		}
-
 	}
 
+}
+
+void print_list_chars(int* numero){
+	printf("socket productor %d\n", *numero);
 }
 
 int suscribir_a_cola(int socket_cliente, queue_name cola) {	// *socket_cliente porque el hilo recibe punteros
 
 	// Agregar Semaforo
+	int retorno = 0;
 
-
-	//pthread_mutex_lock(&semaforo_suscriber);
+	pthread_mutex_lock(&semaforo_suscriber);
 
 	switch(cola){
 
 	case NEW_POKEMON:
-
 		list_add(QUEUE_NEW_POKEMON->lista_suscriptores,&socket_cliente);
-
 		break;
 
 	case APPEARED_POKEMON:
-
 		list_add(QUEUE_APPEARED_POKEMON->lista_suscriptores,&socket_cliente);
-
 		break;
 
 	case CATCH_POKEMON:
-
 		list_add(QUEUE_CATCH_POKEMON->lista_suscriptores,&socket_cliente);
-
 		break;
 
 	case CAUGHT_POKEMON:
-
 		list_add(QUEUE_CAUGHT_POKEMON->lista_suscriptores,&socket_cliente);
-
 		break;
 
 	case GET_POKEMON:
-
 		list_add(QUEUE_GET_POKEMON->lista_suscriptores,&socket_cliente);
-
 		break;
 
 	case LOCALIZED_POKEMON:
-
 		list_add(QUEUE_LOCALIZED_POKEMON->lista_suscriptores,&socket_cliente);
-
 		break;
+
+	case PRODUCTOR:
+		pthread_mutex_lock(&mutex_productores);
+		int* putoelquelee = malloc(sizeof(int));
+		*putoelquelee = socket_cliente;
+		list_add(sockets_productores, putoelquelee);
+		pthread_mutex_unlock(&mutex_productores);
+		//list_iterate(sockets_productores, (void*) print_list_chars);
+		break;
+
 
 	default:
 		// manejar error: codigo bien pero es invalido
-		return -1;
+		retorno = -1;
+		break;
 
 	}
 
-	return 0;
-	//pthread_mutex_unlock(&semaforo_suscriber);
+	pthread_mutex_unlock(&semaforo_suscriber);
+
+	return retorno;
 
 }
+
 
 
 

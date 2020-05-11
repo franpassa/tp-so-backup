@@ -27,6 +27,7 @@ int conectar_a_broker(queue_name cola, char* ip, char* puerto){
 
 	// Si la respuesta es 0, se conectó OK.
 	if(respuesta_broker == 0) {
+		printf("conexion con broker OK\n");
 		return socket_servidor;
 	} else {
 		// Si la respuesta es -1, hubo un error.
@@ -142,8 +143,8 @@ int enviar_mensaje(queue_name cola, void* estructura_mensaje, int socket_recepto
 			break;
 	}
 
-	// El tamaño total sería: id_cola (4) + id_mensaje (4) + buffer_size (4) + stream (buffer_size)
-	int total_bytes = paquete->buffer->size + sizeof(queue_name) + 2 * sizeof(uint32_t);
+	// El tamaño total sería: id_cola (4) + buffer_size (4) + stream (buffer_size)
+	int total_bytes = paquete->buffer->size + sizeof(queue_name) + sizeof(uint32_t);
 
 	paquete->buffer->stream = stream;
 	void* a_enviar = serializar_paquete(paquete, total_bytes);
@@ -191,12 +192,8 @@ void* recibir_mensaje(queue_name cola, int socket){
 
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
-	recv(socket, &(paquete->cola_msg), sizeof(queue_name), MSG_WAITALL);
-
-	if(cola != paquete->cola_msg) return NULL;
-
 	paquete->buffer = malloc(sizeof(t_buffer));
-	recv(socket, &(paquete->buffer->size), sizeof(queue_name), MSG_WAITALL);
+	recv(socket, &(paquete->buffer->size), sizeof(uint32_t), MSG_WAITALL);
 
 	paquete->buffer->stream = malloc(paquete->buffer->size);
 	recv(socket, paquete->buffer->stream, paquete->buffer->size, MSG_WAITALL);

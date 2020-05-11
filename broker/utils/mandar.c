@@ -11,6 +11,7 @@ void mandar_mensajes(){
 
 			cola_actual = 0;
 		}
+
 		if (cont_cola[cola_actual] == 1){
 
 			pthread_mutex_lock(&(sem_cola[cola_actual]));
@@ -78,7 +79,7 @@ void recorrer_cola(t_cola_de_mensajes* nombre){
 
 			uint32_t id_siguiente;
 
-			do{
+			do {
 
 				info = queue_pop(nombre->cola);
 
@@ -100,7 +101,7 @@ void recorrer_cola(t_cola_de_mensajes* nombre){
 
 				id_siguiente = info->id;
 
-			}while(id_primero != id_siguiente);
+			} while(id_primero != id_siguiente);
 		}
 
 	}
