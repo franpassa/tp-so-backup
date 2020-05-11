@@ -5,8 +5,8 @@
  *      Author: utnso
  */
 
-#ifndef TP0_H_
-#define TP0_H_
+#ifndef GAME_BOY_H_
+#define GAME_BOY_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,15 +15,13 @@
 #include <commons/config.h>
 #include <readline/readline.h>
 
-#include "utils.h"
-
-#define PROGRAM_NAME "tp0"
-#define PATH_CONFIG "tp0.config"
-#define PATH_LOG "tp0.log"
+#define PROGRAM_NAME "Game Boy"
+#define PATH_CONFIG "game_boy.config"
+#define PATH_LOG "game_boy.log"
 
 
 t_log* iniciar_logger(void);
 t_config* leer_config(void);
 void terminar_programa(int, t_log*, t_config*);
 
-#endif /* TP0_H_ */
+#endif /* GAME_BOY_H_ */

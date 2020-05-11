@@ -1,6 +1,6 @@
 #include "conexiones.h"
 
-int suscribirse_a_queue(queue_name cola, char* ip, char* puerto){
+int conectar_a_broker(queue_name cola, char* ip, char* puerto){
 
 	struct addrinfo hints;
 	struct addrinfo *server_info;
@@ -29,7 +29,7 @@ int suscribirse_a_queue(queue_name cola, char* ip, char* puerto){
 	if(respuesta_broker == 0) {
 		return socket_servidor;
 	} else {
-		// Si la respuesta es -1, hubo un error en la suscripción.
+		// Si la respuesta es -1, hubo un error.
 		return respuesta_broker;
 	}
 }
