@@ -54,8 +54,8 @@ char* nombres_colas[6];
 
 pthread_mutex_t semaforo_id;
 pthread_mutex_t semaforo_suscriber;
-//pthread_mutex_t sem_cola[6] = (1,1,1,1,1,1);
-
+pthread_mutex_t sem_cola[6];
+int cont_cola[6];
 
 // FUNCIONES DE QUEUES
 

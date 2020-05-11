@@ -12,6 +12,11 @@ int main(){
 	pthread_create(&hilo_recibir, NULL, (void*) esperar_cliente, &socket_servidor);
 	pthread_join(hilo_recibir,NULL);
 
+	for(int i = 0; i<6 ;i++){
+		pthread_mutex_init(&(sem_cola[i]),NULL);
+		cont_cola[i] = 0;
+	}
+
 	return 0;
 
 }

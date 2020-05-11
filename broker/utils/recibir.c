@@ -28,18 +28,20 @@ void recibir_mensajes(int socket_escucha){
 
 			enviar_a_publisher_id(id_mensaje); // hacer
 
-			//pthread_mutex_lock(&sem_cola[id_cola]);
+			pthread_mutex_lock(&(sem_cola[id_cola]));
 			agregar_a_cola(id_cola,paq);
-			//pthread_mutex_unlock(&sem_cola[id_cola]);
+			pthread_mutex_unlock(&(sem_cola[id_cola]));
+
+			cont_cola[id_cola] = 1;
 		}
 	}
 	else {
 
 		uint32_t id_correlativo = (uint32_t) paq->buffer->stream;
 
-		//pthread_mutex_lock(&sem_cola[id_cola]);
+		pthread_mutex_lock(&(sem_cola[id_cola]));
 		confirmar_mensaje(id_cola , id_correlativo);
-		//pthread_mutex_unlock(&sem_cola[id_cola]);
+		pthread_mutex_unlock(&(sem_cola[id_cola]));
 	}
 	}
 }
@@ -59,7 +61,7 @@ void confirmar_mensaje(queue_name id_cola ,uint32_t id_mensaje){
 			control = 1;
 			mensaje->cuantos_lo_recibieron++;
 		}
-
+		// eliminar mensajes si ya recibieron todos
 		queue_push(queue->cola ,mensaje);
 
 		mensaje = queue_peek(queue->cola);
