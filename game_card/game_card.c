@@ -16,7 +16,7 @@ void terminar(){
 
 int main(){
 
-	inicializar();
+	//inicializar();
 
 	t_bitarray* bitarray = read_bitmap(fspaths->bitmap_file);
 	print_bitarray(bitarray);

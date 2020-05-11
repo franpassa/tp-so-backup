@@ -8,46 +8,50 @@ int main()
 	char** pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
 	char** pokesObjetivos = config_get_array_value(config, "OBJETIVOS_ENTRENADORES");
 
-	t_list* entrenadores = crearListaDeEntrenadores(posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
+	estado_new = crearListaDeEntrenadores(posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
 
-	t_list* pokesObjetivoGlobal = crearListaPokesObjetivos(entrenadores);
+	t_list* pokemons_objetivos = crearListaPokesObjetivos(estado_new);
 
-	t_list* listaObjetivos = crearListaObjetivoGlobal(pokesObjetivoGlobal);
+	t_list* objetivos_globales = crearListaObjetivoGlobal(pokemons_objetivos);
 
-	t_pokemon* pikachu4 = malloc(sizeof(t_pokemon));
-	pikachu4->nombre = string_new();	 //
-	string_append(&pikachu4->nombre,"pikachu4");
-	pikachu4->posicionX = 12;
-	pikachu4->posicionY = 7;
-
-	t_pokemon* pikachu2 = malloc(sizeof(t_pokemon));
-	pikachu2->nombre = string_new();	 //
-	string_append(&pikachu2->nombre,"pikachu2");
-	pikachu2->posicionX = 2;
-	pikachu2->posicionY = 5;
-
-	t_list* pokemons = list_create();
-	list_add(pokemons,pikachu4);
-	//list_add(pokemons,pikachu2);
-
-	t_entrenador* entrenadorBase = ((list_get(entrenadores,0)));
-
-	printf("a = %d",(distanciaEntrenadorPokemon(entrenadorBase->posicionX,entrenadorBase->posicionY,pikachu2->posicionX,pikachu2->posicionY)));
-	printf("a = %d",(distanciaEntrenadorPokemon(entrenadorBase->posicionX,entrenadorBase->posicionY,pikachu4->posicionX,pikachu4->posicionY)));
-
-	mostrarPokemon(pokemonMasCercano((list_get(entrenadores,0)),pokemons));
 	/* LIBERO ELEMENTOS */
 	liberarArray(posicionesEntrenadores);
 	liberarArray(pokesEntrenadores);
 	liberarArray(pokesObjetivos);
-	list_destroy_and_destroy_elements(pokesObjetivoGlobal, free);
-	list_destroy_and_destroy_elements(entrenadores,liberarEntrenador);
-	list_destroy_and_destroy_elements(listaObjetivos,liberarEspecie);
-
+	list_destroy_and_destroy_elements(pokemons_objetivos, free);
+	list_destroy_and_destroy_elements(estado_new,liberarEntrenador);
+	list_destroy_and_destroy_elements(objetivos_globales,liberarEspecie);
 
 	terminar_programa(); //Finalizo el programa
 
 	return 0;
+}
+
+void* estado_exec(void* unEntrenador){
+	t_entrenador* entrenador = (t_entrenador*) unEntrenador;
+	if(entrenador->pokemonAMoverse != NULL){
+		pthread_mutex_lock(&mutexEstadoExec);
+		uint32_t distancia = distanciaEntrenadorPokemon(entrenador->posicionX,entrenador->posicionY,entrenador->pokemonAMoverse->posicionX,entrenador->pokemonAMoverse->posicionY);
+		pthread_mutex_unlock(&mutexEstadoExec);
+		ciclosConsumidos += distancia; //ACUMULO LOS CICLOS DE CPU CONSUMIDOS
+
+		//CONEXION AL BROKER Y ENVIO DE MENSAJE CATCH
+		int conexionExec = crear_conexion(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
+		catch_pokemon_msg* mensaje = catch_msg(entrenador->pokemonAMoverse->nombre,entrenador->pokemonAMoverse->posicionX,entrenador->pokemonAMoverse->posicionY);
+		int idMensajeExec = enviar_mensaje(CATCH_POKEMON,mensaje,conexionExec); /* DONDE METO EL ID?*/
+		close(conexionExec);
+
+		//AGREGO A LA LISTA DE BLOQUEADOS
+		entrenador->posicionX = entrenador->pokemonAMoverse->posicionX;
+		entrenador->posicionY = entrenador->pokemonAMoverse->posicionY;
+		entrenador->pokemonAMoverse = NULL;
+		entrenador->idRecibido = idMensajeExec;
+		entrenador->motivoBloqueo = MOTIVO_CATCH;
+
+		pthread_exit(entrenador);
+	}
+
+	return NULL;
 }
 
 t_config* leer_config() {
@@ -58,8 +62,6 @@ void terminar_programa(){
 	log_destroy(logger);
 	config_destroy(config);
 }
-
-
 
 void inicializarPrograma(){
 	//Leo el archivo de configuracion

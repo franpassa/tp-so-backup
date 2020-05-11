@@ -10,7 +10,6 @@
 // general
 #include <stdio.h>
 #include <stdlib.h>
-#include <commons/string.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>
 #include <commons/log.h>
@@ -33,15 +32,26 @@
 
 #include "entrenadores.h"
 
+//VARIABLES GLOBALES
 
 t_log* logger;
 t_config* config;
 
+t_list* estado_new;
+t_list* estado_bloqueado;
+t_list* estado_ready;
+t_list* estado_exit;
+
+pthread_t planificarEntrenador;
+pthread_mutex_t mutexEstadoExec;
+
+int ciclosConsumidos;
+
+//FUNCIONES
+
 void inicializarPrograma();
 void terminar_programa();
-t_config* leer_config();
-void mostrarString(void*);
-
+void* estado_exec(void* unEntrenador);
 
 
 //#endif /* TEAM_H_ */
