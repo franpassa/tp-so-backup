@@ -109,8 +109,8 @@ t_cola_de_mensajes* int_a_nombre_cola(queue_name id){
 
 void inicializar(){
 
-	//config = leer_config();
-	//logger = iniciar_logger();
+	config = leer_config();
+	logger = iniciar_logger();
 
 	contador_id = 0;
 	static const char* valores_colas[7] = {"NEW_POKEMON","APPEARED_POKEMON","CATCH_POKEMON","CAUGHT_POKEMON","GET_POKEMON","LOCALIZED_POKEMON", "PRODUCTOR"};

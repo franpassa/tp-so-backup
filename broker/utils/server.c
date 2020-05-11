@@ -6,11 +6,11 @@ int iniciar_servidor() {
 		struct addrinfo hints;
 		struct addrinfo *serverInfo;
 
-		//char* ip = config_get_string_value(config,"IP_BROKER");
-		//char* puerto = config_get_string_value(config,"PUERTO_BROKER");
+		char* ip = config_get_string_value(config,"IP_BROKER");
+		char* puerto = config_get_string_value(config,"PUERTO_BROKER");
 
-		char* ip = "127.0.0.1";
-		char* puerto = "20002";
+		//char* ip = "127.0.0.1";
+		//char* puerto = "20002";
 
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = AF_UNSPEC;
@@ -27,7 +27,7 @@ int iniciar_servidor() {
 		}
 
 		if(bind(listeningSocket,serverInfo->ai_addr, serverInfo->ai_addrlen) == -1){
-			printf("CAMBIA EL PUERTO FORRO, ESTA OCUPADO ESE NO VES?\n");
+			printf("Error en el bind, por favor cambiar puerto \n");
 			exit(1);
 		}
 
@@ -79,9 +79,8 @@ void print_list_chars(int* numero){
 	printf("socket productor %d\n", *numero);
 }
 
-int suscribir_a_cola(int socket_cliente, queue_name cola) {	// *socket_cliente porque el hilo recibe punteros
+int suscribir_a_cola(int socket_cliente, queue_name cola) {
 
-	// Agregar Semaforo
 	int retorno = 0;
 
 	pthread_mutex_lock(&semaforo_suscriber);
@@ -114,9 +113,9 @@ int suscribir_a_cola(int socket_cliente, queue_name cola) {	// *socket_cliente p
 
 	case PRODUCTOR:
 		pthread_mutex_lock(&mutex_productores);
-		int* putoelquelee = malloc(sizeof(int));
-		*putoelquelee = socket_cliente;
-		list_add(sockets_productores, putoelquelee);
+		int* socket_productor = malloc(sizeof(int));
+		*socket_productor = socket_cliente;
+		list_add(sockets_productores, socket_productor);
 		pthread_mutex_unlock(&mutex_productores);
 		//list_iterate(sockets_productores, (void*) print_list_chars);
 		break;

@@ -15,7 +15,7 @@ void loop_productores(){
 void chequear_mensajes(int* socket_escucha){
 
 	queue_name id_cola;
-	t_paquete* paq = malloc(sizeof(t_paquete));
+	//t_paquete* paq = malloc(sizeof(t_paquete));
 	int bytes_recibidos = recv(*socket_escucha, &id_cola, sizeof(queue_name), MSG_DONTWAIT);
 	if(bytes_recibidos < 0){
 		perror("hola");

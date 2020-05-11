@@ -100,6 +100,6 @@ void mandar(t_paquete*,uint32_t);
 void enviar_a(t_paquete*,t_list*);
 void recorrer_cola(t_cola_de_mensajes*);
 
-
+// ver estado de colas con sus mensajes y sucriptores
 
 #endif /* BROKER_H_ */

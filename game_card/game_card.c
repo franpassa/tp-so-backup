@@ -18,10 +18,10 @@ int main(){
 
 	//inicializar();
 
-	int socket_broker = conectar_a_broker(PRODUCTOR, "127.0.0.1", "20002");
+	int socket_broker = conectar_a_broker(PRODUCTOR, "127.0.0.1", "6009");
 
 	while(1){
-		new_pokemon_msg* msg = new_msg("tuhermanaputaconmipingoseahoga", 3, 4, 10);
+		new_pokemon_msg* msg = new_msg("Hola soy Pikachu", 3, 4, 10);
 		int id = enviar_mensaje(NEW_POKEMON, (void*) msg, socket_broker);
 		printf("id recibido: %d\n", id);
 		sleep(2);
