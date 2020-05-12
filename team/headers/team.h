@@ -42,6 +42,8 @@ t_list* estado_bloqueado;
 t_list* estado_ready;
 t_list* estado_exit;
 
+t_list* ids_get; //Lista de IDs de los mensajes GET_POKEMON
+
 pthread_t planificarEntrenador;
 pthread_mutex_t mutexEstadoExec;
 
@@ -49,6 +51,8 @@ int ciclosConsumidos;
 
 //FUNCIONES
 
+t_log* crear_log();
+t_config* leer_config();
 void inicializarPrograma();
 void terminar_programa();
 void* estado_exec(void* unEntrenador);

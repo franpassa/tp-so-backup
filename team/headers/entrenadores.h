@@ -6,6 +6,7 @@
 
 typedef enum{
 	MOTIVO_CATCH,
+	MOTIVO_CAUGHT,
 	MOTIVO_NADA,
 	NADA
 }motivo;

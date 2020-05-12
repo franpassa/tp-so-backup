@@ -3,11 +3,7 @@
 
 #include "team.h"
 
-typedef enum
-{
-	MENSAJE = 1,
-}op_code;
-
-int crear_conexion(char* ip, char* puerto);
+void enviar_gets(t_list* objetivos_globales);
+int suscribirse_a_cola(queue_name cola,char* ip_broker, char* puerto_broker);
 
 #endif /* _CONEXIONES_TEAM_H_*/
