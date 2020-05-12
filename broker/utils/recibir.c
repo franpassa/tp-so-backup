@@ -18,7 +18,6 @@ void chequear_mensajes(int* socket_escucha){
 	int bytes_recibidos = recv(*socket_escucha, &id_cola, sizeof(queue_name), MSG_DONTWAIT);
 
 	if(bytes_recibidos < 0){
-		perror("hola");
 		printf("EL SOCKET %d NO ME MANDO NADA, RE GIL\n", *socket_escucha);
 		return;
 	}
@@ -82,8 +81,6 @@ void chequear_mensajes(int* socket_escucha){
 			uint32_t id_mensaje = crear_nuevo_id();
 
 			send(*socket_escucha,&id_mensaje,sizeof(uint32_t),0);
-
-			enviar_a_publisher_id(id_mensaje); // hacer
 
 			pthread_mutex_lock(&(sem_cola[id_cola]));
 			agregar_a_cola(id_cola,paquete);

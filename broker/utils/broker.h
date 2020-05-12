@@ -89,7 +89,6 @@ int crear_nuevo_id();
 void agregar_a_cola(queue_name,t_paquete*);
 bool es_el_mismo_mensaje(queue_name, void*,void*);
 bool revisar_mensaje(queue_name, t_buffer*);
-void enviar_a_publisher_id(uint32_t);
 
 // Mandar
 
