@@ -21,14 +21,48 @@ void chequear_mensajes(int* socket_escucha){
 		perror("hola");
 		printf("EL SOCKET %d NO ME MANDO NADA, RE GIL\n", *socket_escucha);
 		return;
-	} else {
-		printf("bytes recibidos %d\n", bytes_recibidos);
 	}
 
-	new_pokemon_msg* msg = recibir_mensaje(id_cola, *socket_escucha);
-	printf("pokemon recibido: nombre %s X: %d Y: %d Cantidad: %d\n", msg->nombre_pokemon, msg->coordenada_X, msg->coordenada_Y, msg->cantidad_pokemon);
-	int id_ponele = 3423;
-	send(*socket_escucha, &id_ponele, sizeof(int), 0);
+	printf("MENSAJE DE SOCKET %d -> ", *socket_escucha);
+	uint32_t id_msg = random();
+	switch(id_cola){
+
+		case NEW_POKEMON: ;
+			new_pokemon_msg* msg_new = recibir_mensaje(id_cola, *socket_escucha);
+			printf("NEW POKEMON {nombre: %s, X: %d, Y: %d, cantidad: %d}\n", msg_new->nombre_pokemon, msg_new->coordenada_X, msg_new->coordenada_Y, msg_new->cantidad_pokemon);
+			break;
+
+		case APPEARED_POKEMON: ;
+			appeared_pokemon_msg* msg_appeared = recibir_mensaje(id_cola, *socket_escucha);
+			printf("APPEARED POKEMON {nombre: %s, X: %d, Y: %d}\n", msg_appeared->nombre_pokemon, msg_appeared->coordenada_X, msg_appeared->coordenada_Y);
+			break;
+
+		case GET_POKEMON: ;
+			get_pokemon_msg* msg_get = recibir_mensaje(id_cola, *socket_escucha);
+			printf("GET POKEMON {nombre: %s}\n", msg_get->nombre_pokemon);
+			break;
+
+		case LOCALIZED_POKEMON: ;
+			localized_pokemon_msg* msg_localized = recibir_mensaje(id_cola, *socket_escucha);
+			printf("LOCALIZED POKEMON {id correlativo: %d, nombre: %s, cantidad posiciones: %d, paja printear los pares de coordenadas}\n", msg_localized->id_correlativo, msg_localized->nombre_pokemon, msg_localized->cantidad_posiciones);
+			break;
+
+		case CATCH_POKEMON: ;
+			catch_pokemon_msg* msg_catch = recibir_mensaje(id_cola, *socket_escucha);
+			printf("CATCH POKEMON {nombre: %s, X: %d, Y: %d}\n", msg_catch->nombre_pokemon, msg_catch->coordenada_X, msg_catch->coordenada_Y);
+			break;
+
+		case CAUGHT_POKEMON: ;
+			caught_pokemon_msg* msg_caught = recibir_mensaje(id_cola, *socket_escucha);
+			printf("CAUGHT POKEMON {id correlativo: %d, resultado: %d}\n", msg_caught->id_correlativo, msg_caught->resultado);
+			break;
+
+		default: ;
+			return;
+
+	}
+
+	send(*socket_escucha, &id_msg, sizeof(uint32_t), 0);
 
 	/*if (paq->buffer->size != 0){
 
