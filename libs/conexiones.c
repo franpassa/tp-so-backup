@@ -1,6 +1,37 @@
 #include "conexiones.h"
 
-int conectar_a_broker(queue_name cola, char* ip, char* puerto){
+int iniciar_servidor(char* ip, char* puerto){
+
+	struct addrinfo hints;
+	struct addrinfo *serverInfo;
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+
+	getaddrinfo(ip, puerto, &hints, &serverInfo);
+
+	int server_socket = socket(serverInfo->ai_family, serverInfo->ai_socktype, serverInfo->ai_protocol);
+
+	if(server_socket != -1){
+		int status_bind = bind(server_socket,serverInfo->ai_addr, serverInfo->ai_addrlen);
+		if(status_bind != -1){
+
+			listen(server_socket, SOMAXCONN);
+			freeaddrinfo(serverInfo);
+			printf("Servidor corriendo en %s:%s - SOCKET: %d\n", ip, puerto, server_socket);
+
+			return server_socket;
+		}
+	}
+
+	perror("Error al asignar socket de escucha");
+
+	return(-1);
+}
+
+int connect_sv(char* ip, char* puerto){
 
 	struct addrinfo hints;
 	struct addrinfo *server_info;
@@ -15,27 +46,49 @@ int conectar_a_broker(queue_name cola, char* ip, char* puerto){
 
 	int socket_servidor = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
 
-	int status_conexion = connect(socket_servidor, server_info->ai_addr, server_info->ai_addrlen);
-	freeaddrinfo(server_info);
+	if(socket_servidor != -1){
+		int status_conexion = connect(socket_servidor, server_info->ai_addr, server_info->ai_addrlen);
+		if(status_conexion != -1){
+			freeaddrinfo(server_info);
+			return socket_servidor;
+		}
+	}
 
-	if(status_conexion == -1) return status_conexion;
+	freeaddrinfo(server_info);
+	return -1;
+
+}
+
+int conectar_como_productor(char* ip, char* puerto){
+
+	int socket_sv = connect_sv(ip, puerto);
+
+	queue_name cola_productor = PRODUCTOR;
+	send(socket_sv, &cola_productor, sizeof(queue_name), 0);
+
+	return socket_sv;
+}
+
+int suscribirse_a_cola(queue_name cola, char* ip, char* puerto){
+
+	int socket_servidor = connect_sv(ip, puerto);
 
 	send(socket_servidor, &cola, sizeof(queue_name), 0);
 
-	int respuesta_broker;
-	if(recv(socket_servidor, &respuesta_broker, sizeof(int), MSG_WAITALL) == -1) return -1;
+	uint32_t respuesta_broker;
+	if(recv(socket_servidor, &respuesta_broker, sizeof(uint32_t), MSG_WAITALL) == -1) return -1;
 
 	// Si la respuesta es 0, se conectó OK.
 	if(respuesta_broker == 0) {
 		printf("conexion con broker OK\n");
 		return socket_servidor;
 	} else {
-		// Si la respuesta es -1, hubo un error.
-		return respuesta_broker;
+		// Si la respuesta es 1, hubo un error.
+		return 1;
 	}
 }
 
-int enviar_mensaje(queue_name cola, void* estructura_mensaje, int socket_receptor){
+uint32_t enviar_mensaje(queue_name cola, void* estructura_mensaje, int socket_receptor){
 
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
