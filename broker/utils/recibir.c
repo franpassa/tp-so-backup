@@ -15,49 +15,47 @@ void loop_productores(){
 void chequear_mensajes(int* socket_escucha){
 
 	queue_name id_cola;
-	//t_paquete* paq = malloc(sizeof(t_paquete));
 	int bytes_recibidos = recv(*socket_escucha, &id_cola, sizeof(queue_name), MSG_DONTWAIT);
+
 	if(bytes_recibidos < 0){
 		perror("hola");
 		printf("EL SOCKET %d NO ME MANDO NADA, RE GIL\n", *socket_escucha);
 		return;
-	} else {
-		printf("bytes recibidos %d\n", bytes_recibidos);
 	}
 
-	new_pokemon_msg* msg = recibir_mensaje(id_cola, *socket_escucha);
-	printf("pokemon recibido: nombre %s X: %d Y: %d Cantidad: %d\n", msg->nombre_pokemon, msg->coordenada_X, msg->coordenada_Y, msg->cantidad_pokemon);
-	int id_ponele = 3423;
-	send(*socket_escucha, &id_ponele, sizeof(int), 0);
+	t_paquete* paquete= malloc(sizeof(t_paquete));
+	recv(*socket_escucha,paquete,sizeof(t_paquete),MSG_WAITALL);
 
-	/*if (paq->buffer->size != 0){
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+	recv(*socket_escucha, buffer,sizeof(t_buffer),MSG_WAITALL);
 
-		paq->buffer = malloc(sizeof(t_buffer));
-		recv(*socket_escucha, &(paq->buffer->size), sizeof(queue_name), MSG_WAITALL);
+	if (paquete->buffer->size != 0){
 
-		paq->buffer->stream = malloc(paq->buffer->size);
-		recv(*socket_escucha, paq->buffer->stream, paq->buffer->size, MSG_WAITALL);
+		paquete->buffer->stream = malloc(buffer->size);
+		recv(*socket_escucha, paquete->buffer->stream, paquete->buffer->size, MSG_WAITALL);
 
-		if (revisar_mensaje(id_cola,paq->buffer)){
+		if (revisar_mensaje(id_cola,paquete->buffer)){
 
 			uint32_t id_mensaje = crear_nuevo_id();
+
+			send(*socket_escucha,&id_mensaje,sizeof(uint32_t),0);
 
 			enviar_a_publisher_id(id_mensaje); // hacer
 
 			pthread_mutex_lock(&(sem_cola[id_cola]));
-			agregar_a_cola(id_cola,paq);
+			agregar_a_cola(id_cola,paquete);
 			pthread_mutex_unlock(&(sem_cola[id_cola]));
 
 			cont_cola[id_cola] = 1;
 		}
 	} else {
 
-		uint32_t id_correlativo = (uint32_t) paq->buffer->stream;
+		uint32_t id_correlativo = (uint32_t) buffer->stream;
 
 		pthread_mutex_lock(&(sem_cola[id_cola]));
 		confirmar_mensaje(id_cola , id_correlativo);
 		pthread_mutex_unlock(&(sem_cola[id_cola]));
-	}*/
+	}
 }
 
 void confirmar_mensaje(queue_name id_cola ,uint32_t id_mensaje){
@@ -180,7 +178,7 @@ bool revisar_mensaje(uint32_t id, t_buffer* buffer) {
 }
 
 void enviar_a_publisher_id(uint32_t id){
-	// hacer
+	send()
 };
 
 

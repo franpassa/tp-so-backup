@@ -9,9 +9,6 @@ int iniciar_servidor() {
 		char* ip = config_get_string_value(config,"IP_BROKER");
 		char* puerto = config_get_string_value(config,"PUERTO_BROKER");
 
-		//char* ip = "127.0.0.1";
-		//char* puerto = "20002";
-
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = AF_UNSPEC;
 		hints.ai_socktype = SOCK_STREAM;
