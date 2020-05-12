@@ -22,10 +22,6 @@ void chequear_mensajes(int* socket_escucha){
 		return;
 	}
 
-
-	t_paquete* paquete= malloc(sizeof(t_paquete));
-	recv(*socket_escucha,paquete,sizeof(t_paquete),MSG_WAITALL);
-
 	/*printf("MENSAJE DE SOCKET %d -> ", *socket_escucha);
 	uint32_t id_msg = random();
 	switch(id_cola){
@@ -67,6 +63,8 @@ void chequear_mensajes(int* socket_escucha){
 
 	send(*socket_escucha, &id_msg, sizeof(uint32_t), 0);*/
 
+	t_paquete* paquete= malloc(sizeof(t_paquete));
+	recv(*socket_escucha,paquete,sizeof(t_paquete),MSG_WAITALL);
 
 	t_buffer* buffer = malloc(sizeof(t_buffer));
 	recv(*socket_escucha, buffer,sizeof(t_buffer),MSG_WAITALL);

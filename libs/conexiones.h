@@ -83,7 +83,7 @@ catch_pokemon_msg* catch_msg(char* nombre_pokemon, uint32_t x, uint32_t y);
 caught_pokemon_msg* caught_msg(uint32_t id_corr, uint32_t resultado);
 
 int conectar_a_broker(queue_name cola, char* ip, char* puerto);
-uint32_t enviar_mensaje(queue_name tipo_msg, void* mensaje, int socket);
+int enviar_mensaje(queue_name tipo_msg, void* mensaje, int socket);
 void* recibir_mensaje(queue_name cola, int socket);
 void confirmar_recepcion(queue_name cola, uint32_t id_mensaje, int socket);
 void* serializar_paquete(t_paquete* paquete, int bytes);
