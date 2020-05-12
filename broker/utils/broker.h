@@ -66,8 +66,8 @@ void inicializar_cola(t_cola_de_mensajes** nombre_cola);
 void inicializar_colas();
 t_cola_de_mensajes* int_a_nombre_cola(queue_name id);
 void inicializar();
-
-
+void mostrar_subs(t_cola_de_mensajes* cola);
+void estado_de_queues();
 // FUNCIONES DE LOG Y CONFIG
 
 t_log* iniciar_logger(void);

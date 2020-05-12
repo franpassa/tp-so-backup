@@ -22,8 +22,8 @@ void chequear_mensajes(int* socket_escucha){
 		return;
 	}
 
-	/*printf("MENSAJE DE SOCKET %d -> ", *socket_escucha);
-	uint32_t id_msg = random();
+	printf("MENSAJE DE SOCKET %d -> ", *socket_escucha);
+	int id_msg = crear_nuevo_id();
 	switch(id_cola){
 
 		case NEW_POKEMON: ;
@@ -61,13 +61,14 @@ void chequear_mensajes(int* socket_escucha){
 
 	}
 
-	send(*socket_escucha, &id_msg, sizeof(uint32_t), 0);*/
+	send(*socket_escucha, &id_msg, sizeof(int), 0);
 
-	t_paquete* paquete= malloc(sizeof(t_paquete));
+	/*t_paquete* paquete= malloc(sizeof(t_paquete));
 	recv(*socket_escucha,paquete,sizeof(t_paquete),MSG_WAITALL);
 
 	t_buffer* buffer = malloc(sizeof(t_buffer));
 	recv(*socket_escucha, buffer,sizeof(t_buffer),MSG_WAITALL);
+
 
 	if (paquete->buffer->size != 0){
 
@@ -76,9 +77,9 @@ void chequear_mensajes(int* socket_escucha){
 
 		if (revisar_mensaje(id_cola,paquete->buffer)){
 
-			uint32_t id_mensaje = crear_nuevo_id();
+			int id_mensaje = crear_nuevo_id();
 
-			send(*socket_escucha,&id_mensaje,sizeof(uint32_t),0);
+			send(*socket_escucha,&id_mensaje,sizeof(int),0);
 
 			pthread_mutex_lock(&(sem_cola[id_cola]));
 			agregar_a_cola(id_cola,paquete);
@@ -88,12 +89,12 @@ void chequear_mensajes(int* socket_escucha){
 		}
 	} else {
 
-		uint32_t id_correlativo = (uint32_t) buffer->stream;
+		int id_correlativo = (int) buffer->stream;
 
 		pthread_mutex_lock(&(sem_cola[id_cola]));
 		confirmar_mensaje(id_cola , id_correlativo);
 		pthread_mutex_unlock(&(sem_cola[id_cola]));
-	}
+	}*/
 }
 
 void confirmar_mensaje(queue_name id_cola ,uint32_t id_mensaje){
@@ -125,8 +126,8 @@ int crear_nuevo_id(){
 
 	pthread_mutex_lock(&semaforo_id);
 	contador_id ++;
-	return contador_id;
 	pthread_mutex_unlock(&semaforo_id);
+	return contador_id;
 }
 
 void agregar_a_cola(uint32_t id_cola,t_paquete* paquete){

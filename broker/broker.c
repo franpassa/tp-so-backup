@@ -8,12 +8,16 @@ int main(){
 
 	int socket_servidor = iniciar_servidor();
 
+	pthread_t hilo_estado_queues;
+	pthread_create(&hilo_estado_queues,NULL,(void*) estado_de_queues,&socket_servidor);
+
 	pthread_t hilo_suscripciones;
 	pthread_create(&hilo_suscripciones, NULL, (void*) esperar_cliente, &socket_servidor);
+
 	pthread_t hilo_mensajes;
 	pthread_create(&hilo_mensajes, NULL, (void*) loop_productores, NULL);
 
-
+	pthread_join(hilo_estado_queues,NULL);
 	pthread_join(hilo_suscripciones,NULL);
 	pthread_join(hilo_mensajes,NULL);
 
@@ -122,6 +126,26 @@ void inicializar(){
 	inicializar_colas();
 }
 
+void estado_de_queues(){
+
+	while(1){
+	mostrar_subs(QUEUE_NEW_POKEMON);
+	mostrar_subs(QUEUE_APPEARED_POKEMON);
+	mostrar_subs(QUEUE_CATCH_POKEMON);
+	mostrar_subs(QUEUE_CAUGHT_POKEMON);
+	mostrar_subs(QUEUE_GET_POKEMON);
+	mostrar_subs(QUEUE_LOCALIZED_POKEMON);
+	sleep(10);
+	}
+}
+
+void mostrar_subs(t_cola_de_mensajes* cola){
+	//printf("Mensajes: %s",cola->cola->elements);
+
+	for(int i = 0 ; i < list_size(cola->lista_suscriptores) ; i++){
+	printf("Suscriptor: %d\n", *((int*) list_get(cola->lista_suscriptores,i)));
+	}
+}
 
 /*t_cola_de_mensajes nuevo;
 	nuevo = inicializar_cola();

@@ -18,14 +18,17 @@ int main(){
 
 	//inicializar();
 
-	int socket_broker = conectar_a_broker(PRODUCTOR, "127.0.0.1", "6009");
+	int socket_brok = conectar_a_broker(CATCH_POKEMON, "127.0.0.1", "6009");
+	int socket_broker = conectar_a_broker(NEW_POKEMON,"127.0.0.1", "6009");
 
-	while(1){
-		new_pokemon_msg* msg = new_msg("Hola soy Pikachu", 3, 4, 10);
-		int id = enviar_mensaje(NEW_POKEMON, (void*) msg, socket_broker);
-		printf("id recibido: %d\n", id);
-		sleep(2);
-	}
+	/*while(1){
+
+	new_pokemon_msg* msg = new_msg("Hola soy Pikachu", 3, 4, 10);
+	int id = enviar_mensaje(NEW_POKEMON, (void*) msg, socket_broker);
+	printf("id recibido: %d\n", id);
+
+	}*/
+
 	/*t_bitarray* bitarray = read_bitmap(fspaths->bitmap_file);
 	print_bitarray(bitarray);
 	set_bit(fspaths->bitmap_file, 2, true);
