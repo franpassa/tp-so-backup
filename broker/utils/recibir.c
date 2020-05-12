@@ -23,8 +23,51 @@ void chequear_mensajes(int* socket_escucha){
 		return;
 	}
 
+
 	t_paquete* paquete= malloc(sizeof(t_paquete));
 	recv(*socket_escucha,paquete,sizeof(t_paquete),MSG_WAITALL);
+
+	/*printf("MENSAJE DE SOCKET %d -> ", *socket_escucha);
+	uint32_t id_msg = random();
+	switch(id_cola){
+
+		case NEW_POKEMON: ;
+			new_pokemon_msg* msg_new = recibir_mensaje(id_cola, *socket_escucha);
+			printf("NEW POKEMON {nombre: %s, X: %d, Y: %d, cantidad: %d}\n", msg_new->nombre_pokemon, msg_new->coordenada_X, msg_new->coordenada_Y, msg_new->cantidad_pokemon);
+			break;
+
+		case APPEARED_POKEMON: ;
+			appeared_pokemon_msg* msg_appeared = recibir_mensaje(id_cola, *socket_escucha);
+			printf("APPEARED POKEMON {nombre: %s, X: %d, Y: %d}\n", msg_appeared->nombre_pokemon, msg_appeared->coordenada_X, msg_appeared->coordenada_Y);
+			break;
+
+		case GET_POKEMON: ;
+			get_pokemon_msg* msg_get = recibir_mensaje(id_cola, *socket_escucha);
+			printf("GET POKEMON {nombre: %s}\n", msg_get->nombre_pokemon);
+			break;
+
+		case LOCALIZED_POKEMON: ;
+			localized_pokemon_msg* msg_localized = recibir_mensaje(id_cola, *socket_escucha);
+			printf("LOCALIZED POKEMON {id correlativo: %d, nombre: %s, cantidad posiciones: %d, paja printear los pares de coordenadas}\n", msg_localized->id_correlativo, msg_localized->nombre_pokemon, msg_localized->cantidad_posiciones);
+			break;
+
+		case CATCH_POKEMON: ;
+			catch_pokemon_msg* msg_catch = recibir_mensaje(id_cola, *socket_escucha);
+			printf("CATCH POKEMON {nombre: %s, X: %d, Y: %d}\n", msg_catch->nombre_pokemon, msg_catch->coordenada_X, msg_catch->coordenada_Y);
+			break;
+
+		case CAUGHT_POKEMON: ;
+			caught_pokemon_msg* msg_caught = recibir_mensaje(id_cola, *socket_escucha);
+			printf("CAUGHT POKEMON {id correlativo: %d, resultado: %d}\n", msg_caught->id_correlativo, msg_caught->resultado);
+			break;
+
+		default: ;
+			return;
+
+	}
+
+	send(*socket_escucha, &id_msg, sizeof(uint32_t), 0);*/
+
 
 	t_buffer* buffer = malloc(sizeof(t_buffer));
 	recv(*socket_escucha, buffer,sizeof(t_buffer),MSG_WAITALL);
@@ -177,9 +220,7 @@ bool revisar_mensaje(uint32_t id, t_buffer* buffer) {
 	return resultado;
 }
 
-void enviar_a_publisher_id(uint32_t id){
-	send()
-};
+
 
 
 

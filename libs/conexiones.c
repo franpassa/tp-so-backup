@@ -156,8 +156,8 @@ int enviar_mensaje(queue_name cola, void* estructura_mensaje, int socket_recepto
 	free(paquete);
 	free(a_enviar);
 
-	int id;
-	recv(socket_receptor, &id, sizeof(int), MSG_WAITALL);
+	uint32_t id;
+	recv(socket_receptor, &id, sizeof(uint32_t), MSG_WAITALL);
 
 	return id;
 }
