@@ -17,6 +17,7 @@ int main()
 	int socket_escucha = iniciar_servidor(IP,PUERTO);
 
 	pthread_create(&hilo_escucha,NULL,(void*) esperar_cliente, &socket_escucha);
+	pthread_join(hilo_escucha, NULL);
 
 	//pthread_create(&recibir_localized,NULL,(void*)recibirLocalized,NULL);
 

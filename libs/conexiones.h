@@ -86,7 +86,7 @@ int iniciar_servidor(char* ip, char* puerto);
 int conectar_como_productor(char* ip, char* puerto);
 int suscribirse_a_cola(queue_name cola, char* ip, char* puerto);
 uint32_t enviar_mensaje(queue_name tipo_msg, void* mensaje, int socket);
-void* recibir_mensaje(queue_name cola, int socket);
+void* recibir_mensaje(queue_name cola, int socket); // Lo podría modificar para que retorne el ID normalmente y el msg por parámetro puntero, mmmm...
 void confirmar_recepcion(queue_name cola, uint32_t id_mensaje, int socket);
 void* serializar_paquete(t_paquete* paquete, int bytes);
 void free_paquete(t_paquete* paquete);

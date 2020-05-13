@@ -5,7 +5,7 @@
 #define PATH_CONFIG "/home/utnso/workspace/tp-2020-1c-Cuarenteam/team/team.config"
 #define PATH_LOG "/home/utnso/workspace/tp-2020-1c-Cuarenteam/team/team.log"
 #define IP "127.0.0.1"
-#define PUERTO "1085"
+#define PUERTO "1090"
 
 
 // general

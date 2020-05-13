@@ -18,8 +18,8 @@ int main(){
 
 	//inicializar();
 
-	int socket_brok = conectar_a_broker(CATCH_POKEMON, "127.0.0.1", "6009");
-	int socket_broker = conectar_a_broker(NEW_POKEMON,"127.0.0.1", "6009");
+	//int socket_brok = conectar_a_broker(CATCH_POKEMON, "127.0.0.1", "6009");
+	//int socket_broker = conectar_a_broker(NEW_POKEMON,"127.0.0.1", "6009");
 
 	/*while(1){
 

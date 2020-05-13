@@ -84,7 +84,7 @@ int suscribirse_a_cola(queue_name cola, char* ip, char* puerto){
 		return socket_servidor;
 	} else {
 		// Si la respuesta es 1, hubo un error.
-		return 1;
+		return -1;
 	}
 }
 

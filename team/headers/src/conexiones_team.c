@@ -73,6 +73,7 @@ void recibirLocalized(int* socket_localized){ // no esta terminada
 }
 
 void esperar_cliente(int* socket_servidor){
+// ES UN ASCO
 	while(1){
 
 		struct sockaddr_in dir_cliente;
@@ -86,11 +87,24 @@ void esperar_cliente(int* socket_servidor){
 
 		if(recv(socket_cliente, &cola, sizeof(queue_name), MSG_WAITALL) == -1) {
 			perror("Error al recibir el mensaje:");
-			printf("Error recibiendo mensaje\n");
 			continue; // vuelve al loop
 		}
 
-		printf("El cliente %d se suscribió correctamente", socket_cliente);
+		if(cola != PRODUCTOR){
+			printf("flasheaste papi, cola incorrecta\n");
+			continue;
+		}
+		// ESTE TP DESTRUIRÁ MI CORDURA
+		queue_name otra_cola;
+		int bytes = recv(socket_cliente, &otra_cola, sizeof(queue_name), MSG_WAITALL);
+		if(bytes != -1) {
+			appeared_pokemon_msg* msg = recibir_mensaje(APPEARED_POKEMON, socket_cliente);
+			printf("APPEARED POKEMON RECIBIDO: nombre: %s, X: %d, Y: %d\n", msg->nombre_pokemon, msg->coordenada_X, msg->coordenada_Y);
+			free(msg->nombre_pokemon);
+			free(msg);
+		} else {
+			perror("ups");
+		}
 	}
 }
 

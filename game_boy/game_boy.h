@@ -13,14 +13,23 @@
 #include <commons/log.h>
 #include <commons/string.h>
 #include <commons/config.h>
+#include <conexiones.h>
 
 #define PROGRAM_NAME "Game Boy"
 #define PATH_CONFIG "game_boy.config"
 #define PATH_LOG "game_boy.log"
 
+t_log* logger;
+t_config* config;
 
-t_log* iniciar_logger(void);
-t_config* leer_config(void);
+t_config* get_config();
+t_log* crear_log();
 void terminar_programa(int, t_log*, t_config*);
+void cortar_ejecucion(char* mensaje_error);
+
+// ------- Genericas -------
+
+queue_name string_to_enum(char* string);
+void send_team(char* nombre_pokemon, uint32_t X, uint32_t Y);
 
 #endif /* GAME_BOY_H_ */
