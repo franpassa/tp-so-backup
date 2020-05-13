@@ -18,9 +18,8 @@ int main()
 	int socket_caught = suscribirse_a_cola(CAUGHT_POKEMON,ip_broker,puerto_broker);
 	int socket_localized = suscribirse_a_cola(LOCALIZED_POKEMON,ip_broker,puerto_broker);
 
-	ids_get = list_create();
 
-	enviar_gets(objetivos_globales); //Envio los mensajes GET_POKEMON, uno por cada especie requerida.
+	printf("las listas son iguales ? = %d",igualdadDeListas(objetivos_globales,objetivos_globales));
 
 	/* LIBERO ELEMENTOS */
 	liberarArray(posicionesEntrenadores);

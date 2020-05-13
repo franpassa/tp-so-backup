@@ -3,7 +3,8 @@
 
 void enviar_gets(t_list* objetivos_globales){
 
-	void enviar(void* especie){
+	void enviar(void* especie)
+	{
 		/*IMPORTO EL IP Y EL PUERTO DEL BROKER */
 		char* IP = config_get_string_value(config,"IP_BROKER");
 		char* PUERTO = config_get_string_value(config, "PUERTO_BROKER");
@@ -43,7 +44,7 @@ int suscribirse_a_cola(queue_name cola,char* ip_broker, char* puerto_broker){
 	}else if(cola == LOCALIZED_POKEMON){
 		socket_cola = conectar_a_broker(LOCALIZED_POKEMON,ip_broker,puerto_broker);
 		if(socket_cola == -1){
-			printf("Error al suscribirse a la cola 'CAUGHT POKEMON'.\n\n");
+			printf("Error al suscribirse a la cola 'LOCALIZED POKEMON'.\n\n");
 			return socket_cola;
 		}
 	}

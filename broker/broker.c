@@ -8,8 +8,8 @@ int main(){
 
 	int socket_servidor = iniciar_servidor();
 
-	pthread_t hilo_estado_queues;
-	pthread_create(&hilo_estado_queues,NULL,(void*) estado_de_queues,&socket_servidor);
+//	pthread_t hilo_estado_queues;
+//	pthread_create(&hilo_estado_queues,NULL,(void*) estado_de_queues,&socket_servidor);
 
 	pthread_t hilo_suscripciones;
 	pthread_create(&hilo_suscripciones, NULL, (void*) esperar_cliente, &socket_servidor);
@@ -17,7 +17,7 @@ int main(){
 	pthread_t hilo_mensajes;
 	pthread_create(&hilo_mensajes, NULL, (void*) loop_productores, NULL);
 
-	pthread_join(hilo_estado_queues,NULL);
+//	pthread_join(hilo_estado_queues,NULL);
 	pthread_join(hilo_suscripciones,NULL);
 	pthread_join(hilo_mensajes,NULL);
 

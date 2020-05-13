@@ -39,6 +39,8 @@ void igualarPokemons(t_pokemon* unPokemon, t_pokemon* otroPokemon);
 void setearEnCeroPokemon(t_pokemon* unPokemon);
 uint32_t distanciaEntrenadorPokemon(uint32_t posXEntrenador , uint32_t posYEntrenador, uint32_t posXPokemon, uint32_t posYPokemon);
 
-
+bool igualdadDeListas(t_list* pokemonsAtrapados,t_list* pokemonsObjetivos);
+bool todosLosElementosDeLaPrimerListaEstanEnLaSegunda(t_list* listaA,t_list* listaB);
+bool perteneceALaSegundaLista(char* unPokemon,t_list* listaDePokemons);
 
 #endif /* HEADERS_POKEMON_H_ */
