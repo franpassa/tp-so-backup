@@ -13,7 +13,6 @@
 #include <commons/log.h>
 #include <commons/string.h>
 #include <commons/config.h>
-#include <readline/readline.h>
 
 #define PROGRAM_NAME "Game Boy"
 #define PATH_CONFIG "game_boy.config"
