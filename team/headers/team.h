@@ -4,7 +4,8 @@
 #define PROGRAM_NAME "team"
 #define PATH_CONFIG "/home/utnso/workspace/tp-2020-1c-Cuarenteam/team/team.config"
 #define PATH_LOG "/home/utnso/workspace/tp-2020-1c-Cuarenteam/team/team.log"
-
+#define IP "127.0.0.1"
+#define PUERTO "1085"
 
 
 // general
@@ -43,11 +44,19 @@ t_list* estado_ready;
 t_list* estado_exit;
 
 t_list* ids_get; //Lista de IDs de los mensajes GET_POKEMON
+t_list* pokemons_recibidos;
+
+localized_pokemon_msg* mensaje_recibido_localized;
 
 pthread_t planificarEntrenador;
 pthread_mutex_t mutexEstadoExec;
+pthread_t recibir_localized;
+pthread_t hilo_escucha;
 
 int ciclosConsumidos;
+int socket_localized;
+int socket_caught;
+int socket_appeared;
 
 //FUNCIONES
 

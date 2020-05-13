@@ -4,22 +4,23 @@ int main()
 {
 	inicializarPrograma(); //Inicializo logger y config
 
+	char* ip_broker = config_get_string_value(config,"IP_BROKER");
+	char* puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
 	char** posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
 	char** pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
 	char** pokesObjetivos = config_get_array_value(config, "OBJETIVOS_ENTRENADORES");
-	char* ip_broker = config_get_string_value(config,"IP_BROKER");
-	char* puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
 
 	estado_new = crearListaDeEntrenadores(posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
 	t_list* pokemons_objetivos = crearListaPokesObjetivos(estado_new);
 	t_list* objetivos_globales = crearListaObjetivoGlobal(pokemons_objetivos);
 
-	int socket_appeared = suscribirse_a_cola(APPEARED_POKEMON,ip_broker,puerto_broker);
-	int socket_caught = suscribirse_a_cola(CAUGHT_POKEMON,ip_broker,puerto_broker);
-	int socket_localized = suscribirse_a_cola(LOCALIZED_POKEMON,ip_broker,puerto_broker);
+	int socket_escucha = iniciar_servidor(IP,PUERTO);
 
+	pthread_create(&hilo_escucha,NULL,(void*) esperar_cliente, &socket_escucha);
 
-	printf("las listas son iguales ? = %d",igualdadDeListas(objetivos_globales,objetivos_globales));
+	//pthread_create(&recibir_localized,NULL,(void*)recibirLocalized,NULL);
+
+	//printf("las listas son iguales ? = %d",igualdadDeListas(objetivos_globales,objetivos_globales));
 
 	/* LIBERO ELEMENTOS */
 	liberarArray(posicionesEntrenadores);
@@ -48,7 +49,7 @@ void* estado_exec(void* unEntrenador){
 		ciclosConsumidos += distancia; //ACUMULO LOS CICLOS DE CPU CONSUMIDOS
 
 		//CONEXION AL BROKER Y ENVIO DE MENSAJE CATCH
-		int conexionExec = conectar_a_broker(PRODUCTOR,config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
+		int conexionExec = conectar_como_productor(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
 
 		if(conexionExec != -1){
 			entrenador->motivoBloqueo = MOTIVO_CATCH;
