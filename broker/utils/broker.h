@@ -85,10 +85,10 @@ int suscribir_a_cola(int,queue_name);
 void loop_productores();
 void chequear_mensajes(int* socket_cliente);
 void confirmar_mensaje(queue_name,uint32_t);
-int crear_nuevo_id();
+uint32_t crear_nuevo_id();
 void agregar_a_cola(queue_name,t_paquete*);
 bool es_el_mismo_mensaje(queue_name, void*,void*);
-bool revisar_mensaje(queue_name, t_buffer*);
+bool revisar_si_mensaje_no_estaba_en_cola(queue_name, void*);
 
 // Mandar
 
