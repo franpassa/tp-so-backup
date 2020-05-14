@@ -20,16 +20,12 @@ void enviar_gets(t_list* objetivos_globales){
 		*id_respuesta = enviar_mensaje(GET_POKEMON,a_enviar,socket_para_envio);
 		/*AGREGO EL ID A LA LISTA DE IDS ENVIADOS*/
 		printf("ID: %d\n",*id_respuesta);
-		list_add(ids,id_respuesta);
+		list_add(ids_enviados,id_respuesta);
 		/*CIERRO CONEXION*/
 		close(socket_para_envio);
 	}
 
-	for(int i = 0; i<list_size(objetivos_globales);i++){
-		enviar(list_get(objetivos_globales,i));
-	}
-
-	//list_iterate(objetivos_globales,enviar);
+	list_iterate(objetivos_globales,enviar);
 }
 
 int suscribirse_a_queue(queue_name cola,char* ip_broker, char* puerto_broker){
@@ -58,13 +54,30 @@ int suscribirse_a_queue(queue_name cola,char* ip_broker, char* puerto_broker){
 	return socket_cola;
 }
 
+
+
+bool estaEnLaLista(char* unNombre, t_list* listadoDePokemons)
+{
+	for(int i = 0; i< list_size(listadoDePokemons); i++)
+	{
+		if(unNombre == ((t_especie*)list_get(listadoDePokemons,i))->especie)
+		{
+
+			return true;
+		}
+	}
+	return false;
+}
+
+
 void recibirLocalized(int* socket_localized){ // no esta terminada
 	char* ip_broker = config_get_string_value(config,"IP_BROKER");
 	char* puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
 	int tiempo_reconexion = config_get_int_value(config, "TIEMPO_RECONEXION");
 	*socket_localized = suscribirse_a_cola(LOCALIZED_POKEMON,ip_broker,puerto_broker);
 
-	while(*socket_localized == -1){
+	while(*socket_localized == -1)
+	{
 		int intento = 1;
 		*socket_localized = suscribirse_a_cola(LOCALIZED_POKEMON,ip_broker,puerto_broker);
 		printf("Intento de reconexion numero %d.",intento);
@@ -74,9 +87,19 @@ void recibirLocalized(int* socket_localized){ // no esta terminada
 
 	printf("Conexion con la cola de mensajes LOCALIZED_POKEMON exitosa. Esperando mensajes...");
 
-	while(1){
-		if(recibir_mensaje(LOCALIZED_POKEMON,*socket_localized) != NULL){
-			mensaje_recibido_localized = recibir_mensaje(LOCALIZED_POKEMON,*socket_localized);
+	while(1)
+	{
+		mensaje_recibido_localized = recibir_mensaje(LOCALIZED_POKEMON,*socket_localized);
+
+		if(mensaje_recibido_localized != NULL)
+		{
+			if((estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),objetivos_globales)) && (!(estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),pokemons_recibidos))))
+			{
+				agregarPokemonsRecibidosALista(pokemons_recibidos,mensaje_recibido_localized);
+				t_list* todosLosEntrenadores = todosLosEntrenadoresAPlanificar();
+				entrenadorAReady(todosLosEntrenadores,pokemons_recibidos);
+				list_destroy(todosLosEntrenadores);
+			}
 		}
 
 	}

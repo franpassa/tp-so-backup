@@ -51,6 +51,12 @@ t_list* crearListaPokesObjetivos(t_list* entrenadores);
 
 
 t_pokemon*  pokemonMasCercano (t_entrenador* unEntrenador, t_list* pokemons);
-t_entrenador* entrenadorAPlanificar(t_list* listaEntrenadores, t_list* listaPokemons);
+t_entrenador* entrenadorAReady(t_list* listaEntrenadores, t_list* listaPokemons);
+
+
+// listado de entrenadores new + block x motivo_nada
+t_list* todosLosEntrenadoresAPlanificar();
+
+
 
 #endif /* ENTRENADOR_H_ */

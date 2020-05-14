@@ -161,7 +161,7 @@ t_pokemon*  pokemonMasCercano (t_entrenador* unEntrenador, t_list* pokemons)
 
 }
 
-t_entrenador* entrenadorAPlanificar(t_list* listaEntrenadores, t_list* listaPokemons)
+t_entrenador* entrenadorAReady(t_list* listaEntrenadores, t_list* listaPokemons)
 {
 	t_entrenador* entrenadorFlag = malloc(sizeof(t_entrenador));
 	igualarEntrenador(entrenadorFlag,list_get(listaEntrenadores,0));
@@ -187,7 +187,19 @@ t_entrenador* entrenadorAPlanificar(t_list* listaEntrenadores, t_list* listaPoke
 	return entrenadorFlag;
 }
 
+bloqueadoPorNada(void* unEntrenador)
+{
+	return ((t_entrenador*)unEntrenador)->motivoBloqueo == MOTIVO_NADA;
+}
 
+t_list* todosLosEntrenadoresAPlanificar()
+{
+	t_list* temporal = list_create();
+	list_add_all(temporal,estado_new);
+	list_add_all(temporal,list_filter(estado_bloqueado,bloqueadoPorNada));
+
+	return temporal;
+}
 
 
 

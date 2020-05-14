@@ -38,12 +38,15 @@
 t_log* logger;
 t_config* config;
 
+// entrenadores en new
 t_list* estado_new;
+// entrenadores en block
 t_list* estado_bloqueado;
 t_list* estado_ready;
 t_list* estado_exit;
+t_list* objetivos_globales;
 
-t_list* ids; //Lista de IDs de los mensajes GET_POKEMON
+t_list* ids_enviados; //Lista de IDs de los mensajes GET_POKEMON
 t_list* pokemons_recibidos;
 
 localized_pokemon_msg* mensaje_recibido_localized;

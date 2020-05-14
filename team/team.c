@@ -12,7 +12,8 @@ int main()
 
 	estado_new = crearListaDeEntrenadores(posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
 	t_list* pokemons_objetivos = crearListaPokesObjetivos(estado_new);
-	t_list* objetivos_globales = crearListaObjetivoGlobal(pokemons_objetivos);
+
+	objetivos_globales = crearListaObjetivoGlobal(pokemons_objetivos); //t_especie*
 
 	void mostrar_ids(void* id){
 		printf("ID %d\n",*(int*)id);
