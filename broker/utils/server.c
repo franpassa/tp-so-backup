@@ -1,7 +1,7 @@
 #include "broker.h"
 
 
-int iniciar_servidor() {
+int iniciar_servidor_broker() {
 
 		struct addrinfo hints;
 		struct addrinfo *serverInfo;

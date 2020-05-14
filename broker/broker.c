@@ -6,7 +6,7 @@ int main(){
 	inicializar();
 
 
-	int socket_servidor = iniciar_servidor();
+	int socket_servidor = iniciar_servidor_broker();
 
 //	pthread_t hilo_estado_queues;
 //	pthread_create(&hilo_estado_queues,NULL,(void*) estado_de_queues,&socket_servidor);

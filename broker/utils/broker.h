@@ -76,7 +76,7 @@ void terminar_programa(t_log*, t_config*);
 
 // Server
 
-int iniciar_servidor();
+int iniciar_servidor_broker();
 void esperar_cliente(int* socket_cliente);
 int suscribir_a_cola(int,queue_name);
 
