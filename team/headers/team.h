@@ -43,7 +43,7 @@ t_list* estado_bloqueado;
 t_list* estado_ready;
 t_list* estado_exit;
 
-t_list* ids_get; //Lista de IDs de los mensajes GET_POKEMON
+t_list* ids; //Lista de IDs de los mensajes GET_POKEMON
 t_list* pokemons_recibidos;
 
 localized_pokemon_msg* mensaje_recibido_localized;

@@ -6,7 +6,7 @@ void loop_productores(){
 	while(1){
 		if(list_size(sockets_productores) > 0){
 			list_iterate(sockets_productores, (void*) chequear_mensajes);
-			sleep(8);
+			sleep(2);
 		}
 	}
 
@@ -18,13 +18,15 @@ void chequear_mensajes(int* socket_escucha){
 	int bytes_recibidos = recv(*socket_escucha, &id_cola, sizeof(queue_name), MSG_DONTWAIT);
 
 	if(bytes_recibidos < 0){
-		printf("EL SOCKET %d NO ME MANDO NADA, RE GIL\n", *socket_escucha);
+		printf("EL SOCKET %d NO ME MANDO NADA, RE ORTIBA\n", *socket_escucha);
+		return;
+	} else if(bytes_recibidos == 0){
+		printf("EL SOCKET %d SE DESCONECTO\n", *socket_escucha);
 		return;
 	}
 
 	printf("MENSAJE DE SOCKET %d -> ", *socket_escucha);
 
-	/*int id_msg = crear_nuevo_id();
 	switch(id_cola){
 
 		case NEW_POKEMON: ;
@@ -60,40 +62,44 @@ void chequear_mensajes(int* socket_escucha){
 		default: ;
 			return;
 
-	}*/
-
-	t_paquete* paquete= malloc(sizeof(t_paquete));
-	paquete->cola_msg = id_cola;
-
-	paquete->buffer = malloc(sizeof(t_buffer));
-	recv(*socket_escucha, paquete->buffer, sizeof(t_buffer),MSG_WAITALL);
-
-	if (paquete->buffer->size != 0){
-
-		paquete->buffer->stream = malloc(paquete->buffer->size);
-		recv(*socket_escucha, paquete->buffer->stream, paquete->buffer->size, MSG_WAITALL);
-
-		if (revisar_si_mensaje_no_estaba_en_cola(id_cola,paquete->buffer->stream)){ // No entra en este if
-
-			uint32_t id_mensaje = crear_nuevo_id();
-
-			send(*socket_escucha,&id_mensaje,sizeof(uint32_t),0);
-
-			pthread_mutex_lock(&(sem_cola[id_cola]));
-			agregar_a_cola(id_cola,paquete);
-			pthread_mutex_unlock(&(sem_cola[id_cola]));
-
-			cont_cola[id_cola] = 1;
-
-		}
-	} else {
-
-		int id_correlativo = (int) paquete->buffer->stream ;
-
-		pthread_mutex_lock(&(sem_cola[id_cola]));
-		confirmar_mensaje(id_cola , id_correlativo);
-		pthread_mutex_unlock(&(sem_cola[id_cola]));
 	}
+
+	uint32_t id_msg = crear_nuevo_id();
+
+	send(*socket_escucha,&id_msg,sizeof(uint32_t),0);
+
+//	t_paquete* paquete= malloc(sizeof(t_paquete));
+//	paquete->cola_msg = id_cola;
+//
+//	paquete->buffer = malloc(sizeof(t_buffer));
+//	recv(*socket_escucha, paquete->buffer, sizeof(t_buffer),MSG_WAITALL);
+//
+//	if (paquete->buffer->size != 0){
+//
+//		paquete->buffer->stream = malloc(paquete->buffer->size);
+//		recv(*socket_escucha, paquete->buffer->stream, paquete->buffer->size, MSG_WAITALL);
+//
+//		if (revisar_si_mensaje_no_estaba_en_cola(id_cola,paquete->buffer->stream)){ // No entra en este if
+//
+//			uint32_t id_mensaje = crear_nuevo_id();
+//
+//			send(*socket_escucha,&id_mensaje,sizeof(uint32_t),0);
+//
+//			pthread_mutex_lock(&(sem_cola[id_cola]));
+//			agregar_a_cola(id_cola,paquete);
+//			pthread_mutex_unlock(&(sem_cola[id_cola]));
+//
+//			cont_cola[id_cola] = 1;
+//
+//		}
+//	} else {
+//
+//		int id_correlativo = (int) paquete->buffer->stream ;
+//
+//		pthread_mutex_lock(&(sem_cola[id_cola]));
+//		confirmar_mensaje(id_cola , id_correlativo);
+//		pthread_mutex_unlock(&(sem_cola[id_cola]));
+//	}
 
 
 }

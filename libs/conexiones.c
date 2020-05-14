@@ -63,6 +63,10 @@ int conectar_como_productor(char* ip, char* puerto){
 
 	int socket_sv = connect_sv(ip, puerto);
 
+	if(socket_sv == -1){
+		return -1;
+	}
+
 	queue_name cola_productor = PRODUCTOR;
 	send(socket_sv, &cola_productor, sizeof(queue_name), 0);
 

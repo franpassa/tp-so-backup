@@ -14,10 +14,20 @@ int main()
 	t_list* pokemons_objetivos = crearListaPokesObjetivos(estado_new);
 	t_list* objetivos_globales = crearListaObjetivoGlobal(pokemons_objetivos);
 
-	int socket_escucha = iniciar_servidor(IP,PUERTO);
+	void mostrar_ids(void* id){
+		printf("ID %d\n",*(int*)id);
+	}
 
-	pthread_create(&hilo_escucha,NULL,(void*) esperar_cliente, &socket_escucha);
-	pthread_join(hilo_escucha, NULL);
+	ids = list_create();
+
+//	int socket_escucha = iniciar_servidor(IP,PUERTO);
+//
+//	pthread_create(&hilo_escucha,NULL,(void*) esperar_cliente, &socket_escucha);
+//	pthread_join(hilo_escucha, NULL);
+
+	enviar_gets(objetivos_globales);
+
+	//list_iterate(ids,mostrar_ids);
 
 	//pthread_create(&recibir_localized,NULL,(void*)recibirLocalized,NULL);
 
@@ -32,9 +42,9 @@ int main()
 	list_destroy_and_destroy_elements(objetivos_globales,liberarEspecie);
 
 	/*CIERRO CONEXIONES*/
-	close(socket_caught);
-	close(socket_appeared);
-	close(socket_localized);
+//	close(socket_caught);
+//	close(socket_appeared);
+//	close(socket_localized);
 
 	terminar_programa(); //Finalizo el programa
 

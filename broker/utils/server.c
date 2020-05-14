@@ -59,6 +59,15 @@ void esperar_cliente(int* socket_servidor) { // Hilo esperar_cliente
 
 		}
 
+		if(cola == PRODUCTOR){
+			pthread_mutex_lock(&mutex_productores);
+			int* socket_productor = malloc(sizeof(int));
+			*socket_productor = socket_cliente;
+			list_add(sockets_productores, socket_productor);
+			pthread_mutex_unlock(&mutex_productores);
+			//list_iterate(sockets_productores, (void*) print_list_chars);
+			continue;
+		}
 
 		if(suscribir_a_cola(socket_cliente, cola) == -1){
 			printf("%d es un codigo invalido\n", cola);
@@ -108,14 +117,8 @@ int suscribir_a_cola(int socket_cliente, queue_name cola) {
 		list_add(QUEUE_LOCALIZED_POKEMON->lista_suscriptores,&socket_cliente);
 		break;
 
-	case PRODUCTOR:
-		pthread_mutex_lock(&mutex_productores);
-		int* socket_productor = malloc(sizeof(int));
-		*socket_productor = socket_cliente;
-		list_add(sockets_productores, socket_productor);
-		pthread_mutex_unlock(&mutex_productores);
-		//list_iterate(sockets_productores, (void*) print_list_chars);
-		break;
+//	case PRODUCTOR:
+//		break;
 
 
 	default:

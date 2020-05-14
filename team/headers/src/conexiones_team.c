@@ -16,15 +16,20 @@ void enviar_gets(t_list* objetivos_globales){
 		/*CREO EL MENSAJE Y LO ENVIO*/
 		char* mensaje = ((t_especie*)especie)->especie;
 		get_pokemon_msg* a_enviar = get_msg(mensaje);
-		int* id_respuesta = malloc(sizeof(int));
+		uint32_t* id_respuesta = malloc(sizeof(uint32_t));
 		*id_respuesta = enviar_mensaje(GET_POKEMON,a_enviar,socket_para_envio);
 		/*AGREGO EL ID A LA LISTA DE IDS ENVIADOS*/
-		list_add(ids_get,id_respuesta);
+		printf("ID: %d\n",*id_respuesta);
+		list_add(ids,id_respuesta);
 		/*CIERRO CONEXION*/
 		close(socket_para_envio);
 	}
 
-	list_iterate(objetivos_globales,enviar);
+	for(int i = 0; i<list_size(objetivos_globales);i++){
+		enviar(list_get(objetivos_globales,i));
+	}
+
+	//list_iterate(objetivos_globales,enviar);
 }
 
 int suscribirse_a_queue(queue_name cola,char* ip_broker, char* puerto_broker){
@@ -57,12 +62,17 @@ void recibirLocalized(int* socket_localized){ // no esta terminada
 	char* ip_broker = config_get_string_value(config,"IP_BROKER");
 	char* puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
 	int tiempo_reconexion = config_get_int_value(config, "TIEMPO_RECONEXION");
-	socket_localized = suscribirse_a_cola(LOCALIZED_POKEMON,ip_broker,puerto_broker);
+	*socket_localized = suscribirse_a_cola(LOCALIZED_POKEMON,ip_broker,puerto_broker);
 
-	while(socket_localized == -1){
-		socket_localized = suscribirse_a_cola(LOCALIZED_POKEMON,ip_broker,puerto_broker);
+	while(*socket_localized == -1){
+		int intento = 1;
+		*socket_localized = suscribirse_a_cola(LOCALIZED_POKEMON,ip_broker,puerto_broker);
+		printf("Intento de reconexion numero %d.",intento);
 		sleep(tiempo_reconexion);
+		intento++;
 	}
+
+	printf("Conexion con la cola de mensajes LOCALIZED_POKEMON exitosa. Esperando mensajes...");
 
 	while(1){
 		if(recibir_mensaje(LOCALIZED_POKEMON,*socket_localized) != NULL){
