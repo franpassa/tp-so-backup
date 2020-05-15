@@ -19,7 +19,13 @@ t_log* crear_log(){
 }
 
 bool es_numerico(char* string){
-
+	int largo_string = string_length(string);
+	for(int i = 0; i < largo_string; i++){
+		if(!isdigit(string[i])){
+			return false;
+		}
+	}
+	return true;
 }
 
 queue_name string_to_enum(char* string){
@@ -42,7 +48,7 @@ queue_name string_to_enum(char* string){
 
 void cortar_ejecucion(char* mensaje_error){
 	printf("ERROR: %s\n", mensaje_error);
-	exit(EXIT_FAILURE);
+	abort();
 }
 
 void enviar_a_broker(){

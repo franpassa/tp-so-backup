@@ -214,7 +214,8 @@ uint32_t enviar_mensaje(queue_name cola, void* estructura_mensaje, int socket_re
 	free(a_enviar);
 
 	uint32_t id;
-	recv(socket_receptor, &id, sizeof(uint32_t), MSG_WAITALL);
+	int status_recv = recv(socket_receptor, &id, sizeof(uint32_t), MSG_WAITALL);
+	if(status_recv == -1) return -1;
 
 	return id;
 }

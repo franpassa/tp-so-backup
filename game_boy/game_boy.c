@@ -5,13 +5,7 @@ void inicializar(){
 	logger = crear_log();
 }
 
-int main(){
-	char tuvieja = '1';
-	printf("%d\n", isalpha(tuvieja));
-	return 0;
-}
-
-/*int main(int argc, char** argv){
+int main(int argc, char** argv){
 
 	if(argc < 4){
 		printf("Parámetros faltantes\n");
@@ -33,9 +27,13 @@ int main(){
 		}
 
 		char* nombre_pokemon = argumentos[0];
-		uint32_t x = atoi(argumentos[1]);
-		uint32_t y = atoi(argumentos[2]);
+		if(es_numerico(nombre_pokemon)) cortar_ejecucion("nombre de pokemon con numeros");
 
+		char* endptr;
+		uint32_t x = strtol(argumentos[1], &endptr, 10);
+		uint32_t y = strtol(argumentos[2], &endptr, 10);
+
+		if(x == 0 || y == 0) cortar_ejecucion("coordenadas no numericas");
 		send_team(nombre_pokemon, x, y);
 
 	} else if(string_equals_ignore_case(destinatario, "BROKER")) {
@@ -57,4 +55,4 @@ int main(){
 	}
 
 	return EXIT_SUCCESS;
-}*/
+}

@@ -32,5 +32,6 @@ void cortar_ejecucion(char* mensaje_error);
 
 queue_name string_to_enum(char* string);
 void send_team(char* nombre_pokemon, uint32_t X, uint32_t Y);
+bool es_numerico(char* string);
 
 #endif /* GAME_BOY_H_ */
