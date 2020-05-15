@@ -27,32 +27,26 @@
 
 // conexiones
 #include <conexiones.h>
-#include "conexiones_team.h"
-
-// interno
-
 #include "entrenadores.h"
+#include "conexiones_team.h"
 
 //VARIABLES GLOBALES
 
 t_log* logger;
 t_config* config;
 
-// entrenadores en new
-t_list* estado_new;
-// entrenadores en block
-t_list* estado_bloqueado;
-t_list* estado_ready;
+
 t_list* estado_exit;
 t_list* objetivos_globales;
 
 t_list* ids_enviados; //Lista de IDs de los mensajes GET_POKEMON
 t_list* pokemons_recibidos;
+t_list* pokemons_objetivos;
 
 localized_pokemon_msg* mensaje_recibido_localized;
 
 pthread_t planificarEntrenador;
-pthread_mutex_t mutexEstadoExec;
+pthread_mutex_t mutexCiclosConsumidos;
 pthread_t recibir_localized;
 pthread_t hilo_escucha;
 
@@ -60,6 +54,7 @@ int ciclosConsumidos;
 int socket_localized;
 int socket_caught;
 int socket_appeared;
+bool hayEntrenadorProcesando;
 
 //FUNCIONES
 
@@ -67,7 +62,8 @@ t_log* crear_log();
 t_config* leer_config();
 void inicializarPrograma();
 void terminar_programa();
-void* estado_exec(void* unEntrenador);
+void estado_exec(void* unEntrenador);
+void mostrar_ids(void* id);
 
 
 //#endif /* TEAM_H_ */

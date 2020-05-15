@@ -54,32 +54,17 @@ int suscribirse_a_queue(queue_name cola,char* ip_broker, char* puerto_broker){
 	return socket_cola;
 }
 
+void recibirLocalized(){ // no esta terminada
 
-
-bool estaEnLaLista(char* unNombre, t_list* listadoDePokemons)
-{
-	for(int i = 0; i< list_size(listadoDePokemons); i++)
-	{
-		if(unNombre == ((t_especie*)list_get(listadoDePokemons,i))->especie)
-		{
-
-			return true;
-		}
-	}
-	return false;
-}
-
-
-void recibirLocalized(int* socket_localized){ // no esta terminada
 	char* ip_broker = config_get_string_value(config,"IP_BROKER");
 	char* puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
 	int tiempo_reconexion = config_get_int_value(config, "TIEMPO_RECONEXION");
-	*socket_localized = suscribirse_a_cola(LOCALIZED_POKEMON,ip_broker,puerto_broker);
+	socket_localized = suscribirse_a_cola(LOCALIZED_POKEMON,ip_broker,puerto_broker);
 
-	while(*socket_localized == -1)
+	while(socket_localized == -1)
 	{
 		int intento = 1;
-		*socket_localized = suscribirse_a_cola(LOCALIZED_POKEMON,ip_broker,puerto_broker);
+		socket_localized = suscribirse_a_cola(LOCALIZED_POKEMON,ip_broker,puerto_broker);
 		printf("Intento de reconexion numero %d.",intento);
 		sleep(tiempo_reconexion);
 		intento++;
@@ -89,7 +74,7 @@ void recibirLocalized(int* socket_localized){ // no esta terminada
 
 	while(1)
 	{
-		mensaje_recibido_localized = recibir_mensaje(LOCALIZED_POKEMON,*socket_localized);
+		mensaje_recibido_localized = recibir_mensaje(LOCALIZED_POKEMON,socket_localized);
 
 		if(mensaje_recibido_localized != NULL)
 		{
@@ -97,12 +82,19 @@ void recibirLocalized(int* socket_localized){ // no esta terminada
 			{
 				agregarPokemonsRecibidosALista(pokemons_recibidos,mensaje_recibido_localized);
 				t_list* todosLosEntrenadores = todosLosEntrenadoresAPlanificar();
-				entrenadorAReady(todosLosEntrenadores,pokemons_recibidos);
-				list_destroy(todosLosEntrenadores);
+				t_entrenador* entrenadorReady = entrenadorAReady(todosLosEntrenadores,pokemons_recibidos);
+
+				bool esElMismo(void* entrenador){
+					return entrenador == entrenadorReady;
+				}
+
+				t_entrenador* removido = list_remove_by_condition(listaALaQuePertenece(entrenadorReady),esElMismo);
+				list_add(estado_ready,removido);
 			}
 		}
-
 	}
+
+	close(socket_localized);
 }
 
 void esperar_cliente(int* socket_servidor){

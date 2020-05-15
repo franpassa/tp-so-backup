@@ -187,7 +187,7 @@ t_entrenador* entrenadorAReady(t_list* listaEntrenadores, t_list* listaPokemons)
 	return entrenadorFlag;
 }
 
-bloqueadoPorNada(void* unEntrenador)
+bool bloqueadoPorNada(void* unEntrenador)
 {
 	return ((t_entrenador*)unEntrenador)->motivoBloqueo == MOTIVO_NADA;
 }
@@ -201,9 +201,26 @@ t_list* todosLosEntrenadoresAPlanificar()
 	return temporal;
 }
 
+bool estaEnLista(t_list* lista, t_entrenador* unEntrenador){
+	for(int i = 0; i< list_size(lista); i++){
+		if(unEntrenador == (t_entrenador*)list_get(lista,i)){
+			return true;
+		}
+	}
+	return false;
+}
 
-
-
+t_list* listaALaQuePertenece(t_entrenador* unEntrenador){
+	if(estaEnLista(estado_new,unEntrenador)){
+		return estado_new;
+	}
+	else if(estaEnLista(estado_bloqueado,unEntrenador)){
+		return estado_bloqueado;
+	}
+	else{
+		return estado_ready;
+	}
+}
 
 
 

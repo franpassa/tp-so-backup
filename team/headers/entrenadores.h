@@ -3,7 +3,6 @@
 
 #include "pokemon.h"
 
-
 typedef enum{
 	MOTIVO_CATCH,
 	MOTIVO_CAUGHT,
@@ -23,7 +22,11 @@ typedef struct Entrenador
 	motivo motivoBloqueo;
 }t_entrenador;
 
-
+// entrenadores en new
+t_list* estado_new;
+// entrenadores en block
+t_list* estado_bloqueado;
+t_list* estado_ready;
 
 // posiciones
 uint32_t posicionXEntrenador(int nroEntrenador, char** posicionesEntrenadores);
@@ -56,6 +59,11 @@ t_entrenador* entrenadorAReady(t_list* listaEntrenadores, t_list* listaPokemons)
 
 // listado de entrenadores new + block x motivo_nada
 t_list* todosLosEntrenadoresAPlanificar();
+
+
+bool bloqueadoPorNada(void* unEntrenador);
+bool estaEnLista(t_list* lista, t_entrenador* unEntrenador);
+t_list* listaALaQuePertenece(t_entrenador* unEntrenador);
 
 
 

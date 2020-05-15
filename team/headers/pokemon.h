@@ -42,5 +42,6 @@ uint32_t distanciaEntrenadorPokemon(uint32_t posXEntrenador , uint32_t posYEntre
 bool igualdadDeListas(t_list* pokemonsAtrapados,t_list* pokemonsObjetivos);
 bool todosLosElementosDeLaPrimerListaEstanEnLaSegunda(t_list* listaA,t_list* listaB);
 bool perteneceALaSegundaLista(char* unPokemon,t_list* listaDePokemons);
+bool estaEnLaLista(char* unNombre, t_list* listadoDePokemons);
 
 #endif /* HEADERS_POKEMON_H_ */

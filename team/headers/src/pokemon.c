@@ -108,7 +108,6 @@ uint32_t distanciaEntrenadorPokemon(uint32_t posXEntrenador , uint32_t posYEntre
 	return distanciaTotal;
 }
 
-
 bool igualdadDeListas(t_list* pokemonsAtrapados,t_list* pokemonsObjetivos)
 {
 	if(list_size(pokemonsObjetivos) != list_size(pokemonsAtrapados))
@@ -122,8 +121,6 @@ bool igualdadDeListas(t_list* pokemonsAtrapados,t_list* pokemonsObjetivos)
 	}
 }
 
-
-
 bool todosLosElementosDeLaPrimerListaEstanEnLaSegunda(t_list* listaA,t_list* listaB)
 {
 	bool flagEstado = true;
@@ -133,8 +130,6 @@ bool todosLosElementosDeLaPrimerListaEstanEnLaSegunda(t_list* listaA,t_list* lis
 	}
 	return flagEstado;
 }
-
-
 
 bool perteneceALaSegundaLista(char* unPokemon,t_list* listaDePokemons)
 {
@@ -149,3 +144,14 @@ bool perteneceALaSegundaLista(char* unPokemon,t_list* listaDePokemons)
 	return flagEstado;
 }
 
+bool estaEnLaLista(char* unNombre, t_list* listadoDePokemons)
+{
+	for(int i = 0; i< list_size(listadoDePokemons); i++)
+	{
+		if(strcmp(unNombre,((t_especie*)list_get(listadoDePokemons,i))->especie)==0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
