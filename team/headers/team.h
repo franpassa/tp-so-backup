@@ -39,7 +39,8 @@ t_config* config;
 t_list* estado_exit;
 t_list* objetivos_globales;
 
-t_list* ids_enviados; //Lista de IDs de los mensajes GET_POKEMON
+t_list* ids_enviados;
+t_list* ids_recibidos;
 t_list* pokemons_recibidos;
 t_list* pokemons_objetivos;
 
@@ -54,6 +55,9 @@ int ciclosConsumidos;
 int socket_localized;
 int socket_caught;
 int socket_appeared;
+char** posicionesEntrenadores;
+char** pokesEntrenadores;
+char** pokesObjetivos;
 bool hayEntrenadorProcesando;
 
 //FUNCIONES
@@ -62,8 +66,9 @@ t_log* crear_log();
 t_config* leer_config();
 void inicializarPrograma();
 void terminar_programa();
-void estado_exec(void* unEntrenador);
+void estado_exec();
 void mostrar_ids(void* id);
+void inicializarVariables();
 
 
 //#endif /* TEAM_H_ */

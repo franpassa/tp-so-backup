@@ -19,7 +19,6 @@ void enviar_gets(t_list* objetivos_globales){
 		uint32_t* id_respuesta = malloc(sizeof(uint32_t));
 		*id_respuesta = enviar_mensaje(GET_POKEMON,a_enviar,socket_para_envio);
 		/*AGREGO EL ID A LA LISTA DE IDS ENVIADOS*/
-		printf("ID: %d\n",*id_respuesta);
 		list_add(ids_enviados,id_respuesta);
 		/*CIERRO CONEXION*/
 		close(socket_para_envio);
@@ -99,6 +98,7 @@ void recibirLocalized(){ // no esta terminada
 
 void esperar_cliente(int* socket_servidor){
 // ES UN ASCO
+
 	while(1){
 
 		struct sockaddr_in dir_cliente;
@@ -133,3 +133,64 @@ void esperar_cliente(int* socket_servidor){
 	}
 }
 
+void estado_exec(){
+
+	while(1){
+
+		if(!list_is_empty(estado_ready)){
+
+			t_entrenador* unEntrenador = (t_entrenador*)list_get(estado_ready,0);
+
+			bool esElMismo(void* entrenador){
+				return entrenador == unEntrenador;
+			}
+
+			hayEntrenadorProcesando = true;
+			t_entrenador* entrenador = list_remove_by_condition(listaALaQuePertenece(unEntrenador),esElMismo);
+			char* ALGORITMO = config_get_string_value(config,"ALGORITMO_PLANIFICACION");
+			int RETARDO = config_get_int_value(config,"RETARDO_CICLO_CPU");
+
+			if(strcmp(ALGORITMO,"FIFO")==0){
+
+				if(entrenador->pokemonAMoverse != NULL){
+
+					uint32_t distancia = distanciaEntrenadorPokemon(entrenador->posicionX,entrenador->posicionY,entrenador->pokemonAMoverse->posicionX,entrenador->pokemonAMoverse->posicionY);
+					uint32_t ciclos = 0;
+
+					while(ciclos <= distancia){
+						ciclos++;
+						sleep(RETARDO);
+					}
+
+					pthread_mutex_lock(&mutexCiclosConsumidos);
+					ciclosConsumidos += ciclos;//ACUMULO LOS CICLOS DE CPU CONSUMIDOS
+					pthread_mutex_unlock(&mutexCiclosConsumidos);
+
+					//CONEXION AL BROKER Y ENVIO DE MENSAJE CATCH
+					int conexionExec = conectar_como_productor(config_get_string_value(config, "IP_BROKER"),config_get_string_value(config, "PUERTO_BROKER"));
+
+					if(conexionExec != -1){
+						entrenador->motivoBloqueo = MOTIVO_CATCH;
+					}else{
+						list_add(entrenador->pokesAtrapados,entrenador->pokemonAMoverse);
+						entrenador->pokemonAMoverse = NULL;
+						entrenador->motivoBloqueo = MOTIVO_CAUGHT;
+					}
+
+					catch_pokemon_msg* mensaje = catch_msg(entrenador->pokemonAMoverse->nombre,entrenador->pokemonAMoverse->posicionX,entrenador->pokemonAMoverse->posicionY);
+					uint32_t* idMensajeExec = malloc(sizeof(int));
+					*idMensajeExec = enviar_mensaje(CATCH_POKEMON,mensaje,conexionExec);
+					list_add(ids_enviados,idMensajeExec);
+					close(conexionExec);
+
+					//AGREGO A LA LISTA DE BLOQUEADOS
+					entrenador->posicionX = entrenador->pokemonAMoverse->posicionX;
+					entrenador->posicionY = entrenador->pokemonAMoverse->posicionY;
+					entrenador->pokemonAMoverse = NULL;
+					entrenador->idRecibido = *idMensajeExec;
+					list_add(estado_bloqueado,entrenador);
+				}
+			}
+		}
+	}
+}
