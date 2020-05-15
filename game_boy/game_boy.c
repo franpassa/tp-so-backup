@@ -5,7 +5,13 @@ void inicializar(){
 	logger = crear_log();
 }
 
-int main(int argc, char** argv){
+int main(){
+	char tuvieja = '1';
+	printf("%d\n", isalpha(tuvieja));
+	return 0;
+}
+
+/*int main(int argc, char** argv){
 
 	if(argc < 4){
 		printf("Parámetros faltantes\n");
@@ -51,4 +57,4 @@ int main(int argc, char** argv){
 	}
 
 	return EXIT_SUCCESS;
-}
+}*/

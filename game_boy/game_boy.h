@@ -14,6 +14,7 @@
 #include <commons/string.h>
 #include <commons/config.h>
 #include <conexiones.h>
+#include <ctype.h>
 
 #define PROGRAM_NAME "Game Boy"
 #define PATH_CONFIG "game_boy.config"
