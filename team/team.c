@@ -12,23 +12,16 @@ int main()
 	if (socket_escucha == -1) abort(); //FINALIZA EL PROGRAMA EN CASO DE QUE FALLE LA INICIALIZACION DEL SERVIDOR
 
 	pthread_create(&hilo_escucha,NULL,(void*) esperar_cliente, &socket_escucha);
-
-	/* LIBERO ELEMENTOS */
-	liberarArray(posicionesEntrenadores);
-	liberarArray(pokesEntrenadores);
-	liberarArray(pokesObjetivos);
-	list_destroy_and_destroy_elements(pokemons_objetivos, free);
-	list_destroy_and_destroy_elements(estado_new,liberarEntrenador);
-	list_destroy_and_destroy_elements(objetivos_globales,liberarEspecie);
-
 	pthread_join(hilo_escucha, NULL);
 
+
 	/*CIERRO CONEXIONES*/
-	close(socket_escucha);
 //	close(socket_caught);
 //	close(socket_appeared);
 //	close(socket_localized);
 
+	liberarVariables();
+	close(socket_escucha);
 	terminar_programa(); //Finalizo el programa
 
 	return 0;
@@ -78,9 +71,27 @@ void inicializarVariables(){
 	posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
 	pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
 	pokesObjetivos = config_get_array_value(config, "OBJETIVOS_ENTRENADORES");
+	ip_broker = config_get_string_value(config, "IP_BROKER");
+	puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
 	estado_new = crearListaDeEntrenadores(posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
 	pokemons_objetivos = crearListaPokesObjetivos(estado_new);
 	objetivos_globales = crearListaObjetivoGlobal(pokemons_objetivos); //t_especie*
+}
+
+void liberarVariables()
+{
+	liberarArray(posicionesEntrenadores);
+	liberarArray(pokesEntrenadores);
+	liberarArray(pokesObjetivos);
+	list_destroy_and_destroy_elements(pokemons_objetivos, free);
+	list_destroy_and_destroy_elements(estado_new,liberarEntrenador);
+	list_destroy_and_destroy_elements(objetivos_globales,liberarEspecie);
+	list_destroy(estado_bloqueado);
+	list_destroy(estado_ready);
+	list_destroy(estado_exit);
+	list_destroy(ids_enviados);
+	list_destroy(ids_recibidos);
+	list_destroy(pokemons_recibidos);
 }
 
 void mostrar_ids(void* id){

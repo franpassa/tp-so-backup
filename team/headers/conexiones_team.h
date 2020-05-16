@@ -8,5 +8,6 @@ int suscribirse_a_queue(queue_name cola,char* ip_broker, char* puerto_broker);
 void recibirLocalized();
 void esperar_cliente(int* socket_servidor);
 void estado_exec();
+void algoritmoFifo(t_entrenador* entrenador);
 
 #endif /* _CONEXIONES_TEAM_H_*/

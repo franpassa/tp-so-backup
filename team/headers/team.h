@@ -32,13 +32,22 @@
 
 //VARIABLES GLOBALES
 
+
+
 t_log* logger;
+
+// variables globales sacadas del config
 t_config* config;
+char* ip_broker;
+char* puerto_broker;
+char** posicionesEntrenadores;
+char** pokesEntrenadores;
+char** pokesObjetivos;
+
 
 
 t_list* estado_exit;
 t_list* objetivos_globales;
-
 t_list* ids_enviados;
 t_list* ids_recibidos;
 t_list* pokemons_recibidos;
@@ -55,10 +64,10 @@ int ciclosConsumidos;
 int socket_localized;
 int socket_caught;
 int socket_appeared;
-char** posicionesEntrenadores;
-char** pokesEntrenadores;
-char** pokesObjetivos;
-bool hayEntrenadorProcesando;
+
+bool hayEntrenadorProcesando; 	// funcion a futuro, chequear en otro proceso si hay un entrenador
+								// corriendo porque cuando sale del bloqueao porque ya le
+								// mandaron el caught
 
 //FUNCIONES
 
@@ -69,6 +78,7 @@ void terminar_programa();
 void estado_exec();
 void mostrar_ids(void* id);
 void inicializarVariables();
+void liberarVariables();
 
 
 //#endif /* TEAM_H_ */
