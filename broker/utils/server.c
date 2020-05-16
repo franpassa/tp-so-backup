@@ -39,7 +39,7 @@ int iniciar_servidor_broker() {
 }
 
 
-void esperar_cliente(int* socket_servidor) { // Hilo esperar_cliente
+void esperar_cliente(int* socket_servidor) {
 
 	while(1){
 
@@ -65,12 +65,10 @@ void esperar_cliente(int* socket_servidor) { // Hilo esperar_cliente
 			*socket_productor = socket_cliente;
 			list_add(sockets_productores, socket_productor);
 			pthread_mutex_unlock(&mutex_productores);
-			//list_iterate(sockets_productores, (void*) print_list_chars);
-			continue;
-		}
 
-		if(suscribir_a_cola(socket_cliente, cola) == -1){
+		} else if(suscribir_a_cola(socket_cliente, cola) == -1) {
 			printf("%d es un codigo invalido\n", cola);
+
 		} else {
 			printf("el cliente %d se suscribio a la cola %s\n", socket_cliente, nombres_colas[cola]);
 			int codigo_ok = 0;
@@ -81,40 +79,44 @@ void esperar_cliente(int* socket_servidor) { // Hilo esperar_cliente
 
 }
 
-void print_list_chars(int* numero){
-	printf("socket productor %d\n", *numero);
-}
 
 int suscribir_a_cola(int socket_cliente, queue_name cola) {
 
 	int retorno = 0;
+
+	int *socket_cola = malloc(sizeof(int));
+	*socket_cola = socket_cliente;
 
 	pthread_mutex_lock(&semaforo_suscriber);
 
 	switch(cola){
 
 	case NEW_POKEMON:
-		list_add(QUEUE_NEW_POKEMON->lista_suscriptores,&socket_cliente);
+
+		list_add(QUEUE_NEW_POKEMON->lista_suscriptores,socket_cola);
 		break;
 
 	case APPEARED_POKEMON:
-		list_add(QUEUE_APPEARED_POKEMON->lista_suscriptores,&socket_cliente);
+		list_add(QUEUE_APPEARED_POKEMON->lista_suscriptores,socket_cola);
 		break;
 
 	case CATCH_POKEMON:
-		list_add(QUEUE_CATCH_POKEMON->lista_suscriptores,&socket_cliente);
+		list_add(QUEUE_CATCH_POKEMON->lista_suscriptores,socket_cola);
+
 		break;
 
 	case CAUGHT_POKEMON:
-		list_add(QUEUE_CAUGHT_POKEMON->lista_suscriptores,&socket_cliente);
+		list_add(QUEUE_CAUGHT_POKEMON->lista_suscriptores,socket_cola);
+
 		break;
 
 	case GET_POKEMON:
-		list_add(QUEUE_GET_POKEMON->lista_suscriptores,&socket_cliente);
+		list_add(QUEUE_GET_POKEMON->lista_suscriptores,socket_cola);
+
 		break;
 
 	case LOCALIZED_POKEMON:
-		list_add(QUEUE_LOCALIZED_POKEMON->lista_suscriptores,&socket_cliente);
+		list_add(QUEUE_LOCALIZED_POKEMON->lista_suscriptores,socket_cola);
 		break;
 
 //	case PRODUCTOR:
@@ -122,6 +124,7 @@ int suscribir_a_cola(int socket_cliente, queue_name cola) {
 
 
 	default:
+		free(socket_cola);
 		// manejar error: codigo bien pero es invalido
 		retorno = -1;
 		break;
