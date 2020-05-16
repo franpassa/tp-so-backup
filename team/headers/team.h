@@ -43,6 +43,8 @@ char* puerto_broker;
 char** posicionesEntrenadores;
 char** pokesEntrenadores;
 char** pokesObjetivos;
+char* ALGORITMO;
+int retardoCpu;
 
 
 
@@ -66,7 +68,7 @@ int socket_caught;
 int socket_appeared;
 
 bool hayEntrenadorProcesando; 	// funcion a futuro, chequear en otro proceso si hay un entrenador
-								// corriendo porque cuando sale del bloqueao porque ya le
+								// corriendo porque cuando sale del bloqueo porque ya le
 								// mandaron el caught
 
 //FUNCIONES
