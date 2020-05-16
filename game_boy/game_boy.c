@@ -26,25 +26,31 @@ int main(int argc, char** argv){
 			cortar_ejecucion("Cola inválida");
 		}
 
-		char* nombre_pokemon = argumentos[0];
-		if(es_numerico(nombre_pokemon)) cortar_ejecucion("nombre de pokemon con numeros");
+		char* nombre_pokemon = NULL;
+		uint32_t x, y;
 
-		char* endptr;
-		uint32_t x = strtol(argumentos[1], &endptr, 10);
-		uint32_t y = strtol(argumentos[2], &endptr, 10);
+		int parse_result = parse_team_args(argumentos, &nombre_pokemon, &x, &y);
 
-		if(x == 0 || y == 0) cortar_ejecucion("coordenadas no numericas");
-		send_team(nombre_pokemon, x, y);
+		if(parse_result == -1) cortar_ejecucion("Parametros incorrectos");
+
+		uint32_t id = send_team(nombre_pokemon, x, y);
+		if(id == -1){
+			printf("Error de conexión con el team");
+		} else {
+			printf("APPEARED_POKEMON enviado - ID %d\n", id);
+		}
+
 
 	} else if(string_equals_ignore_case(destinatario, "BROKER")) {
 
-		queue_name cola = string_to_enum(cola_string);
+		/*queue_name cola = string_to_enum(cola_string);
 
-		if(cola == -1){
-			cortar_ejecucion("Cola inválida");
+		switch(cola){
+		case NEW_POKEMON:
+
 		}
 
-		//enviar_a_broker(cola, )
+		enviar_a_broker(cola, )*/
 
 	} else if(string_equals_ignore_case(destinatario, "GAMECARD")){
 

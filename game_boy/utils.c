@@ -55,15 +55,24 @@ void enviar_a_broker(){
 
 }
 
-void send_team(char* nombre_pokemon, uint32_t X, uint32_t Y){
+int parse_team_args(char** arguments, char** nombre_pokemon, uint32_t* x, uint32_t* y){
+
+	*nombre_pokemon = arguments[0];
+	int value_x = sscanf(arguments[1], "%d", x);
+	int value_y = sscanf(arguments[2], "%d", y);
+
+	if(es_numerico(*nombre_pokemon) || value_x != 1 || value_y != 1) return -1;
+
+	return 0;
+}
+
+uint32_t send_team(char* nombre_pokemon, uint32_t X, uint32_t Y){
 
 	char* ip_team = config_get_string_value(config, "IP_TEAM");
 	char* puerto_team = config_get_string_value(config, "PUERTO_TEAM");
 
-	int socket_team = conectar_como_productor(ip_team, puerto_team);
-
 	appeared_pokemon_msg* msg = appeared_msg(nombre_pokemon, X, Y);
-	uint32_t id = enviar_mensaje(APPEARED_POKEMON, (void*) msg, socket_team);
-	printf("APPEARED enviado - ID %d\n", id);
+	uint32_t id = enviar_mensaje( ip_team, puerto_team, APPEARED_POKEMON, (void*) msg);
 
+	return id;
 }

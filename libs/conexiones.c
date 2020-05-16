@@ -92,7 +92,10 @@ int suscribirse_a_cola(queue_name cola, char* ip, char* puerto){
 	}
 }
 
-uint32_t enviar_mensaje(queue_name cola, void* estructura_mensaje, int socket_receptor){
+uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructura_mensaje){
+
+	int socket_receptor = conectar_como_productor(ip, puerto);
+	if(socket_receptor == -1) return -1;
 
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
@@ -215,6 +218,8 @@ uint32_t enviar_mensaje(queue_name cola, void* estructura_mensaje, int socket_re
 
 	uint32_t id;
 	int status_recv = recv(socket_receptor, &id, sizeof(uint32_t), MSG_WAITALL);
+	close(socket_receptor);
+
 	if(status_recv == -1) return -1;
 
 	return id;
@@ -357,7 +362,7 @@ void* recibir_mensaje(queue_name cola, int socket){
 				return (void*) msg_caught;
 
 			case PRODUCTOR:
-				return NULL;
+				break;
 		}
 
 	return NULL;
