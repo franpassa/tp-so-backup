@@ -5,11 +5,10 @@ int main(){
 
 	inicializar();
 
-
 	int socket_servidor = iniciar_servidor_broker();
 
-//	pthread_t hilo_estado_queues;
-//	pthread_create(&hilo_estado_queues,NULL,(void*) estado_de_queues,&socket_servidor);
+	pthread_t hilo_estado_queues;
+	pthread_create(&hilo_estado_queues,NULL,(void*) estado_de_queues,&socket_servidor);
 
 	pthread_t hilo_suscripciones;
 	pthread_create(&hilo_suscripciones, NULL, (void*) esperar_cliente, &socket_servidor);
@@ -17,14 +16,9 @@ int main(){
 	pthread_t hilo_mensajes;
 	pthread_create(&hilo_mensajes, NULL, (void*) loop_productores, NULL);
 
-//	pthread_join(hilo_estado_queues,NULL);
+	pthread_join(hilo_estado_queues,NULL);
 	pthread_join(hilo_suscripciones,NULL);
 	pthread_join(hilo_mensajes,NULL);
-
-	for(int i = 0; i<6 ;i++){
-		pthread_mutex_init(&(sem_cola[i]),NULL);
-		cont_cola[i] = 0;
-	}
 
 	return 0;
 
@@ -70,7 +64,6 @@ void terminar_programa(t_log* logger, t_config* config){
 void inicializar_cola(t_cola_de_mensajes** nombre_cola){
 
 	*nombre_cola = malloc(sizeof(t_cola_de_mensajes));
-
 	(*nombre_cola)->cola = queue_create();
 	(*nombre_cola)->lista_suscriptores = list_create();
 
@@ -116,6 +109,8 @@ void inicializar(){
 	config = leer_config();
 	logger = iniciar_logger();
 
+	inicializar_colas();
+
 	contador_id = 0;
 	static const char* valores_colas[7] = {"NEW_POKEMON","APPEARED_POKEMON","CATCH_POKEMON","CAUGHT_POKEMON","GET_POKEMON","LOCALIZED_POKEMON", "PRODUCTOR"};
 	memcpy(nombres_colas,valores_colas,sizeof(valores_colas));
@@ -123,7 +118,11 @@ void inicializar(){
 	sockets_productores = list_create();
 	pthread_mutex_init(&mutex_productores, NULL);
 
-	inicializar_colas();
+
+	for(int i = 0; i<6 ;i++){
+		pthread_mutex_init(&(sem_cola[i]),NULL);
+		cont_cola[i] = 0;
+	}
 }
 
 void estado_de_queues(){
@@ -135,16 +134,16 @@ void estado_de_queues(){
 	mostrar_subs(QUEUE_CAUGHT_POKEMON);
 	mostrar_subs(QUEUE_GET_POKEMON);
 	mostrar_subs(QUEUE_LOCALIZED_POKEMON);
-	sleep(10);
+	sleep(4);
 	}
 }
 
 void mostrar_subs(t_cola_de_mensajes* cola){
-	//printf("Mensajes: %s",cola->cola->elements);
+	list_iterate(cola->lista_suscriptores,print_list_sockets);
+}
 
-	for(int i = 0 ; i < list_size(cola->lista_suscriptores) ; i++){
-	printf("Suscriptor: %d\n", *((int*) list_get(cola->lista_suscriptores,i)));
-	}
+void print_list_sockets(void* numero){
+	printf("socket sub: %d\n", (*(int*) numero));
 }
 
 /*t_cola_de_mensajes nuevo;

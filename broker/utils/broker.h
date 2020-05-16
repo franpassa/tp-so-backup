@@ -68,11 +68,13 @@ t_cola_de_mensajes* int_a_nombre_cola(queue_name id);
 void inicializar();
 void mostrar_subs(t_cola_de_mensajes* cola);
 void estado_de_queues();
+
 // FUNCIONES DE LOG Y CONFIG
 
 t_log* iniciar_logger(void);
 t_config* leer_config(void);
 void terminar_programa(t_log*, t_config*);
+void print_list_sockets(void* numero);
 
 // Server
 
@@ -89,6 +91,7 @@ uint32_t crear_nuevo_id();
 void agregar_a_cola(queue_name,t_paquete*);
 bool es_el_mismo_mensaje(queue_name, void*,void*);
 bool revisar_si_mensaje_no_estaba_en_cola(queue_name, void*);
+
 
 // Mandar
 

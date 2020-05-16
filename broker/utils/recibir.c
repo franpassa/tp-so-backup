@@ -68,6 +68,7 @@ void chequear_mensajes(int* socket_escucha){
 
 	send(*socket_escucha,&id_msg,sizeof(uint32_t),0);
 
+
 //	t_paquete* paquete= malloc(sizeof(t_paquete));
 //	paquete->cola_msg = id_cola;
 //
@@ -222,6 +223,7 @@ bool revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_en_buffer) {
 		return list_any_satisfy(queue_a_revisar->cola->elements, no_es_el_mismo_mensaje);
 
 }
+
 
 
 
