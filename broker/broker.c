@@ -98,7 +98,7 @@ t_cola_de_mensajes* int_a_nombre_cola(queue_name id){
 			cola = QUEUE_LOCALIZED_POKEMON;
 			break;
 
-		case PRODUCTOR:
+		default:
 			break;
 }
 	return cola;
@@ -121,7 +121,6 @@ void inicializar(){
 
 	for(int i = 0; i<6 ;i++){
 		pthread_mutex_init(&(sem_cola[i]),NULL);
-		cont_cola[i] = 0;
 	}
 }
 

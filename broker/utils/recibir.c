@@ -5,14 +5,14 @@ void loop_productores(){
 
 	while(1){
 		if(list_size(sockets_productores) > 0){
-			list_iterate(sockets_productores, (void*) chequear_mensajes);
+			list_iterate(sockets_productores, (void*) recibir_mensajes_para_broker);
 			sleep(2);
 		}
 	}
 
 }
 
-void chequear_mensajes(int* socket_escucha){
+void recibir_mensajes_para_broker(int* socket_escucha){
 
 	queue_name id_cola;
 	int bytes_recibidos = recv(*socket_escucha, &id_cola, sizeof(queue_name), MSG_DONTWAIT);
@@ -25,82 +25,37 @@ void chequear_mensajes(int* socket_escucha){
 		return;
 	}
 
-	printf("MENSAJE DE SOCKET %d -> ", *socket_escucha);
+	t_paquete* paquete= malloc(sizeof(t_paquete));
+	paquete->cola_msg = id_cola;
 
-	switch(id_cola){
+	paquete->buffer = malloc(sizeof(t_buffer));
+	recv(*socket_escucha, &(paquete->buffer->size), sizeof(uint32_t), MSG_WAITALL);
 
-		case NEW_POKEMON: ;
-			new_pokemon_msg* msg_new = recibir_mensaje(id_cola, *socket_escucha);
-			printf("NEW POKEMON {nombre: %s, X: %d, Y: %d, cantidad: %d}\n", msg_new->nombre_pokemon, msg_new->coordenada_X, msg_new->coordenada_Y, msg_new->cantidad_pokemon);
-			break;
+	if (paquete->buffer->size != 0){
 
-		case APPEARED_POKEMON: ;
-			appeared_pokemon_msg* msg_appeared = recibir_mensaje(id_cola, *socket_escucha);
-			printf("APPEARED POKEMON {nombre: %s, X: %d, Y: %d}\n", msg_appeared->nombre_pokemon, msg_appeared->coordenada_X, msg_appeared->coordenada_Y);
-			break;
+		paquete->buffer->stream = malloc(paquete->buffer->size);
+		recv(*socket_escucha, paquete->buffer->stream, paquete->buffer->size, MSG_WAITALL);
 
-		case GET_POKEMON: ;
-			get_pokemon_msg* msg_get = recibir_mensaje(id_cola, *socket_escucha);
-			printf("GET POKEMON {nombre: %s}\n", msg_get->nombre_pokemon);
-			break;
+		if (revisar_si_mensaje_no_estaba_en_cola(id_cola,paquete->buffer->stream)){ // No entra en este if
 
-		case LOCALIZED_POKEMON: ;
-			localized_pokemon_msg* msg_localized = recibir_mensaje(id_cola, *socket_escucha);
-			printf("LOCALIZED POKEMON {id correlativo: %d, nombre: %s, cantidad posiciones: %d, paja printear los pares de coordenadas}\n", msg_localized->id_correlativo, msg_localized->nombre_pokemon, msg_localized->cantidad_posiciones);
-			break;
+			pthread_mutex_lock(&semaforo_id);
+ 			uint32_t id_mensaje = crear_nuevo_id();
+			pthread_mutex_unlock(&semaforo_id);
 
-		case CATCH_POKEMON: ;
-			catch_pokemon_msg* msg_catch = recibir_mensaje(id_cola, *socket_escucha);
-			printf("CATCH POKEMON {nombre: %s, X: %d, Y: %d}\n", msg_catch->nombre_pokemon, msg_catch->coordenada_X, msg_catch->coordenada_Y);
-			break;
+			send(*socket_escucha,&id_mensaje,sizeof(uint32_t),0);
 
-		case CAUGHT_POKEMON: ;
-			caught_pokemon_msg* msg_caught = recibir_mensaje(id_cola, *socket_escucha);
-			printf("CAUGHT POKEMON {id correlativo: %d, resultado: %d}\n", msg_caught->id_correlativo, msg_caught->resultado);
-			break;
+			pthread_mutex_lock(&(sem_cola[id_cola]));
+			agregar_a_cola(id_cola,paquete,id_mensaje);
+			pthread_mutex_unlock(&(sem_cola[id_cola]));
+		}
+	} else {
 
-		default: ;
-			return;
+		int id_correlativo = (int) paquete->buffer->stream ;
 
+		pthread_mutex_lock(&(sem_cola[id_cola]));
+		confirmar_mensaje(id_cola , id_correlativo);
+		pthread_mutex_unlock(&(sem_cola[id_cola]));
 	}
-
-	uint32_t id_msg = crear_nuevo_id();
-
-	send(*socket_escucha,&id_msg,sizeof(uint32_t),0);
-
-
-//	t_paquete* paquete= malloc(sizeof(t_paquete));
-//	paquete->cola_msg = id_cola;
-//
-//	paquete->buffer = malloc(sizeof(t_buffer));
-//	recv(*socket_escucha, paquete->buffer, sizeof(t_buffer),MSG_WAITALL);
-//
-//	if (paquete->buffer->size != 0){
-//
-//		paquete->buffer->stream = malloc(paquete->buffer->size);
-//		recv(*socket_escucha, paquete->buffer->stream, paquete->buffer->size, MSG_WAITALL);
-//
-//		if (revisar_si_mensaje_no_estaba_en_cola(id_cola,paquete->buffer->stream)){ // No entra en este if
-//
-//			uint32_t id_mensaje = crear_nuevo_id();
-//
-//			send(*socket_escucha,&id_mensaje,sizeof(uint32_t),0);
-//
-//			pthread_mutex_lock(&(sem_cola[id_cola]));
-//			agregar_a_cola(id_cola,paquete);
-//			pthread_mutex_unlock(&(sem_cola[id_cola]));
-//
-//			cont_cola[id_cola] = 1;
-//
-//		}
-//	} else {
-//
-//		int id_correlativo = (int) paquete->buffer->stream ;
-//
-//		pthread_mutex_lock(&(sem_cola[id_cola]));
-//		confirmar_mensaje(id_cola , id_correlativo);
-//		pthread_mutex_unlock(&(sem_cola[id_cola]));
-//	}
 
 
 }
@@ -133,15 +88,20 @@ void confirmar_mensaje(queue_name id_cola ,uint32_t id_mensaje){
 
 uint32_t crear_nuevo_id(){
 
-	pthread_mutex_lock(&semaforo_id);
 	contador_id ++;
-	pthread_mutex_unlock(&semaforo_id);
 	return contador_id;
 }
 
-void agregar_a_cola(uint32_t id_cola,t_paquete* paquete){
+void agregar_a_cola(uint32_t id_cola,t_paquete* paquete, int id_mensaje){
 
-	void* msg = &paquete;
+	t_info_mensaje* msg = malloc(sizeof(t_info_mensaje));
+	msg->paquete = paquete;
+	msg->id = id_mensaje;
+	msg->cuantos_lo_recibieron = 0;
+
+	t_list* list = list_create();
+
+	msg->a_quienes_fue_enviado = list;
 
 	queue_push(int_a_nombre_cola(id_cola)->cola, msg);
 }
