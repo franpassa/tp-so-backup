@@ -17,6 +17,7 @@ int main(int argc, char** argv){
 	char* destinatario = argv[1];
 	char* cola_string = argv[2];
 	char** argumentos = argv + 3;
+	char* argumentos_string = unir_args(argumentos, argc - 3);
 
 	if(string_equals_ignore_case(destinatario, "TEAM")){
 
@@ -26,16 +27,16 @@ int main(int argc, char** argv){
 			cortar_ejecucion("Cola inválida");
 		}
 
-		char* nombre_pokemon = NULL;
+		char* nombre_pokemon = string_new();
 		uint32_t x, y;
 
-		int parse_result = parse_team_args(argumentos, &nombre_pokemon, &x, &y);
+		int parse_result = sscanf(argumentos_string, "%s %d %d", nombre_pokemon, &x, &y);
 
-		if(parse_result == -1) cortar_ejecucion("Parametros incorrectos");
+		if(parse_result < 3) cortar_ejecucion("Parametros incorrectos");
 
 		uint32_t id = send_team(nombre_pokemon, x, y);
 		if(id == -1){
-			printf("Error de conexión con el team");
+			printf("Error de conexión con el proceso TEAM");
 		} else {
 			printf("APPEARED_POKEMON enviado - ID %d\n", id);
 		}
@@ -43,14 +44,22 @@ int main(int argc, char** argv){
 
 	} else if(string_equals_ignore_case(destinatario, "BROKER")) {
 
-		/*queue_name cola = string_to_enum(cola_string);
+		queue_name cola = string_to_enum(cola_string);
+
+		char nombre_pokemon[20];
+		uint32_t x, y, cantidad, id_correlativo;
+		bool ok_response;
 
 		switch(cola){
-		case NEW_POKEMON:
+			case NEW_POKEMON:
+				sscanf(argumentos_string, "%s %d %d %d", nombre_pokemon, &x, &y, &cantidad);
+				new_pokemon_msg* new_pok = new_msg(nombre_pokemon, x, y, cantidad);
+				send_broker(cola, new_pok);
+				break;
+			default:
+				break;
 
 		}
-
-		enviar_a_broker(cola, )*/
 
 	} else if(string_equals_ignore_case(destinatario, "GAMECARD")){
 

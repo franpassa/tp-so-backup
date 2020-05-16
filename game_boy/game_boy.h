@@ -32,7 +32,8 @@ void cortar_ejecucion(char* mensaje_error);
 
 queue_name string_to_enum(char* string);
 uint32_t send_team(char* nombre_pokemon, uint32_t X, uint32_t Y);
+char* unir_args(char** args, int cant);
 bool es_numerico(char* string);
-int parse_team_args(char** arguments, char** nombre_pokemon, uint32_t* x, uint32_t* y);
+uint32_t send_broker(queue_name cola, void* mensaje);
 
 #endif /* GAME_BOY_H_ */

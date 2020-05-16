@@ -63,9 +63,7 @@ int conectar_como_productor(char* ip, char* puerto){
 
 	int socket_sv = connect_sv(ip, puerto);
 
-	if(socket_sv == -1){
-		return -1;
-	}
+	if(socket_sv == -1) return -1;
 
 	queue_name cola_productor = PRODUCTOR;
 	send(socket_sv, &cola_productor, sizeof(queue_name), 0);
@@ -92,7 +90,7 @@ int suscribirse_a_cola(queue_name cola, char* ip, char* puerto){
 	}
 }
 
-uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructura_mensaje){
+uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructura_mensaje, bool esperar_id){
 
 	int socket_receptor = conectar_como_productor(ip, puerto);
 	if(socket_receptor == -1) return -1;
@@ -217,10 +215,12 @@ uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructur
 	free(a_enviar);
 
 	uint32_t id;
-	int status_recv = recv(socket_receptor, &id, sizeof(uint32_t), MSG_WAITALL);
-	close(socket_receptor);
-
-	if(status_recv == -1) return -1;
+	if(esperar_id){
+		int status_recv = recv(socket_receptor, &id, sizeof(uint32_t), MSG_WAITALL);
+		if(status_recv == -1) id = -1;
+	} else {
+		id = 0;
+	}
 
 	return id;
 }
