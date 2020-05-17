@@ -8,7 +8,7 @@ void loop_productores(){
 			list_iterate(sockets_productores, (void*) recibir_mensajes_para_broker);
 			sleep(2);
 		}
-	}
+	} // Por Ahora
 
 }
 
@@ -36,7 +36,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 		paquete->buffer->stream = malloc(paquete->buffer->size);
 		recv(*socket_escucha, paquete->buffer->stream, paquete->buffer->size, MSG_WAITALL);
 
-		if (revisar_si_mensaje_no_estaba_en_cola(id_cola,paquete->buffer->stream)){ // No entra en este if
+		if (revisar_si_mensaje_no_estaba_en_cola(id_cola,paquete->buffer->stream)){
 
 			pthread_mutex_lock(&semaforo_id);
  			uint32_t id_mensaje = crear_nuevo_id();
@@ -48,7 +48,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 			agregar_a_cola(id_cola,paquete,id_mensaje);
 			pthread_mutex_unlock(&(sem_cola[id_cola]));
 
-			list_remove(sockets_productores,0);
+			list_remove_and_destroy_element(sockets_productores,0,free); // Por Ahora
 		}
 	} else {
 
@@ -177,12 +177,6 @@ bool es_el_mismo_mensaje(queue_name id, void* mensaje,void* otro_mensaje) {
 bool revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_en_buffer) {
 
 	t_cola_de_mensajes* queue_a_revisar = int_a_nombre_cola(id);
-
-	/*bool no_es_el_mismo_mensaje(void* elemento){
-		return !es_el_mismo_mensaje(id, msg_en_buffer, elemento);
-	}
-
-		return list_any_satisfy(queue_a_revisar->cola->elements, no_es_el_mismo_mensaje);*/
 
 	bool mensaje_nuevo = true;
 
