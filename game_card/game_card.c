@@ -19,12 +19,11 @@ int main(){
 	//inicializar();
 
 	//int socket_brok = conectar_a_broker(CATCH_POKEMON, "127.0.0.1", "6009");
-
-	new_pokemon_msg* msg = new_msg("Hola soy Pikachu", 3, 4, 10);
-	uint32_t id = enviar_mensaje("127.0.0.1","6009",NEW_POKEMON, (void*) msg,true);
-	printf("id recibido: %d\n", id);
-
-
+	//while(1){
+	//new_pokemon_msg* msg = new_msg("Hola soy Pikachu", 3, 4, 10);
+	//uint32_t id = enviar_mensaje("127.0.0.1","6009",NEW_POKEMON, (void*) msg,true);
+	//printf("id recibido: %d\n", id);
+	//}
 	/*t_bitarray* bitarray = read_bitmap(fspaths->bitmap_file);
 	print_bitarray(bitarray);
 	set_bit(fspaths->bitmap_file, 2, true);

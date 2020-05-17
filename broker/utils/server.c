@@ -119,9 +119,6 @@ int suscribir_a_cola(int socket_cliente, queue_name cola) {
 		list_add(QUEUE_LOCALIZED_POKEMON->lista_suscriptores,socket_cola);
 		break;
 
-//	case PRODUCTOR:
-//		break;
-
 
 	default:
 		free(socket_cola);

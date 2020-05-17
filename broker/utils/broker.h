@@ -91,6 +91,7 @@ uint32_t crear_nuevo_id();
 void agregar_a_cola(uint32_t,t_paquete*, int);
 bool es_el_mismo_mensaje(queue_name, void*,void*);
 bool revisar_si_mensaje_no_estaba_en_cola(queue_name, void*);
+void print_mensajes_de_cola(t_cola_de_mensajes*);
 
 
 // Mandar

@@ -47,6 +47,8 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 			pthread_mutex_lock(&(sem_cola[id_cola]));
 			agregar_a_cola(id_cola,paquete,id_mensaje);
 			pthread_mutex_unlock(&(sem_cola[id_cola]));
+
+			list_remove(sockets_productores,0);
 		}
 	} else {
 
@@ -114,7 +116,7 @@ bool es_el_mismo_mensaje(queue_name id, void* mensaje,void* otro_mensaje) {
 
 		new_pokemon_msg* msg_new = (new_pokemon_msg*) mensaje;
 		new_pokemon_msg* otro_msg_new = (new_pokemon_msg*) otro_mensaje;
-		return (msg_new->cantidad_pokemon == otro_msg_new->cantidad_pokemon && msg_new->coordenada_X == otro_msg_new->coordenada_X
+		return (msg_new->cantidad_pokemon = otro_msg_new->cantidad_pokemon && msg_new->coordenada_X == otro_msg_new->coordenada_X
 				&& msg_new->coordenada_Y == otro_msg_new->coordenada_Y && string_equals_ignore_case(msg_new->nombre_pokemon,otro_msg_new->nombre_pokemon)
 				&& msg_new->tamanio_nombre == otro_msg_new->tamanio_nombre);
 
@@ -176,12 +178,36 @@ bool revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_en_buffer) {
 
 	t_cola_de_mensajes* queue_a_revisar = int_a_nombre_cola(id);
 
-	bool no_es_el_mismo_mensaje(void* elemento){
+	/*bool no_es_el_mismo_mensaje(void* elemento){
 		return !es_el_mismo_mensaje(id, msg_en_buffer, elemento);
 	}
 
-		return list_any_satisfy(queue_a_revisar->cola->elements, no_es_el_mismo_mensaje);
+		return list_any_satisfy(queue_a_revisar->cola->elements, no_es_el_mismo_mensaje);*/
 
+	bool mensaje_nuevo = true;
+
+	if(!queue_is_empty(queue_a_revisar->cola)){
+
+		t_queue* queue_para_revisar = queue_create();
+		queue_para_revisar = queue_a_revisar->cola;
+
+		for (int i =0; i < queue_size(queue_para_revisar) ; i++){
+
+		t_info_mensaje* elemento_a_testear = queue_pop(queue_para_revisar);
+
+		if(es_el_mismo_mensaje(id,msg_en_buffer,elemento_a_testear)){
+
+			 mensaje_nuevo = false;
+		 	 queue_push(queue_para_revisar,elemento_a_testear);
+
+		} else {
+
+			 queue_push(queue_para_revisar,elemento_a_testear);
+		}
+
+	}
+}
+	return mensaje_nuevo;
 }
 
 
