@@ -222,6 +222,7 @@ uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructur
 		id = 0;
 	}
 
+	close(socket_receptor);
 	return id;
 }
 
