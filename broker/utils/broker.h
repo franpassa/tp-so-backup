@@ -58,7 +58,7 @@ pthread_mutex_t semaforo_id;
 pthread_mutex_t semaforo_suscriber;
 pthread_mutex_t sem_cola[6];
 pthread_mutex_t mutex_productores;
-int cont_cola[6]; // pthread_mutex_trylock
+
 
 // FUNCIONES DE QUEUES
 
@@ -85,12 +85,13 @@ int suscribir_a_cola(int,queue_name);
 // Recibir
 
 void loop_productores();
-void chequear_mensajes(int* socket_cliente);
+void recibir_mensajes_para_broker(int* socket_cliente);
 void confirmar_mensaje(queue_name,uint32_t);
 uint32_t crear_nuevo_id();
-void agregar_a_cola(queue_name,t_paquete*);
+void agregar_a_cola(uint32_t,t_paquete*, int);
 bool es_el_mismo_mensaje(queue_name, void*,void*);
 bool revisar_si_mensaje_no_estaba_en_cola(queue_name, void*);
+void print_mensajes_de_cola(t_cola_de_mensajes*);
 
 
 // Mandar

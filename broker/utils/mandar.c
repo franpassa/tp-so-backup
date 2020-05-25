@@ -5,20 +5,18 @@ void mandar_mensajes(){
 	int cola_actual = 0;
 
 	while(1){
-		cola_actual++;
-
 		if (cola_actual == 6){
 
 			cola_actual = 0;
 		}
+		if (pthread_mutex_trylock(&(sem_cola[cola_actual])) == 0){
 
-		if (cont_cola[cola_actual] == 1){
 
-			pthread_mutex_lock(&(sem_cola[cola_actual]));
 			recorrer_cola(int_a_nombre_cola(cola_actual));
 			pthread_mutex_unlock(&(sem_cola[cola_actual]));
-			cont_cola[cola_actual] = 0;
 		}
+
+		cola_actual++;
 	}
 }
 

@@ -3,7 +3,6 @@
 int main()
 {
 	inicializarPrograma(); //Inicializo logger y config
-
 	inicializarVariables();
 
 	//enviar_gets(objetivos_globales);
@@ -13,12 +12,6 @@ int main()
 
 	pthread_create(&hilo_escucha,NULL,(void*) esperar_cliente, &socket_escucha);
 	pthread_join(hilo_escucha, NULL);
-
-
-	/*CIERRO CONEXIONES*/
-//	close(socket_caught);
-//	close(socket_appeared);
-//	close(socket_localized);
 
 	liberarVariables();
 	close(socket_escucha);
@@ -73,6 +66,8 @@ void inicializarVariables(){
 	pokesObjetivos = config_get_array_value(config, "OBJETIVOS_ENTRENADORES");
 	ip_broker = config_get_string_value(config, "IP_BROKER");
 	puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
+	ALGORITMO = config_get_string_value(config,"ALGORITMO_PLANIFICACION");
+	retardoCpu = config_get_int_value(config, "RETARDO_CICLO_CPU");
 	estado_new = crearListaDeEntrenadores(posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
 	pokemons_objetivos = crearListaPokesObjetivos(estado_new);
 	objetivos_globales = crearListaObjetivoGlobal(pokemons_objetivos); //t_especie*

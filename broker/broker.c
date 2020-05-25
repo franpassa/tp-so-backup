@@ -7,8 +7,8 @@ int main(){
 
 	int socket_servidor = iniciar_servidor_broker();
 
-	pthread_t hilo_estado_queues;
-	pthread_create(&hilo_estado_queues,NULL,(void*) estado_de_queues,&socket_servidor);
+	//pthread_t hilo_estado_queues;
+	//pthread_create(&hilo_estado_queues,NULL,(void*) estado_de_queues,&socket_servidor);
 
 	pthread_t hilo_suscripciones;
 	pthread_create(&hilo_suscripciones, NULL, (void*) esperar_cliente, &socket_servidor);
@@ -16,7 +16,7 @@ int main(){
 	pthread_t hilo_mensajes;
 	pthread_create(&hilo_mensajes, NULL, (void*) loop_productores, NULL);
 
-	pthread_join(hilo_estado_queues,NULL);
+	//pthread_join(hilo_estado_queues,NULL);
 	pthread_join(hilo_suscripciones,NULL);
 	pthread_join(hilo_mensajes,NULL);
 
@@ -98,7 +98,7 @@ t_cola_de_mensajes* int_a_nombre_cola(queue_name id){
 			cola = QUEUE_LOCALIZED_POKEMON;
 			break;
 
-		case PRODUCTOR:
+		default:
 			break;
 }
 	return cola;
@@ -121,7 +121,6 @@ void inicializar(){
 
 	for(int i = 0; i<6 ;i++){
 		pthread_mutex_init(&(sem_cola[i]),NULL);
-		cont_cola[i] = 0;
 	}
 }
 
@@ -140,10 +139,15 @@ void estado_de_queues(){
 
 void mostrar_subs(t_cola_de_mensajes* cola){
 	list_iterate(cola->lista_suscriptores,print_list_sockets);
+
 }
 
 void print_list_sockets(void* numero){
 	printf("socket sub: %d\n", (*(int*) numero));
+}
+
+void print_mensajes_de_cola(t_cola_de_mensajes* cola){
+
 }
 
 /*t_cola_de_mensajes nuevo;
