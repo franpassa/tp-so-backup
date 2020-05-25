@@ -209,7 +209,10 @@ uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructur
 	paquete->buffer->stream = stream;
 	void* a_enviar = serializar_paquete(paquete, total_bytes);
 
-	send(socket_receptor, a_enviar, total_bytes, 0);
+	if(send(socket_receptor, a_enviar, total_bytes, 0) == -1){
+		perror("Error enviando mensaje");
+		return -1;
+	}
 
 	free(paquete->buffer->stream);
 	free(paquete->buffer);
@@ -259,10 +262,17 @@ void* recibir_mensaje(queue_name cola, int socket){
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
 	paquete->buffer = malloc(sizeof(t_buffer));
-	recv(socket, &(paquete->buffer->size), sizeof(uint32_t), MSG_WAITALL);
+	if(recv(socket, &(paquete->buffer->size), sizeof(uint32_t), MSG_WAITALL) == -1) {
+		free(paquete->buffer);
+		free(paquete);
+		return NULL;
+	}
 
 	paquete->buffer->stream = malloc(paquete->buffer->size);
-	recv(socket, paquete->buffer->stream, paquete->buffer->size, MSG_WAITALL);
+	if(recv(socket, paquete->buffer->stream, paquete->buffer->size, MSG_WAITALL) == -1) {
+		free_paquete(paquete);
+		return NULL;
+	}
 
 	void* stream = paquete->buffer->stream;
 	uint32_t offset = 0;
