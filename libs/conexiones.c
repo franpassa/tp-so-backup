@@ -68,6 +68,8 @@ int conectar_como_productor(char* ip, char* puerto){
 	queue_name cola_productor = PRODUCTOR;
 	send(socket_sv, &cola_productor, sizeof(queue_name), 0);
 
+
+
 	return socket_sv;
 }
 
@@ -82,9 +84,9 @@ int suscribirse_a_cola(queue_name cola, char* ip, char* puerto){
 
 	// Si la respuesta es 0, se conectó OK.
 	if(respuesta_broker == 0) {
-		printf("conexion con broker OK\n");
 		return socket_servidor;
-	} else {
+	}
+	else {
 		// Si la respuesta es 1, hubo un error.
 		return -1;
 	}
