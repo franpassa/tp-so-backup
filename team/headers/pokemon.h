@@ -43,5 +43,6 @@ bool igualdadDeListas(t_list* pokemonsAtrapados,t_list* pokemonsObjetivos);
 bool todosLosElementosDeLaPrimerListaEstanEnLaSegunda(t_list* listaA,t_list* listaB);
 bool perteneceALaSegundaLista(char* unPokemon,t_list* listaDePokemons);
 bool estaEnLaLista(char* unNombre, t_list* listadoDePokemons);
+bool estaEnListaPokemon(t_list* lista, t_pokemon* pokemon);
 
 #endif /* HEADERS_POKEMON_H_ */

@@ -5,7 +5,7 @@
 #define PATH_CONFIG "/home/utnso/workspace/tp-2020-1c-Cuarenteam/team/team.config"
 #define PATH_LOG "/home/utnso/workspace/tp-2020-1c-Cuarenteam/team/team.log"
 #define IP "127.0.0.1"
-#define PUERTO "1090"
+#define PUERTO "9090"
 
 
 // general
@@ -55,12 +55,11 @@ t_list* ids_recibidos;
 t_list* pokemons_recibidos;
 t_list* pokemons_objetivos;
 
-localized_pokemon_msg* mensaje_recibido_localized;
-
-pthread_t planificarEntrenador;
 pthread_mutex_t mutexCiclosConsumidos;
-pthread_t recibir_localized;
-pthread_t hilo_escucha;
+pthread_mutex_t mutexPokemonsRecibidos;
+pthread_mutex_t mutexEstadoReady;
+pthread_mutex_t mutexEstadoBloqueado;
+pthread_mutex_t mutexEstadoNew;
 
 int ciclosConsumidos;
 int socket_localized;

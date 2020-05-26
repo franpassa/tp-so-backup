@@ -66,5 +66,4 @@ bool estaEnLista(t_list* lista, t_entrenador* unEntrenador);
 t_list* listaALaQuePertenece(t_entrenador* unEntrenador);
 
 
-
 #endif /* ENTRENADOR_H_ */

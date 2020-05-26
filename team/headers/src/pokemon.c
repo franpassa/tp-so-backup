@@ -155,3 +155,12 @@ bool estaEnLaLista(char* unNombre, t_list* listadoDePokemons)
 	}
 	return false;
 }
+
+bool estaEnListaPokemon(t_list* lista, t_pokemon* pokemon){
+	for(int i = 0; i< list_size(lista); i++){
+		if(strcmp(pokemon->nombre,((t_pokemon*)list_get(lista,i))->nombre)==0){
+			return true;
+		}
+	}
+	return false;
+}

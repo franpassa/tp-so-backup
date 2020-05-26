@@ -5,17 +5,39 @@ int main()
 	inicializarPrograma(); //Inicializo logger y config
 	inicializarVariables();
 
+	pthread_t hilo_escucha;
+	pthread_t hilo_estado_exec;
+	pthread_t hilo_recibir_localized;
+	pthread_t hilo_pasar_a_ready;
+
 	//enviar_gets(objetivos_globales);
 
 	int socket_escucha = iniciar_servidor(IP,PUERTO);
 	if (socket_escucha == -1) abort(); //FINALIZA EL PROGRAMA EN CASO DE QUE FALLE LA INICIALIZACION DEL SERVIDOR
 
-	pthread_create(&hilo_escucha,NULL,(void*) esperar_cliente, &socket_escucha);
-	pthread_join(hilo_escucha, NULL);
+	t_pokemon* pikachu2 = malloc(sizeof(t_pokemon));
+	pikachu2->nombre = "pikachu2";
+	pikachu2->posicionX = 13;
+	pikachu2->posicionY = 14;
 
-	liberarVariables();
-	close(socket_escucha);
+	list_add(pokemons_recibidos,pikachu2);
+
+	pthread_create(&hilo_pasar_a_ready,NULL,(void*) pasar_a_ready, NULL);
+
+	pthread_create(&hilo_escucha,NULL,(void*) esperar_cliente, &socket_escucha);
+
+	pthread_create(&hilo_estado_exec, NULL, (void*) estado_exec, NULL);
+
+	pthread_create(&hilo_recibir_localized, NULL, (void*) recibirLocalized, NULL);
+
+	pthread_join(hilo_escucha, NULL);
+	pthread_join(hilo_estado_exec, NULL);
+	pthread_join(hilo_recibir_localized, NULL);
+	pthread_join(hilo_pasar_a_ready, NULL);
 	terminar_programa(); //Finalizo el programa
+
+	close(socket_escucha);
+	close(socket_localized);
 
 	return 0;
 }
@@ -45,6 +67,7 @@ t_log* crear_log(){
 void terminar_programa(){
 	log_destroy(logger);
 	config_destroy(config);
+	liberarVariables();
 }
 
 void inicializarPrograma(){
@@ -61,6 +84,7 @@ void inicializarVariables(){
 	ids_enviados = list_create();
 	ids_recibidos = list_create();
 	pokemons_recibidos = list_create();
+
 	posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
 	pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
 	pokesObjetivos = config_get_array_value(config, "OBJETIVOS_ENTRENADORES");
@@ -68,9 +92,10 @@ void inicializarVariables(){
 	puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
 	ALGORITMO = config_get_string_value(config,"ALGORITMO_PLANIFICACION");
 	retardoCpu = config_get_int_value(config, "RETARDO_CICLO_CPU");
+
 	estado_new = crearListaDeEntrenadores(posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
 	pokemons_objetivos = crearListaPokesObjetivos(estado_new);
-	objetivos_globales = crearListaObjetivoGlobal(pokemons_objetivos); //t_especie*
+	objetivos_globales = crearListaObjetivoGlobal(pokemons_objetivos);
 }
 
 void liberarVariables()

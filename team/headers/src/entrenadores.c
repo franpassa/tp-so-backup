@@ -203,7 +203,7 @@ t_list* todosLosEntrenadoresAPlanificar()
 
 bool estaEnLista(t_list* lista, t_entrenador* unEntrenador){
 	for(int i = 0; i< list_size(lista); i++){
-		if(unEntrenador == (t_entrenador*)list_get(lista,i)){
+		if(unEntrenador->idEntrenador == ((t_entrenador*)list_get(lista,i))->idEntrenador){
 			return true;
 		}
 	}
