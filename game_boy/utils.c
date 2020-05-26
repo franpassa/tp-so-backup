@@ -28,31 +28,9 @@ bool es_numerico(char* string){
 	return true;
 }
 
-queue_name string_to_enum(char* string){
-
-	if(string_equals_ignore_case(string, "NEW_POKEMON")){
-		return NEW_POKEMON;
-	} else if(string_equals_ignore_case(string, "APPEARED_POKEMON")) {
-		return APPEARED_POKEMON;
-	} else if(string_equals_ignore_case(string, "CATCH_POKEMON")){
-		return CATCH_POKEMON;
-	} else if(string_equals_ignore_case(string, "CAUGHT_POKEMON")){
-		return CAUGHT_POKEMON;
-	} else if(string_equals_ignore_case(string, "GET_POKEMON")){
-		return GET_POKEMON;
-	} else if(string_equals_ignore_case(string, "LOCALIZED_POKEMON")){
-		return LOCALIZED_POKEMON;
-	}
-	return -1;
-}
-
 void cortar_ejecucion(char* mensaje_error){
 	printf("ERROR: %s\n", mensaje_error);
 	abort();
-}
-
-void enviar_a_broker(){
-
 }
 
 uint32_t send_team(char* nombre_pokemon, uint32_t X, uint32_t Y){
