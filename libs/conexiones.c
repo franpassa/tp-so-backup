@@ -274,111 +274,10 @@ void* recibir_mensaje(queue_name cola, int socket){
 		return NULL;
 	}
 
-	void* stream = paquete->buffer->stream;
-	uint32_t offset = 0;
+	void* msg = deserializar_buffer(cola, paquete->buffer);
+	free_paquete(paquete);
 
-	switch(cola){
-
-			case NEW_POKEMON: ;
-				new_pokemon_msg* msg_new = malloc(sizeof(new_pokemon_msg));
-
-				memcpy(&(msg_new->tamanio_nombre), stream + offset, sizeof(uint32_t));
-				offset += sizeof(uint32_t);
-				msg_new->nombre_pokemon = malloc(msg_new->tamanio_nombre);
-				memcpy(msg_new->nombre_pokemon, stream + offset, msg_new->tamanio_nombre);
-				offset += msg_new->tamanio_nombre;
-				memcpy(&(msg_new->coordenada_X), stream + offset, sizeof(uint32_t));
-				offset += sizeof(uint32_t);
-				memcpy(&(msg_new->coordenada_Y), stream + offset, sizeof(uint32_t));
-				offset += sizeof(uint32_t);
-				memcpy(&(msg_new->cantidad_pokemon), stream + offset, sizeof(uint32_t));
-
-				free_paquete(paquete);
-
-				return (void*) msg_new;
-
-			case APPEARED_POKEMON: ;
-				appeared_pokemon_msg* msg_appeared = malloc(sizeof(appeared_pokemon_msg));
-
-				memcpy(&(msg_appeared->tamanio_nombre), stream + offset, sizeof(uint32_t));
-				offset += sizeof(uint32_t);
-				msg_appeared->nombre_pokemon = malloc(msg_appeared->tamanio_nombre);
-				memcpy(msg_appeared->nombre_pokemon, stream + offset, msg_appeared->tamanio_nombre);
-				offset += msg_appeared->tamanio_nombre;
-				memcpy(&(msg_appeared->coordenada_X), stream + offset, sizeof(uint32_t));
-				offset += sizeof(uint32_t);
-				memcpy(&(msg_appeared->coordenada_Y), stream + offset, sizeof(uint32_t));
-
-				free_paquete(paquete);
-
-				return (void*) msg_appeared;
-
-			case GET_POKEMON: ;
-				get_pokemon_msg* msg_get = malloc(sizeof(get_pokemon_msg));
-
-				memcpy(&(msg_get->tamanio_nombre), stream + offset, sizeof(uint32_t));
-				offset += sizeof(uint32_t);
-				msg_get->nombre_pokemon = malloc(msg_get->tamanio_nombre);
-				memcpy(msg_get->nombre_pokemon, stream + offset, msg_get->tamanio_nombre);
-
-				free_paquete(paquete);
-
-				return (void*) msg_get;
-
-			case LOCALIZED_POKEMON: ;
-				localized_pokemon_msg* msg_localized = malloc(sizeof(localized_pokemon_msg));
-
-				memcpy(&(msg_localized->id_correlativo), stream + offset, sizeof(uint32_t));
-				offset += sizeof(uint32_t);
-				memcpy(&(msg_localized->tamanio_nombre), stream + offset, sizeof(uint32_t));
-				offset += sizeof(uint32_t);
-				msg_localized->nombre_pokemon = malloc(msg_localized->tamanio_nombre);
-				memcpy(msg_localized->nombre_pokemon, stream + offset, msg_localized->tamanio_nombre);
-				offset += msg_localized->tamanio_nombre;
-				memcpy(&(msg_localized->cantidad_posiciones), stream + offset, sizeof(uint32_t));
-				offset += sizeof(uint32_t);
-
-				uint32_t tamanio_pares_coordenadas = sizeof(uint32_t) * msg_localized->cantidad_posiciones * 2;
-
-				msg_localized->pares_coordenadas = malloc(tamanio_pares_coordenadas);
-				memcpy(msg_localized->pares_coordenadas, stream + offset, tamanio_pares_coordenadas);
-
-				free_paquete(paquete);
-
-				return (void*) msg_localized;
-
-			case CATCH_POKEMON: ;
-				catch_pokemon_msg* msg_catch = malloc(sizeof(catch_pokemon_msg));
-
-				memcpy(&(msg_catch->tamanio_nombre), stream + offset, sizeof(uint32_t));
-				offset += sizeof(uint32_t);
-				msg_catch->nombre_pokemon = malloc(msg_catch->tamanio_nombre);
-				memcpy(msg_catch->nombre_pokemon, stream + offset, msg_catch->tamanio_nombre);
-				offset += msg_catch->tamanio_nombre;
-				memcpy(&(msg_catch->coordenada_X), stream + offset, sizeof(uint32_t));
-				offset += sizeof(uint32_t);
-				memcpy(&(msg_catch->coordenada_Y), stream + offset, sizeof(uint32_t));
-
-				free_paquete(paquete);
-
-				return (void*) msg_catch;
-
-			case CAUGHT_POKEMON: ;
-				caught_pokemon_msg* msg_caught = malloc(sizeof(caught_pokemon_msg));
-
-				memcpy(&(msg_caught->id_correlativo), stream + offset, sizeof(uint32_t));
-				offset += sizeof(uint32_t);
-				memcpy(&(msg_caught->resultado), stream + offset, sizeof(uint32_t));
-
-				free_paquete(paquete);
-
-				return (void*) msg_caught;
-
-			case PRODUCTOR:
-				break;
-		}
-
-	return NULL;
+	return msg;
 
 }
 
@@ -386,6 +285,105 @@ void free_paquete(t_paquete* paquete){
 	free(paquete->buffer->stream);
 	free(paquete->buffer);
 	free(paquete);
+}
+
+// Retorna el tipo de msg que recibe por cola
+void* deserializar_buffer(queue_name cola, void* buffer_ptr){
+
+	t_buffer* buffer = (t_buffer*) buffer_ptr;
+
+	uint32_t offset = 0;
+	void* stream = buffer->stream;
+
+	switch(cola){
+
+				case NEW_POKEMON: ;
+					new_pokemon_msg* msg_new = malloc(sizeof(new_pokemon_msg));
+
+					memcpy(&(msg_new->tamanio_nombre), stream + offset, sizeof(uint32_t));
+					offset += sizeof(uint32_t);
+					msg_new->nombre_pokemon = malloc(msg_new->tamanio_nombre);
+					memcpy(msg_new->nombre_pokemon, stream + offset, msg_new->tamanio_nombre);
+					offset += msg_new->tamanio_nombre;
+					memcpy(&(msg_new->coordenada_X), stream + offset, sizeof(uint32_t));
+					offset += sizeof(uint32_t);
+					memcpy(&(msg_new->coordenada_Y), stream + offset, sizeof(uint32_t));
+					offset += sizeof(uint32_t);
+					memcpy(&(msg_new->cantidad_pokemon), stream + offset, sizeof(uint32_t));
+
+					return (void*) msg_new;
+
+				case APPEARED_POKEMON: ;
+					appeared_pokemon_msg* msg_appeared = malloc(sizeof(appeared_pokemon_msg));
+
+					memcpy(&(msg_appeared->tamanio_nombre), stream + offset, sizeof(uint32_t));
+					offset += sizeof(uint32_t);
+					msg_appeared->nombre_pokemon = malloc(msg_appeared->tamanio_nombre);
+					memcpy(msg_appeared->nombre_pokemon, stream + offset, msg_appeared->tamanio_nombre);
+					offset += msg_appeared->tamanio_nombre;
+					memcpy(&(msg_appeared->coordenada_X), stream + offset, sizeof(uint32_t));
+					offset += sizeof(uint32_t);
+					memcpy(&(msg_appeared->coordenada_Y), stream + offset, sizeof(uint32_t));
+
+					return (void*) msg_appeared;
+
+				case GET_POKEMON: ;
+					get_pokemon_msg* msg_get = malloc(sizeof(get_pokemon_msg));
+
+					memcpy(&(msg_get->tamanio_nombre), stream + offset, sizeof(uint32_t));
+					offset += sizeof(uint32_t);
+					msg_get->nombre_pokemon = malloc(msg_get->tamanio_nombre);
+					memcpy(msg_get->nombre_pokemon, stream + offset, msg_get->tamanio_nombre);
+
+					return (void*) msg_get;
+
+				case LOCALIZED_POKEMON: ;
+					localized_pokemon_msg* msg_localized = malloc(sizeof(localized_pokemon_msg));
+
+					memcpy(&(msg_localized->id_correlativo), stream + offset, sizeof(uint32_t));
+					offset += sizeof(uint32_t);
+					memcpy(&(msg_localized->tamanio_nombre), stream + offset, sizeof(uint32_t));
+					offset += sizeof(uint32_t);
+					msg_localized->nombre_pokemon = malloc(msg_localized->tamanio_nombre);
+					memcpy(msg_localized->nombre_pokemon, stream + offset, msg_localized->tamanio_nombre);
+					offset += msg_localized->tamanio_nombre;
+					memcpy(&(msg_localized->cantidad_posiciones), stream + offset, sizeof(uint32_t));
+					offset += sizeof(uint32_t);
+
+					uint32_t tamanio_pares_coordenadas = sizeof(uint32_t) * msg_localized->cantidad_posiciones * 2;
+
+					msg_localized->pares_coordenadas = malloc(tamanio_pares_coordenadas);
+					memcpy(msg_localized->pares_coordenadas, stream + offset, tamanio_pares_coordenadas);
+
+					return (void*) msg_localized;
+
+				case CATCH_POKEMON: ;
+					catch_pokemon_msg* msg_catch = malloc(sizeof(catch_pokemon_msg));
+
+					memcpy(&(msg_catch->tamanio_nombre), stream + offset, sizeof(uint32_t));
+					offset += sizeof(uint32_t);
+					msg_catch->nombre_pokemon = malloc(msg_catch->tamanio_nombre);
+					memcpy(msg_catch->nombre_pokemon, stream + offset, msg_catch->tamanio_nombre);
+					offset += msg_catch->tamanio_nombre;
+					memcpy(&(msg_catch->coordenada_X), stream + offset, sizeof(uint32_t));
+					offset += sizeof(uint32_t);
+					memcpy(&(msg_catch->coordenada_Y), stream + offset, sizeof(uint32_t));
+
+					return (void*) msg_catch;
+
+				case CAUGHT_POKEMON: ;
+					caught_pokemon_msg* msg_caught = malloc(sizeof(caught_pokemon_msg));
+
+					memcpy(&(msg_caught->id_correlativo), stream + offset, sizeof(uint32_t));
+					offset += sizeof(uint32_t);
+					memcpy(&(msg_caught->resultado), stream + offset, sizeof(uint32_t));
+
+					return (void*) msg_caught;
+
+				default:
+					return NULL;
+	}
+
 }
 
 // ------------------ Constructores
