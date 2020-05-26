@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <commons/string.h>
 
 // Tipos mensajes
 
@@ -83,6 +84,8 @@ localized_pokemon_msg* localized_msg(uint32_t id_corr, char* nombre_pokemon, uin
 catch_pokemon_msg* catch_msg(char* nombre_pokemon, uint32_t x, uint32_t y);
 caught_pokemon_msg* caught_msg(uint32_t id_corr, uint32_t resultado);
 
+queue_name string_to_enum(char* string);
+char* enum_to_string(queue_name cola);
 int iniciar_servidor(char* ip, char* puerto);
 // Pasa 'queue_name' = PRODUCTOR y no espera confirmación del Broker.
 int conectar_como_productor(char* ip, char* puerto);
