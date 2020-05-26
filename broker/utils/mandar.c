@@ -10,8 +10,6 @@ void mandar_mensajes(){
 			cola_actual = 0;
 		}
 		if (pthread_mutex_trylock(&(sem_cola[cola_actual])) == 0){
-
-
 			recorrer_cola(int_a_nombre_cola(cola_actual));
 			pthread_mutex_unlock(&(sem_cola[cola_actual]));
 		}

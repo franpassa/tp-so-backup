@@ -71,7 +71,7 @@ void confirmar_mensaje(queue_name id_cola ,uint32_t id_mensaje){
 	uint32_t control = 0;
 	uint32_t id_primero = mensaje->id,id_siguiente;
 
-	do{
+	do {
 		mensaje = queue_pop(queue->cola);
 
 		if (mensaje->id == id_mensaje){
@@ -85,7 +85,7 @@ void confirmar_mensaje(queue_name id_cola ,uint32_t id_mensaje){
 
 		id_siguiente = mensaje->id;
 
-	}while( control == 0 && id_primero != id_siguiente);
+	} while( control == 0 && id_primero != id_siguiente);
 }
 
 uint32_t crear_nuevo_id(){
@@ -189,7 +189,7 @@ bool revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_en_buffer) {
 
 		t_info_mensaje* elemento_a_testear = queue_pop(queue_para_revisar);
 
-		if(es_el_mismo_mensaje(id,msg_en_buffer,elemento_a_testear)){
+		if (es_el_mismo_mensaje(id,msg_en_buffer,elemento_a_testear->paquete->buffer->stream)){
 
 			 mensaje_nuevo = false;
 		 	 queue_push(queue_para_revisar,elemento_a_testear);

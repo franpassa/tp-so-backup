@@ -66,15 +66,18 @@ void inicializar_cola(t_cola_de_mensajes** nombre_cola);
 void inicializar_colas();
 t_cola_de_mensajes* int_a_nombre_cola(queue_name id);
 void inicializar();
-void mostrar_subs(t_cola_de_mensajes* cola);
+void mostrar_estado_de_una_queue(t_cola_de_mensajes* cola,queue_name);
 void estado_de_queues();
+void print_list_sockets(void* numero);
+void print_mensaje_de_cola(t_info_mensaje*);
+void recorrer_cola_de_mensajes_para_mostrar(t_cola_de_mensajes*);
 
 // FUNCIONES DE LOG Y CONFIG
 
 t_log* iniciar_logger(void);
 t_config* leer_config(void);
 void terminar_programa(t_log*, t_config*);
-void print_list_sockets(void* numero);
+
 
 // Server
 
@@ -91,8 +94,6 @@ uint32_t crear_nuevo_id();
 void agregar_a_cola(uint32_t,t_paquete*, int);
 bool es_el_mismo_mensaje(queue_name, void*,void*);
 bool revisar_si_mensaje_no_estaba_en_cola(queue_name, void*);
-void print_mensajes_de_cola(t_cola_de_mensajes*);
-
 
 // Mandar
 
@@ -103,6 +104,5 @@ void mandar(t_paquete*,uint32_t);
 void enviar_a(t_paquete*,t_list*);
 void recorrer_cola(t_cola_de_mensajes*);
 
-// ver estado de colas con sus mensajes y sucriptores
 
 #endif /* BROKER_H_ */
