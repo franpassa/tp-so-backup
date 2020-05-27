@@ -1,5 +1,5 @@
 TARGET = game_boy
-LIBS = -lcuarenteam -lcommons
+LIBS = -lcuarenteam -lcommons -lpthread
 CC = gcc
 CFLAGS = -g -Wall
 

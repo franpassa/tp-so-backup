@@ -15,6 +15,8 @@
 #include <commons/config.h>
 #include <conexiones.h>
 #include <ctype.h>
+#include <time.h>
+#include <pthread.h>
 
 #define PROGRAM_NAME "Game Boy"
 #define PATH_CONFIG "game_boy.config"
@@ -30,10 +32,10 @@ void cortar_ejecucion(char* mensaje_error);
 
 // ------- Genericas -------
 
-queue_name string_to_enum(char* string);
 uint32_t send_team(char* nombre_pokemon, uint32_t X, uint32_t Y);
 char* unir_args(char** args, int cant);
 bool es_numerico(char* string);
 uint32_t send_broker(queue_name cola, void* mensaje);
+void recibir_mensajes(int* socket);
 
 #endif /* GAME_BOY_H_ */

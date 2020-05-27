@@ -65,3 +65,17 @@ char* unir_args(char** args, int cant){
 
 	return args_string;
 }
+
+void recibir_mensajes(int* socket){
+
+	queue_name cola;
+
+	while(1){
+		recv(*socket, &cola, sizeof(queue_name), MSG_WAITALL);
+		uint32_t id;
+		void* msg = recibir_mensaje(cola, *socket, &id);
+		print_msg(cola, msg);
+
+	}
+
+}
