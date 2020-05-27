@@ -84,6 +84,7 @@ localized_pokemon_msg* localized_msg(uint32_t id_corr, char* nombre_pokemon, uin
 catch_pokemon_msg* catch_msg(char* nombre_pokemon, uint32_t x, uint32_t y);
 caught_pokemon_msg* caught_msg(uint32_t id_corr, uint32_t resultado);
 
+void print_msg(queue_name cola, void* msg);
 queue_name string_to_enum(char* string);
 char* enum_to_string(queue_name cola);
 int iniciar_servidor(char* ip, char* puerto);
@@ -91,7 +92,7 @@ int iniciar_servidor(char* ip, char* puerto);
 int conectar_como_productor(char* ip, char* puerto);
 int suscribirse_a_cola(queue_name cola, char* ip, char* puerto);
 uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructura_mensaje, bool esperar_id);
-void* recibir_mensaje(queue_name cola, int socket); // Lo podría modificar para que retorne el ID normalmente y el msg por parámetro puntero, mmmm...
+void* recibir_mensaje(queue_name cola, int socket, uint32_t* id_mensaje);
 void confirmar_recepcion(queue_name cola, uint32_t id_mensaje, int socket);
 void* serializar_paquete(t_paquete* paquete, int bytes);
 void* deserializar_buffer(queue_name cola, void* buffer_ptr);
