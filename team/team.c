@@ -84,6 +84,7 @@ void inicializarVariables(){
 	ids_enviados = list_create();
 	ids_recibidos = list_create();
 	pokemons_recibidos = list_create();
+	pokemons_recibidos_historicos = list_create();
 
 	posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
 	pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
@@ -92,6 +93,7 @@ void inicializarVariables(){
 	puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
 	ALGORITMO = config_get_string_value(config,"ALGORITMO_PLANIFICACION");
 	retardoCpu = config_get_int_value(config, "RETARDO_CICLO_CPU");
+	tiempo_reconexion = config_get_int_value(config, "TIEMPO_RECONEXION");
 
 	estado_new = crearListaDeEntrenadores(posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
 	pokemons_objetivos = crearListaPokesObjetivos(estado_new);

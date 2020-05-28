@@ -47,7 +47,6 @@ int suscribirse_a_queue(queue_name cola, char* ip_broker, char* puerto_broker) {
 
 void recibirLocalized() { // no esta terminada
 
-	int tiempo_reconexion = config_get_int_value(config, "TIEMPO_RECONEXION");
 	int intento = 1;
 	localized_pokemon_msg* mensaje_recibido_localized;
 
@@ -65,20 +64,29 @@ void recibirLocalized() { // no esta terminada
 	printf("Conexion con la cola de mensajes LOCALIZED_POKEMON exitosa. Esperando mensajes...\n\n");
 
 	while (1) {
-		mensaje_recibido_localized = recibir_mensaje(LOCALIZED_POKEMON,socket_localized); //Devuelve NULL si falla, falta manejar eso para que vuelva a reintentar la conexion.
+		uint32_t id;
+		mensaje_recibido_localized = (localized_pokemon_msg*) recibir_mensaje(LOCALIZED_POKEMON,socket_localized,&id); //Devuelve NULL si falla, falta manejar eso para que vuelva a reintentar la conexion.
 
 		if (mensaje_recibido_localized != NULL) {
-			if ((estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),objetivos_globales)) && (!(estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),pokemons_recibidos)))) {
-				agregarPokemonsRecibidosALista(pokemons_recibidos,mensaje_recibido_localized);
+				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
+			if ((estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),objetivos_globales)) && (!(estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),pokemons_recibidos_historicos)))) {
+				agregarPokemonsRecibidosALista(pokemons_recibidos_historicos,mensaje_recibido_localized);
+				pthread_mutex_unlock(&mutexPokemonsRecibidosHistoricos);
 				t_list* todosLosEntrenadores = todosLosEntrenadoresAPlanificar();
+				pthread_mutex_lock(&mutexPokemonsRecibidos);
+				agregarPokemonsRecibidosALista(pokemons_recibidos,mensaje_recibido_localized);
 				t_entrenador* entrenadorReady = entrenadorAReady(todosLosEntrenadores, pokemons_recibidos);
+				pthread_mutex_unlock(&mutexPokemonsRecibidos);
 
 				bool esElMismo(void* entrenador) {
 					return entrenador == entrenadorReady;
 				}
 
-				t_entrenador* removido = list_remove_by_condition(listaALaQuePertenece(entrenadorReady), esElMismo);
-				list_add(estado_ready, removido);
+				pthread_mutex_lock(&mutexEstadoReady);
+				list_add(estado_ready, entrenadorAReady);
+				pthread_mutex_unlock(&mutexEstadoReady);
+
+				list_remove_by_condition(listaALaQuePertenece(entrenadorReady), esElMismo);
 			}
 		}
 	}
@@ -113,7 +121,8 @@ void esperar_cliente(int* socket_servidor) {
 		queue_name otra_cola;
 		int bytes = recv(socket_cliente, &otra_cola, sizeof(queue_name),MSG_WAITALL);
 		if (bytes != -1) {
-			appeared_pokemon_msg* msg = recibir_mensaje(APPEARED_POKEMON,socket_cliente);
+			uint32_t id;
+			appeared_pokemon_msg* msg = recibir_mensaje(APPEARED_POKEMON,socket_cliente,&id);
 			printf("APPEARED POKEMON RECIBIDO: nombre: %s, X: %d, Y: %d\n",msg->nombre_pokemon, msg->coordenada_X, msg->coordenada_Y);
 			free(msg->nombre_pokemon);
 			free(msg);
