@@ -108,11 +108,10 @@ uint32_t distanciaEntrenadorPokemon(uint32_t posXEntrenador , uint32_t posYEntre
 	return distanciaTotal;
 }
 
-bool igualdadDeListas(t_list* pokemonsAtrapados,t_list* pokemonsObjetivos)
+bool sonIguales(t_list* pokemonsAtrapados,t_list* pokemonsObjetivos)
 {
 	if(list_size(pokemonsObjetivos) != list_size(pokemonsAtrapados))
 	{
-		printf("los tamanios de las listas no son iguales, el de la lista de los atrapados es %d, y el de la lista de objetivos es %d",list_size(pokemonsAtrapados),list_size(pokemonsObjetivos));
 		return false;
 	}
 	else

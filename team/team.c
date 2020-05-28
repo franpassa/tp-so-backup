@@ -9,6 +9,7 @@ int main()
 	pthread_t hilo_estado_exec;
 	pthread_t hilo_recibir_localized;
 	pthread_t hilo_pasar_a_ready;
+	pthread_t hilo_recibir_caught;
 
 	//enviar_gets(objetivos_globales);
 
@@ -30,14 +31,16 @@ int main()
 
 	pthread_create(&hilo_recibir_localized, NULL, (void*) recibirLocalized, NULL);
 
+	pthread_create(&hilo_recibir_caught, NULL, (void*) recibirCaught, NULL);
+
 	pthread_join(hilo_escucha, NULL);
 	pthread_join(hilo_estado_exec, NULL);
 	pthread_join(hilo_recibir_localized, NULL);
 	pthread_join(hilo_pasar_a_ready, NULL);
+	pthread_join(hilo_recibir_caught, NULL);
 	terminar_programa(); //Finalizo el programa
 
 	close(socket_escucha);
-	close(socket_localized);
 
 	return 0;
 }
@@ -82,7 +85,6 @@ void inicializarVariables(){
 	estado_ready = list_create();
 	estado_exit = list_create();
 	ids_enviados = list_create();
-	ids_recibidos = list_create();
 	pokemons_recibidos = list_create();
 	pokemons_recibidos_historicos = list_create();
 
@@ -112,7 +114,6 @@ void liberarVariables()
 	list_destroy(estado_ready);
 	list_destroy(estado_exit);
 	list_destroy(ids_enviados);
-	list_destroy(ids_recibidos);
 	list_destroy(pokemons_recibidos);
 }
 

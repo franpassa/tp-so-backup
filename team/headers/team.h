@@ -51,7 +51,6 @@ int tiempo_reconexion;
 t_list* estado_exit;
 t_list* objetivos_globales;
 t_list* ids_enviados;
-t_list* ids_recibidos;
 t_list* pokemons_recibidos;
 t_list* pokemons_recibidos_historicos;
 t_list* pokemons_objetivos;
@@ -62,11 +61,9 @@ pthread_mutex_t mutexEstadoReady;
 pthread_mutex_t mutexEstadoBloqueado;
 pthread_mutex_t mutexEstadoNew;
 pthread_mutex_t mutexPokemonsRecibidosHistoricos;
+pthread_mutex_t mutexIdsEnviados;
 
 int ciclosConsumidos;
-int socket_localized;
-int socket_caught;
-int socket_appeared;
 
 bool hayEntrenadorProcesando; 	// funcion a futuro, chequear en otro proceso si hay un entrenador
 								// corriendo porque cuando sale del bloqueo porque ya le
