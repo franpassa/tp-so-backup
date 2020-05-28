@@ -4,10 +4,9 @@
 #include "pokemon.h"
 
 typedef enum{
-	MOTIVO_CATCH,
-	MOTIVO_CAUGHT,
+	ESPERA_CAUGHT,
 	MOTIVO_NADA,
-	NADA
+	ESPERA_DEADLOCK,
 }motivo;
 
 typedef struct Entrenador
@@ -64,6 +63,8 @@ t_list* todosLosEntrenadoresAPlanificar();
 bool bloqueadoPorNada(void* unEntrenador);
 bool estaEnLista(t_list* lista, t_entrenador* unEntrenador);
 t_list* listaALaQuePertenece(t_entrenador* unEntrenador);
+
+bool puedeAtrapar(t_entrenador* entrenador);
 
 
 #endif /* ENTRENADOR_H_ */

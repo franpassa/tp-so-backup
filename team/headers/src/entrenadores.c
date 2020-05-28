@@ -69,7 +69,7 @@ t_list* crearListaDeEntrenadores(char** posicionesEntrenadores, char** pokesEntr
 		entrenador->pokesObjetivos = insertarPokesEntrenador(i,entrenador->pokesObjetivos,pokesObjetivos);
 		entrenador->idEntrenador = i;
 		entrenador->idRecibido = -1;
-		entrenador->motivoBloqueo = NADA;
+		entrenador->motivoBloqueo = MOTIVO_NADA;
 		entrenador->pokemonAMoverse = NULL;
 		list_add(entrenadores,entrenador);
 	}
@@ -127,7 +127,7 @@ void setearEnCeroEntrenador (t_entrenador* unEntrenador)
 {
 	unEntrenador->idEntrenador = 0;
 	unEntrenador->idRecibido = 0;
-	unEntrenador->motivoBloqueo = NADA;
+	unEntrenador->motivoBloqueo = MOTIVO_NADA;
 	unEntrenador->pokemonAMoverse = NULL;
 	unEntrenador->pokesAtrapados = list_create();
 	unEntrenador->pokesObjetivos = list_create();
@@ -220,6 +220,10 @@ t_list* listaALaQuePertenece(t_entrenador* unEntrenador){
 	else{
 		return estado_ready;
 	}
+}
+
+bool puedeAtrapar(t_entrenador* entrenador){
+	return list_size(entrenador->pokesObjetivos) >= list_size(entrenador->pokesAtrapados) + 1;
 }
 
 

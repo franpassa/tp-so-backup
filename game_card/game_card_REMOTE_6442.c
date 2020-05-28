@@ -17,11 +17,7 @@ void terminar(){
 
 int main(){
 
-<<<<<<< HEAD
-	int socket_broker = suscribirse_a_cola(NEW_POKEMON, "127.0.0.1", "6009");
-=======
 	/*int socket_broker = suscribirse_a_cola(NEW_POKEMON, "127.0.0.1", "6009");
->>>>>>> 61b548540b151880322a68bf085871f077f2b0de
 	int socket_broker2 = suscribirse_a_cola(NEW_POKEMON, "127.0.0.1", "6009");
 
 	new_pokemon_msg* msg = new_msg("Hola soy Pikachu", 3, 4, 10);
@@ -41,11 +37,7 @@ int main(){
 	print_msg(NEW_POKEMON, (void*) msg_recibido);
 	print_msg(NEW_POKEMON, (void*) msg_recibido2);
 
-<<<<<<< HEAD
-	while(1);
-=======
 	while(1);*/
->>>>>>> 61b548540b151880322a68bf085871f077f2b0de
 
 	return EXIT_SUCCESS;
 }
