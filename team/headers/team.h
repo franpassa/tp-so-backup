@@ -45,7 +45,7 @@ char** pokesEntrenadores;
 char** pokesObjetivos;
 char* ALGORITMO;
 int retardoCpu;
-
+int tiempo_reconexion;
 
 
 t_list* estado_exit;
@@ -53,6 +53,7 @@ t_list* objetivos_globales;
 t_list* ids_enviados;
 t_list* ids_recibidos;
 t_list* pokemons_recibidos;
+t_list* pokemons_recibidos_historicos;
 t_list* pokemons_objetivos;
 
 pthread_mutex_t mutexCiclosConsumidos;
@@ -60,6 +61,7 @@ pthread_mutex_t mutexPokemonsRecibidos;
 pthread_mutex_t mutexEstadoReady;
 pthread_mutex_t mutexEstadoBloqueado;
 pthread_mutex_t mutexEstadoNew;
+pthread_mutex_t mutexPokemonsRecibidosHistoricos;
 
 int ciclosConsumidos;
 int socket_localized;
