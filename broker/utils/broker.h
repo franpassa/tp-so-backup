@@ -60,6 +60,12 @@ pthread_mutex_t semaforo_suscriber;
 pthread_mutex_t sem_cola[6];
 pthread_mutex_t mutex_productores;
 
+// HILOS
+
+pthread_t hilo_estado_queues;
+pthread_t hilo_suscripciones;
+pthread_t hilo_mensajes;
+pthread_t hilo_enviar_mensaje;
 
 
 // FUNCIONES DE QUEUES

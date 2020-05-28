@@ -6,15 +6,12 @@ int main(){
 	inicializar();
 
 	int socket_servidor = iniciar_servidor_broker();
-	pthread_t hilo_estado_queues;
-	pthread_t hilo_suscripciones;
-	pthread_t hilo_mensajes;
-	pthread_t hilo_chupamelapijatomi;
+
 
 	pthread_create(&hilo_suscripciones, NULL, (void*) esperar_cliente, &socket_servidor);
 	pthread_create(&hilo_estado_queues,NULL,(void*) estado_de_queues,&socket_servidor);
 	pthread_create(&hilo_mensajes, NULL, (void*) loop_productores, NULL);
-	pthread_create(&hilo_chupamelapijatomi, NULL, (void*) mandar_mensajes, NULL);
+	pthread_create(&hilo_enviar_mensaje, NULL, (void*) mandar_mensajes, NULL);
 
 	pthread_join(hilo_estado_queues,NULL);
 	pthread_join(hilo_suscripciones,NULL);
@@ -106,6 +103,7 @@ t_cola_de_mensajes* int_a_nombre_cola(queue_name id){
 }
 
 void inicializar(){
+
 
 	config = leer_config();
 	logger = iniciar_logger();
