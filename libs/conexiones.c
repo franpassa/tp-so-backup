@@ -270,6 +270,11 @@ void* recibir_mensaje(queue_name cola, int socket, uint32_t* id) {
 
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
+	if (recv(socket, &(paquete->cola_msg), sizeof(uint32_t), MSG_WAITALL) == -1) {
+		free(paquete);
+		return NULL;
+	}
+
 	paquete->buffer = malloc(sizeof(t_buffer));
 	if (recv(socket, &(paquete->buffer->size), sizeof(uint32_t), MSG_WAITALL) == -1) {
 		free(paquete->buffer);

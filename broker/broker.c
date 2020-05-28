@@ -136,7 +136,7 @@ void estado_de_queues(){
 }
 
 void mostrar_estado_de_una_queue(t_cola_de_mensajes* cola, queue_name id_cola){
-	printf("%s\n", enum_to_string(id_cola));
+	printf("%s\n ", enum_to_string(id_cola));
 	recorrer_cola_de_mensajes_para_mostrar(cola);
 	list_iterate(cola->lista_suscriptores,print_list_sockets);
 }
