@@ -87,48 +87,43 @@ int suscribir_a_cola(int socket_cliente, queue_name cola) {
 	int *socket_cola = malloc(sizeof(int));
 	*socket_cola = socket_cliente;
 
-	pthread_mutex_lock(&semaforo_suscriber);
+	pthread_mutex_lock(&sem_cola[cola]);
 
 	switch(cola){
 
-	case NEW_POKEMON:
+		case NEW_POKEMON:
+			list_add(QUEUE_NEW_POKEMON->lista_suscriptores,socket_cola);
+			break;
 
-		list_add(QUEUE_NEW_POKEMON->lista_suscriptores,socket_cola);
-		break;
+		case APPEARED_POKEMON:
+			list_add(QUEUE_APPEARED_POKEMON->lista_suscriptores,socket_cola);
+			break;
 
-	case APPEARED_POKEMON:
-		list_add(QUEUE_APPEARED_POKEMON->lista_suscriptores,socket_cola);
-		break;
+		case CATCH_POKEMON:
+			list_add(QUEUE_CATCH_POKEMON->lista_suscriptores,socket_cola);
+			break;
 
-	case CATCH_POKEMON:
-		list_add(QUEUE_CATCH_POKEMON->lista_suscriptores,socket_cola);
+		case CAUGHT_POKEMON:
+			list_add(QUEUE_CAUGHT_POKEMON->lista_suscriptores,socket_cola);
+			break;
 
-		break;
+		case GET_POKEMON:
+			list_add(QUEUE_GET_POKEMON->lista_suscriptores,socket_cola);
+			break;
 
-	case CAUGHT_POKEMON:
-		list_add(QUEUE_CAUGHT_POKEMON->lista_suscriptores,socket_cola);
+		case LOCALIZED_POKEMON:
+			list_add(QUEUE_LOCALIZED_POKEMON->lista_suscriptores,socket_cola);
+			break;
 
-		break;
-
-	case GET_POKEMON:
-		list_add(QUEUE_GET_POKEMON->lista_suscriptores,socket_cola);
-
-		break;
-
-	case LOCALIZED_POKEMON:
-		list_add(QUEUE_LOCALIZED_POKEMON->lista_suscriptores,socket_cola);
-		break;
-
-
-	default:
-		free(socket_cola);
-		// manejar error: codigo bien pero es invalido
-		retorno = -1;
-		break;
+		default:
+			free(socket_cola);
+			// manejar error: codigo bien pero es invalido
+			retorno = -1;
+			break;
 
 	}
 
-	pthread_mutex_unlock(&semaforo_suscriber);
+	pthread_mutex_unlock(&sem_cola[cola]);
 
 	return retorno;
 

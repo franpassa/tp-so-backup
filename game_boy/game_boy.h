@@ -25,6 +25,13 @@
 t_log* logger;
 t_config* config;
 
+typedef struct {
+	int socket;
+	queue_name cola;
+} suscripcion_t;
+
+suscripcion_t init_suscripcion(int socket, queue_name cola);
+
 t_config* get_config();
 t_log* crear_log();
 void terminar_programa(int, t_log*, t_config*);
@@ -36,6 +43,6 @@ uint32_t send_team(char* nombre_pokemon, uint32_t X, uint32_t Y);
 char* unir_args(char** args, int cant);
 bool es_numerico(char* string);
 uint32_t send_broker(queue_name cola, void* mensaje);
-void recibir_mensajes(int* socket);
+void recibir_mensajes(suscripcion_t* susc_data);
 
 #endif /* GAME_BOY_H_ */

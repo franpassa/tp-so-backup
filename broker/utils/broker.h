@@ -33,6 +33,7 @@ typedef struct {
 typedef struct {
 	t_queue* cola;
 	t_list* lista_suscriptores;
+	queue_name tipo_cola;
 } t_cola_de_mensajes;
 
 // VARIABLES GLOBALES
@@ -59,17 +60,25 @@ pthread_mutex_t semaforo_suscriber;
 pthread_mutex_t sem_cola[6];
 pthread_mutex_t mutex_productores;
 
+// HILOS
+
+pthread_t hilo_estado_queues;
+pthread_t hilo_suscripciones;
+pthread_t hilo_mensajes;
+pthread_t hilo_enviar_mensaje;
+
 
 // FUNCIONES DE QUEUES
 
-void inicializar_cola(t_cola_de_mensajes** nombre_cola);
+void inicializar_cola(t_cola_de_mensajes** nombre_cola, queue_name cola);
 void inicializar_colas();
 t_cola_de_mensajes* int_a_nombre_cola(queue_name id);
 void inicializar();
-void mostrar_estado_de_una_queue(t_cola_de_mensajes* cola,queue_name);
+void mostrar_estado_de_una_queue(t_cola_de_mensajes* cola);
 void estado_de_queues();
 void print_list_sockets(void* numero);
 void print_mensaje_de_cola(t_info_mensaje*);
+void print_list_sockets_de_un_mensaje(void* numero);
 void recorrer_cola_de_mensajes_para_mostrar(t_cola_de_mensajes*);
 
 // FUNCIONES DE LOG Y CONFIG
@@ -98,10 +107,8 @@ bool revisar_si_mensaje_no_estaba_en_cola(queue_name, void*);
 // Mandar
 
 void mandar_mensajes();
-bool igual_a(void*,uint32_t);
-bool no_esten_en(t_list*,uint32_t);
-void mandar(t_paquete*,uint32_t);
-void enviar_a(t_paquete*,t_list*);
+bool esta_en_lista(t_list*,uint32_t*);
+void mandar(t_paquete* paquete,uint32_t id, uint32_t sub);
 void recorrer_cola(t_cola_de_mensajes*);
 
 

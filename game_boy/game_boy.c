@@ -107,8 +107,10 @@ int main(int argc, char** argv){
 		char* puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
 		int socket_broker = suscribirse_a_cola(cola, ip_broker, puerto_broker);
 
+		suscripcion_t info_suscripcion = init_suscripcion(socket_broker, cola);
+
 		pthread_t listener_thread;
-		pthread_create(&listener_thread, NULL, (void*) recibir_mensajes, (void*) &socket_broker);
+		pthread_create(&listener_thread, NULL, (void*) recibir_mensajes, (void*) &info_suscripcion);
 
 		sleep(duracion_suscripcion);
 

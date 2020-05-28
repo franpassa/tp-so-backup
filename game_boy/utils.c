@@ -66,16 +66,21 @@ char* unir_args(char** args, int cant){
 	return args_string;
 }
 
-void recibir_mensajes(int* socket){
-
-	queue_name cola;
+void recibir_mensajes(suscripcion_t* info_suscripcion){
 
 	while(1){
-		recv(*socket, &cola, sizeof(queue_name), MSG_WAITALL);
 		uint32_t id;
-		void* msg = recibir_mensaje(cola, *socket, &id);
-		print_msg(cola, msg);
-
+		void* msg = recibir_mensaje(info_suscripcion->socket, &id);
+		printf("id: %d ->", id);
+		print_msg(info_suscripcion->cola, msg);
 	}
 
+}
+
+suscripcion_t init_suscripcion(int socket, queue_name cola){
+	suscripcion_t suscripcion;
+	suscripcion.socket = socket;
+	suscripcion.cola = cola;
+
+	return suscripcion;
 }

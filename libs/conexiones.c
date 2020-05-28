@@ -266,7 +266,7 @@ void confirmar_recepcion(queue_name cola, uint32_t id_mensaje, int socket) {
 	memcpy(paquete->buffer->stream, &(id_mensaje), sizeof(uint32_t));
 }
 
-void* recibir_mensaje(queue_name cola, int socket, uint32_t* id) {
+void* recibir_mensaje(int socket, uint32_t* id) {
 
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
@@ -291,7 +291,7 @@ void* recibir_mensaje(queue_name cola, int socket, uint32_t* id) {
 		return NULL;
 	}
 
-	void* msg = deserializar_buffer(cola, paquete->buffer);
+	void* msg = deserializar_buffer(paquete->cola_msg, paquete->buffer);
 	free_paquete(paquete);
 
 	return msg;
