@@ -49,6 +49,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 			pthread_mutex_unlock(&(sem_cola[id_cola]));
 
 			list_remove_and_destroy_element(sockets_productores,0,free); // Por Ahora
+
 		}
 	} else {
 
@@ -57,9 +58,10 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 		pthread_mutex_lock(&(sem_cola[id_cola]));
 		confirmar_mensaje(id_cola , id_correlativo);
 		pthread_mutex_unlock(&(sem_cola[id_cola]));
+
 	}
 
-
+	close(*socket_escucha);
 }
 
 
