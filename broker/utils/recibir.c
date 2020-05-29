@@ -69,7 +69,8 @@ void confirmar_mensaje(queue_name id_cola ,uint32_t id_mensaje){ // Terminar est
 	t_info_mensaje* mensaje = queue_peek(queue->cola);
 
 	uint32_t control = 0;
-	uint32_t id_primero = mensaje->id,id_siguiente;
+	uint32_t id_primero = mensaje->id;
+	uint32_t id_siguiente;
 
 	do {
 		mensaje = queue_pop(queue->cola);
@@ -78,14 +79,17 @@ void confirmar_mensaje(queue_name id_cola ,uint32_t id_mensaje){ // Terminar est
 			control = 1;
 			mensaje->cuantos_lo_recibieron++;
 		}
-		// eliminar mensajes si ya recibieron todos
-		queue_push(queue->cola ,mensaje);
+		// eliminar mensaje si ya recibieron todos (testear si cumple)
+		if (mensaje->cuantos_lo_recibieron == list_size(queue->lista_suscriptores)) {
+			mensaje = queue_peek(queue->cola);
+			id_siguiente = mensaje->id;
+		} else {
+			queue_push(queue->cola ,mensaje);
+			mensaje = queue_peek(queue->cola);
+			id_siguiente = mensaje->id;
+		}
 
-		mensaje = queue_peek(queue->cola);
-
-		id_siguiente = mensaje->id;
-
-	} while( control == 0 && id_primero != id_siguiente);
+	} while(control == 0 && id_primero != id_siguiente);
 }
 
 uint32_t crear_nuevo_id(){
