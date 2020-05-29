@@ -330,6 +330,8 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 			}
 		}
 	}
+
+	close(socket_caught);
 }
 
 void* buscarEntrenador(uint32_t id){
