@@ -122,6 +122,7 @@ void inicializar(){
 
 	for(int i = 0; i <= 5; i++){
 		pthread_mutex_init(&(sem_cola[i]),NULL);
+		sem_init(&(contenido_cola[i]),0,NULL);
 	}
 }
 

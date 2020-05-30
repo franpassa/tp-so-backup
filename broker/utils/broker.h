@@ -59,6 +59,7 @@ pthread_mutex_t semaforo_id;
 pthread_mutex_t semaforo_suscriber;
 pthread_mutex_t sem_cola[6];
 pthread_mutex_t mutex_productores;
+sem_t contenido_cola[6];
 
 // HILOS
 
