@@ -41,11 +41,13 @@ void enviar_gets(t_list* objetivos_globales) {
 		uint32_t* id_respuesta = malloc(sizeof(uint32_t));
 		*id_respuesta = enviar_mensaje(ip_broker, puerto_broker,GET_POKEMON,a_enviar,true);
 		if (*id_respuesta == -1) {
-			printf("Fallo el envio de mensajes GET_POKEMON.\n");
+			printf("Fallo el envio del mensaje GET_POKEMON '%s'\n",a_enviar->nombre_pokemon);
 		} else {
 			/*AGREGO EL ID A LA LISTA DE IDS ENVIADOS*/
+			printf("Envio del mensaje GET_POKEMON '%s' exitoso. ID asignado: %d\n",a_enviar->nombre_pokemon,*id_respuesta);
 			list_add(ids_enviados, id_respuesta);
 		}
+		sleep(3);
 	}
 
 	list_iterate(objetivos_globales, enviar);
@@ -107,7 +109,7 @@ void esperar_cliente(int* socket_servidor) {
 		int bytes = recv(socket_cliente, &otra_cola, sizeof(queue_name),MSG_WAITALL);
 		if (bytes != -1) {
 			uint32_t id;
-			appeared_pokemon_msg* msg = recibir_mensaje(APPEARED_POKEMON,socket_cliente,&id);
+			appeared_pokemon_msg* msg = recibir_mensaje(socket_cliente,&id);
 			printf("APPEARED POKEMON RECIBIDO: nombre: %s, X: %d, Y: %d\n",msg->nombre_pokemon, msg->coordenada_X, msg->coordenada_Y);
 			free(msg->nombre_pokemon);
 			free(msg);
@@ -240,7 +242,7 @@ void recibirLocalized() { // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 
 	while (1) {
 		uint32_t id;
-		mensaje_recibido_localized = (localized_pokemon_msg*) recibir_mensaje(LOCALIZED_POKEMON,socket_localized,&id); //Devuelve NULL si falla, falta manejar eso para que vuelva a reintentar la conexion.
+		mensaje_recibido_localized = (localized_pokemon_msg*) recibir_mensaje(socket_localized,&id); //Devuelve NULL si falla, falta manejar eso para que vuelva a reintentar la conexion.
 
 		if (mensaje_recibido_localized != NULL) {
 				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
@@ -258,7 +260,7 @@ void recibirLocalized() { // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 				}
 
 				pthread_mutex_lock(&mutexEstadoReady);
-				list_add(estado_ready, entrenadorAReady);
+				list_add(estado_ready,entrenadorAReady);
 				pthread_mutex_unlock(&mutexEstadoReady);
 
 				list_remove_by_condition(listaALaQuePertenece(entrenadorReady),(void*) esElMismo);
@@ -286,51 +288,64 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 		}
 	}
 
+	printf("Conexion con la cola de mensajes CAUGHT_POKEMON exitosa. Esperando mensajes...\n\n");
+
 	while(1){
+
 		uint32_t idRecibido;
 
-		mensaje_recibido = recibir_mensaje(CAUGHT_POKEMON,socket_caught,&idRecibido);
+		mensaje_recibido = recibir_mensaje(socket_caught,&idRecibido);
 
-		t_entrenador* entrenador = (t_entrenador*) buscarEntrenador(idRecibido);
+		if(mensaje_recibido != NULL){ //Verifico si recibo el mensaje,
 
-		bool esIgual(uint32_t* unId){
-			return *unId == idRecibido;
-		}
+			if(necesitoElMensaje(idRecibido)){ //Busco el entrenador que mando el mensaje.
 
-		list_remove_by_condition(ids_enviados,(void*) esIgual);
+				t_entrenador* entrenador = (t_entrenador*) buscarEntrenador(idRecibido);
 
-		if(mensaje_recibido != NULL){
+				if(mensaje_recibido->resultado == 1){ //Verifico que la respuesta del mensaje sea SI. *****FALTA REVISAR*****
 
-			if(necesitoElMensaje(idRecibido)){
-
-				bool esElMismo(t_entrenador* unEntrenador) {
-					return unEntrenador->idEntrenador == entrenador->idEntrenador;
-				}
-
-				pthread_mutex_lock(&mutexEstadoBloqueado);
-				list_remove_by_condition(estado_bloqueado,(void*) esElMismo);
-				pthread_mutex_unlock(&mutexEstadoBloqueado);
-
-				cambiarEstado(entrenador);
-
-				if((entrenador->motivoBloqueo == MOTIVO_NADA)&&(list_size(pokemons_recibidos)>0)&&(list_size(estado_ready)==0)){
-					entrenador->pokemonAMoverse = pokemonMasCercano(entrenador,pokemons_recibidos);
-					pthread_mutex_lock(&mutexEstadoReady);
-					list_add(estado_ready,entrenador);
-					pthread_mutex_unlock(&mutexEstadoReady);
-
-					bool esElMismoPokemon(t_pokemon* pokemon){
-						return string_equals_ignore_case(pokemon->nombre,entrenador->pokemonAMoverse->nombre);
+					bool esIgual(uint32_t* unId){
+						return *unId == idRecibido;
 					}
 
-					pthread_mutex_lock(&mutexPokemonsRecibidos);
-					list_remove_by_condition(pokemons_recibidos,(void*) esElMismoPokemon);
-					pthread_mutex_unlock(&mutexPokemonsRecibidos);
+					pthread_mutex_lock(&mutexIdsEnviados);
+					list_remove_by_condition(ids_enviados,(void*) esIgual); // Saco el id de la lista de ids_enviados.
+					pthread_mutex_unlock(&mutexIdsEnviados);
+
+
+					bool esElMismo(t_entrenador* unEntrenador) {
+						return unEntrenador->idEntrenador == entrenador->idEntrenador;
+					}
+
+					pthread_mutex_lock(&mutexEstadoBloqueado);
+					list_remove_by_condition(estado_bloqueado,(void*) esElMismo);
+					pthread_mutex_unlock(&mutexEstadoBloqueado);
+
+					cambiarEstado(entrenador);
+
+					if((entrenador->motivoBloqueo == MOTIVO_NADA)&&(list_size(pokemons_recibidos)>0)&&(list_size(estado_ready)==0)){
+						entrenador->pokemonAMoverse = pokemonMasCercano(entrenador,pokemons_recibidos);
+						pthread_mutex_lock(&mutexEstadoReady);
+						list_add(estado_ready,entrenador);
+						pthread_mutex_unlock(&mutexEstadoReady);
+
+						bool esElMismoPokemon(t_pokemon* pokemon){
+							return string_equals_ignore_case(pokemon->nombre,entrenador->pokemonAMoverse->nombre);
+						}
+
+						pthread_mutex_lock(&mutexPokemonsRecibidos);
+						list_remove_by_condition(pokemons_recibidos,(void*) esElMismoPokemon);
+						pthread_mutex_unlock(&mutexPokemonsRecibidos);
+					}
+				} else {
+
+					entrenador->pokemonAMoverse = NULL;
+					entrenador->idRecibido = 0;
+					entrenador->motivoBloqueo = MOTIVO_NADA;
 				}
 			}
 		}
 	}
-
 	close(socket_caught);
 }
 

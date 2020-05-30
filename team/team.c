@@ -7,14 +7,16 @@ int main()
 
 	pthread_t hilo_escucha;
 	pthread_t hilo_estado_exec;
-	pthread_t hilo_recibir_localized;
 	pthread_t hilo_pasar_a_ready;
-	pthread_t hilo_recibir_caught;
+//	pthread_t hilo_recibir_localized;
+//	pthread_t hilo_recibir_caught;
 
-	//enviar_gets(objetivos_globales);
-
+	printf("\n");
 	int socket_escucha = iniciar_servidor(IP,PUERTO);
+	printf("\n");
 	if (socket_escucha == -1) abort(); //FINALIZA EL PROGRAMA EN CASO DE QUE FALLE LA INICIALIZACION DEL SERVIDOR
+
+	enviar_gets(objetivos_globales);
 
 	t_pokemon* pikachu2 = malloc(sizeof(t_pokemon));
 	pikachu2->nombre = "pikachu2";
@@ -29,15 +31,15 @@ int main()
 
 	pthread_create(&hilo_estado_exec, NULL, (void*) estado_exec, NULL);
 
-	pthread_create(&hilo_recibir_localized, NULL, (void*) recibirLocalized, NULL);
-
-	pthread_create(&hilo_recibir_caught, NULL, (void*) recibirCaught, NULL);
+//	pthread_create(&hilo_recibir_localized, NULL, (void*) recibirLocalized, NULL);
+//
+//	pthread_create(&hilo_recibir_caught, NULL, (void*) recibirCaught, NULL);
 
 	pthread_join(hilo_escucha, NULL);
 	pthread_join(hilo_estado_exec, NULL);
-	pthread_join(hilo_recibir_localized, NULL);
 	pthread_join(hilo_pasar_a_ready, NULL);
-	pthread_join(hilo_recibir_caught, NULL);
+//	pthread_join(hilo_recibir_localized, NULL);
+//	pthread_join(hilo_recibir_caught, NULL);
 	terminar_programa(); //Finalizo el programa
 
 	close(socket_escucha);
@@ -115,6 +117,7 @@ void liberarVariables()
 	list_destroy(estado_exit);
 	list_destroy(ids_enviados);
 	list_destroy(pokemons_recibidos);
+	list_destroy(pokemons_recibidos_historicos);
 }
 
 void mostrar_ids(void* id){
