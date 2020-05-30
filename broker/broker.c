@@ -17,6 +17,8 @@ int main(){
 	pthread_join(hilo_suscripciones,NULL);
 	pthread_join(hilo_mensajes,NULL);
 
+	close(socket_servidor);
+
 	return 0;
 
 }
@@ -117,6 +119,7 @@ void inicializar(){
 	sockets_productores = list_create();
 	pthread_mutex_init(&mutex_productores, NULL);
 	pthread_mutex_init(&semaforo_suscriber,NULL);
+	pthread_mutex_init(&semaforo_id,NULL);
 
 	for(int i = 0; i <= 5; i++){
 		pthread_mutex_init(&(sem_cola[i]),NULL);
