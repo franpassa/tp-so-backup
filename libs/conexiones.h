@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <commons/string.h>
+#include <commons/log.h>
 
 // Tipos mensajes
 
@@ -83,6 +84,7 @@ get_pokemon_msg* get_msg(char* nombre_pokemon);
 localized_pokemon_msg* localized_msg(uint32_t id_corr, char* nombre_pokemon, uint32_t cant_posiciones, uint32_t* pares);
 catch_pokemon_msg* catch_msg(char* nombre_pokemon, uint32_t x, uint32_t y);
 caught_pokemon_msg* caught_msg(uint32_t id_corr, uint32_t resultado);
+char* msg_as_string(queue_name cola, void* msg);
 
 void print_msg(queue_name cola, void* msg);
 queue_name string_to_enum(char* string);

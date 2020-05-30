@@ -404,49 +404,74 @@ void* deserializar_buffer(queue_name cola, void* buffer_ptr) {
 
 }
 
+void log_msg(queue_name cola, void* msg, t_log* logger){
+
+}
+
 void print_msg(queue_name cola, void* msg) {
+	char* msg_string = msg_as_string(cola, msg);
+	puts(msg_string);
+	free(msg_string);
+}
+
+char* msg_as_string(queue_name cola, void* msg){
+	char* string_msg = string_new();
 
 	switch (cola) {
 		case NEW_POKEMON:;
 			new_pokemon_msg* msg_new = (new_pokemon_msg*) msg;
-			printf("NEW_POKEMON {Nombre: %s, X: %d, Y: %d, Cantidad: %d}\n",
-					msg_new->nombre_pokemon, msg_new->coordenada_X,
-					msg_new->coordenada_Y, msg_new->cantidad_pokemon);
+			string_append_with_format(&string_msg, "NEW_POKEMON {Nombre: %s, X: %d, Y: %d, Cantidad: %d}",
+													msg_new->nombre_pokemon, msg_new->coordenada_X,
+													msg_new->coordenada_Y, msg_new->cantidad_pokemon);
 			break;
 
 		case APPEARED_POKEMON:;
 			appeared_pokemon_msg* msg_appeared = (appeared_pokemon_msg*) msg;
-			printf("APPEARED_POKEMON {Nombre: %s, X: %d, Y: %d}\n", msg_appeared->nombre_pokemon,
-					msg_appeared->coordenada_X, msg_appeared->coordenada_Y);
+			string_append_with_format(&string_msg, "APPEARED_POKEMON {Nombre: %s, X: %d, Y: %d}", msg_appeared->nombre_pokemon,
+													msg_appeared->coordenada_X, msg_appeared->coordenada_Y);
 			break;
 
 		case GET_POKEMON:;
 			get_pokemon_msg* msg_get = (get_pokemon_msg*) msg;
-			printf("GET_POKEMON {Nombre: %s}\n", msg_get->nombre_pokemon);
+			string_append_with_format(&string_msg, "GET_POKEMON {Nombre: %s}",
+													msg_get->nombre_pokemon);
 			break;
 
 		case LOCALIZED_POKEMON:;
 			localized_pokemon_msg* msg_localized = (localized_pokemon_msg*) msg;
-			printf("LOCALIZED_POKEMON {Id Correlativo: %d, Nombre: %s, Cantidad Posiciones: %d, paja printear los pares de coordenadas}\n",
-					msg_localized->id_correlativo, msg_localized->nombre_pokemon,
-					msg_localized->cantidad_posiciones);
+			char* pares_coordenadas = string_new();
+			for(int i = 0; i < msg_localized->cantidad_posiciones*2; i++){
+				if(i % 2 == 0){
+					string_append_with_format(&pares_coordenadas, "(%d,", msg_localized->pares_coordenadas[i]);
+				} else {
+					string_append_with_format(&pares_coordenadas, "%d) ", msg_localized->pares_coordenadas[i]);
+				}
+			}
+			string_trim_right(&pares_coordenadas);
+			string_append_with_format(&string_msg, "LOCALIZED_POKEMON {ID correlativo: %d, Nombre: %s, Cantidad posiciones: %d, Pares coordenadas: %s}",
+													msg_localized->id_correlativo, msg_localized->nombre_pokemon,
+													msg_localized->cantidad_posiciones, pares_coordenadas);
+			free(pares_coordenadas);
 			break;
 
 		case CATCH_POKEMON:;
 			catch_pokemon_msg* msg_catch = (catch_pokemon_msg*) msg;
-			printf("CATCH_POKEMON {Nombre: %s, X: %d, Y: %d}\n", msg_catch->nombre_pokemon,
-					msg_catch->coordenada_X, msg_catch->coordenada_Y);
+			string_append_with_format(&string_msg, "CATCH_POKEMON {Nombre: %s, X: %d, Y: %d}",
+													msg_catch->nombre_pokemon, msg_catch->coordenada_X, msg_catch->coordenada_Y);
 			break;
 
 		case CAUGHT_POKEMON:;
 			caught_pokemon_msg* msg_caught = (caught_pokemon_msg*) msg;
-			printf("CAUGHT_POKEMON {Id correlativo: %d, Resultado: %d}\n",
-					msg_caught->id_correlativo, msg_caught->resultado);
+			string_append_with_format(&string_msg, "CAUGHT_POKEMON {Id correlativo: %d, Resultado: %d}",
+													msg_caught->id_correlativo, msg_caught->resultado);
 			break;
 
 		default:
-			return;
+			free(string_msg);
+			return NULL;
 	}
+
+	return string_msg;
 }
 
 queue_name string_to_enum(char* string) {
