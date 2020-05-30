@@ -11,10 +11,12 @@ int main()
 	pthread_t hilo_pasar_a_ready;
 	pthread_t hilo_recibir_caught;
 
-	//enviar_gets(objetivos_globales);
-
+	printf("\n");
 	int socket_escucha = iniciar_servidor(IP,PUERTO);
+	printf("\n");
 	if (socket_escucha == -1) abort(); //FINALIZA EL PROGRAMA EN CASO DE QUE FALLE LA INICIALIZACION DEL SERVIDOR
+
+	//enviar_gets(objetivos_globales);
 
 	t_pokemon* pikachu2 = malloc(sizeof(t_pokemon));
 	pikachu2->nombre = "pikachu2";
@@ -115,6 +117,7 @@ void liberarVariables()
 	list_destroy(estado_exit);
 	list_destroy(ids_enviados);
 	list_destroy(pokemons_recibidos);
+	list_destroy(pokemons_recibidos_historicos);
 }
 
 void mostrar_ids(void* id){
