@@ -7,7 +7,6 @@ int main(){
 
 	int socket_servidor = iniciar_servidor_broker();
 
-
 	pthread_create(&hilo_suscripciones, NULL, (void*) esperar_cliente, &socket_servidor);
 	pthread_create(&hilo_estado_queues,NULL,(void*) estado_de_queues,&socket_servidor);
 	pthread_create(&hilo_mensajes, NULL, (void*) loop_productores, NULL);
@@ -173,7 +172,7 @@ void recorrer_cola_de_mensajes_para_mostrar(t_cola_de_mensajes* queue_a_mostrar)
 }
 
 void print_list_sockets(void* numero){
-	printf("socket sub: %d\n", *(int*) numero);
+	printf("SUSCRIPTOR: %d\n", *(int*) numero);
 }
 
 void print_list_sockets_de_un_mensaje(void* numero){
