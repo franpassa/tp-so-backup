@@ -8,8 +8,8 @@ int main()
 	pthread_t hilo_escucha;
 	pthread_t hilo_estado_exec;
 	pthread_t hilo_pasar_a_ready;
-//	pthread_t hilo_recibir_localized;
-//	pthread_t hilo_recibir_caught;
+	pthread_t hilo_recibir_localized;
+	pthread_t hilo_recibir_caught;
 
 	printf("\n");
 	int socket_escucha = iniciar_servidor(IP,PUERTO);
@@ -31,15 +31,15 @@ int main()
 
 	pthread_create(&hilo_estado_exec, NULL, (void*) estado_exec, NULL);
 
-//	pthread_create(&hilo_recibir_localized, NULL, (void*) recibirLocalized, NULL);
-//
-//	pthread_create(&hilo_recibir_caught, NULL, (void*) recibirCaught, NULL);
+	pthread_create(&hilo_recibir_localized, NULL, (void*) recibirLocalized, NULL);
+
+	pthread_create(&hilo_recibir_caught, NULL, (void*) recibirCaught, NULL);
 
 	pthread_join(hilo_escucha, NULL);
 	pthread_join(hilo_estado_exec, NULL);
 	pthread_join(hilo_pasar_a_ready, NULL);
-//	pthread_join(hilo_recibir_localized, NULL);
-//	pthread_join(hilo_recibir_caught, NULL);
+	pthread_join(hilo_recibir_localized, NULL);
+	pthread_join(hilo_recibir_caught, NULL);
 	terminar_programa(); //Finalizo el programa
 
 	close(socket_escucha);
