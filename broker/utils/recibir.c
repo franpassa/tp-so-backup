@@ -62,7 +62,6 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 	list_remove_and_destroy_element(sockets_productores,0,free);
 
 
-	close(*socket_escucha);
 }
 
 
