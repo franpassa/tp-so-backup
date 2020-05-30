@@ -59,14 +59,11 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 		pthread_mutex_unlock(&(sem_cola[id_cola]));
 
 	}
-
 	list_remove_and_destroy_element(sockets_productores,0,free);
-
-
 }
 
 
-void confirmar_mensaje(queue_name id_cola ,uint32_t id_mensaje){ // Terminar esto
+void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje) { // Terminar esto
 
 	t_cola_de_mensajes* queue = int_a_nombre_cola(id_cola);
 	t_info_mensaje* mensaje = queue_peek(queue->cola);
@@ -78,21 +75,21 @@ void confirmar_mensaje(queue_name id_cola ,uint32_t id_mensaje){ // Terminar est
 	do {
 		mensaje = queue_pop(queue->cola);
 
-		if (mensaje->id == id_mensaje){
+		if (mensaje->id == id_mensaje) {
 			control = 1;
 			mensaje->cuantos_lo_recibieron++;
-		}
-		// eliminar mensaje si ya recibieron todos (testear si cumple)
-		if (mensaje->cuantos_lo_recibieron == list_size(queue->lista_suscriptores)) {
-			mensaje = queue_peek(queue->cola);
-			id_siguiente = mensaje->id;
+
+			if (mensaje->cuantos_lo_recibieron == list_size(queue->lista_suscriptores)) {
+				free(mensaje);
+			}
+
 		} else {
-			queue_push(queue->cola ,mensaje);
+			queue_push(queue->cola, mensaje);
 			mensaje = queue_peek(queue->cola);
 			id_siguiente = mensaje->id;
 		}
 
-	} while(control == 0 && id_primero != id_siguiente);
+	} while (control == 0 && id_primero != id_siguiente);
 }
 
 uint32_t crear_nuevo_id(){
