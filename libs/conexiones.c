@@ -80,11 +80,12 @@ int conectar_como_productor(char* ip, char* puerto) {
 int suscribirse_a_cola(queue_name cola, char* ip, char* puerto) {
 
 	int socket_servidor = connect_sv(ip, puerto);
+	if(socket_servidor == -1) return -1;
 
 	send(socket_servidor, &cola, sizeof(queue_name), 0);
 
 	uint32_t respuesta_broker;
-	if (recv(socket_servidor, &respuesta_broker, sizeof(uint32_t), MSG_WAITALL) == -1) return -1;
+	if (recv(socket_servidor, &respuesta_broker, sizeof(uint32_t), MSG_WAITALL) <= 0) return -1;
 
 	// Si la respuesta es 0, se conectó OK.
 	if (respuesta_broker == 0) {
@@ -232,7 +233,7 @@ uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructur
 	uint32_t id;
 	if (esperar_id) {
 		int status_recv = recv(socket_receptor, &id, sizeof(uint32_t), MSG_WAITALL);
-		if (status_recv == -1) id = -1;
+		if (status_recv <= 0) id = -1;
 	} else {
 		id = 0;
 	}
@@ -270,23 +271,23 @@ void* recibir_mensaje(int socket, uint32_t* id) {
 
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
-	if (recv(socket, &(paquete->cola_msg), sizeof(uint32_t), MSG_WAITALL) == -1) {
+	if (recv(socket, &(paquete->cola_msg), sizeof(uint32_t), MSG_WAITALL) <= 0) {
 		free(paquete);
 		return NULL;
 	}
 
 	paquete->buffer = malloc(sizeof(t_buffer));
-	if (recv(socket, &(paquete->buffer->size), sizeof(uint32_t), MSG_WAITALL) == -1) {
+	if (recv(socket, &(paquete->buffer->size), sizeof(uint32_t), MSG_WAITALL) <= 0) {
 		free(paquete->buffer);
 		free(paquete);
 		return NULL;
 	}
 	paquete->buffer->stream = malloc(paquete->buffer->size);
-	if (recv(socket, paquete->buffer->stream, paquete->buffer->size, MSG_WAITALL) == -1) {
+	if (recv(socket, paquete->buffer->stream, paquete->buffer->size, MSG_WAITALL) <= 0) {
 		free_paquete(paquete);
 		return NULL;
 	}
-	if (recv(socket, id, sizeof(uint32_t), MSG_WAITALL) == -1) {
+	if (recv(socket, id, sizeof(uint32_t), MSG_WAITALL) <= 0) {
 		free_paquete(paquete);
 		return NULL;
 	}

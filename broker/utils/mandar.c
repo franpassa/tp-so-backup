@@ -6,7 +6,6 @@ void mandar_mensajes() {
 
 	while (1) {
 		if (cola_actual == 6) {
-
 			cola_actual = NEW_POKEMON;
 		}
 		if (queue_size(int_a_nombre_cola(cola_actual)->cola) != 0) {
