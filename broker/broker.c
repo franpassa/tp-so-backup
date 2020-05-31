@@ -122,6 +122,7 @@ void inicializar(){
 
 	for(int i = 0; i <= 5; i++){
 		pthread_mutex_init(&(sem_cola[i]),NULL);
+		//sem_init(&(contenido_cola[i]),0,0);
 	}
 }
 
@@ -140,8 +141,11 @@ void estado_de_queues(){
 
 void mostrar_estado_de_una_queue(t_cola_de_mensajes* cola){
 	printf("%s\n", enum_to_string(cola->tipo_cola));
+	printf("MENSAJES\n");
 	recorrer_cola_de_mensajes_para_mostrar(cola);
+	printf("\n");
 	list_iterate(cola->lista_suscriptores,print_list_sockets);
+	printf("\n");
 }
 
 

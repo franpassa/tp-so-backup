@@ -9,7 +9,8 @@ void mandar_mensajes() {
 
 			cola_actual = NEW_POKEMON;
 		}
-		if (pthread_mutex_trylock(&(sem_cola[cola_actual])) == 0) {
+		if (queue_size(int_a_nombre_cola(cola_actual)->cola) != 0) { // sem_trywait(&contenido_cola[cola_actual]) == 0
+			pthread_mutex_lock(&(sem_cola[cola_actual]));
 			recorrer_cola(int_a_nombre_cola(cola_actual));
 			pthread_mutex_unlock(&(sem_cola[cola_actual]));
 		}

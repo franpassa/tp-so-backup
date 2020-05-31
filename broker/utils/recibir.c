@@ -47,6 +47,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 
 			pthread_mutex_lock(&(sem_cola[id_cola]));
 			agregar_a_cola(id_cola,paquete,id_mensaje);
+			//sem_post(&contenido_cola[id_cola]);
 			pthread_mutex_unlock(&(sem_cola[id_cola]));
 
 		}
