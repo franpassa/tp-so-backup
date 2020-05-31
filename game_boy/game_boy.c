@@ -106,6 +106,8 @@ int main(int argc, char** argv){
 		char* ip_broker = config_get_string_value(config, "IP_BROKER");
 		char* puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
 		int socket_broker = suscribirse_a_cola(cola, ip_broker, puerto_broker);
+		free(ip_broker);
+		free(puerto_broker);
 
 		suscripcion_t info_suscripcion = init_suscripcion(socket_broker, cola);
 

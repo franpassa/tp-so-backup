@@ -65,8 +65,13 @@ void print_bitarray(t_bitarray* bitarray);
 t_bitarray* read_bitmap(char* bitmap_path);
 t_bitarray* create_bitmap(char* file_path, int cantidad_bloques);
 t_fspaths* init_fspaths(char* punto_montaje);
+void free_fspaths(t_fspaths* paths);
 void set_bit(char* bitmap_path, int index, bool value);
 
+// --- Pokemons ---
+int crear_metadata(char* path, bool is_file);
+bool existe_pokemon(char* nombre_pokemon);
+int crear_pokemon(char* nombre_pokemon);
 
 
 #endif

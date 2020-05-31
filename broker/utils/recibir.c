@@ -35,8 +35,9 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 
 		paquete->buffer->stream = malloc(paquete->buffer->size);
 		recv(*socket_escucha, paquete->buffer->stream, paquete->buffer->size, MSG_WAITALL);
+		void* msg = deserializar_buffer(id_cola, paquete->buffer);
 
-		if (revisar_si_mensaje_no_estaba_en_cola(id_cola,paquete->buffer->stream)){
+		if (revisar_si_mensaje_no_estaba_en_cola(id_cola, msg)){
 
 			pthread_mutex_lock(&semaforo_id);
  			uint32_t id_mensaje = crear_nuevo_id();
@@ -46,9 +47,8 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 
 			pthread_mutex_lock(&(sem_cola[id_cola]));
 			agregar_a_cola(id_cola,paquete,id_mensaje);
+			//sem_post(&contenido_cola[id_cola]);
 			pthread_mutex_unlock(&(sem_cola[id_cola]));
-
-			list_remove_and_destroy_element(sockets_productores,0,free); // Por Ahora
 
 		}
 	} else {
@@ -60,12 +60,11 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 		pthread_mutex_unlock(&(sem_cola[id_cola]));
 
 	}
-
-	close(*socket_escucha);
+	list_remove_and_destroy_element(sockets_productores,0,free);
 }
 
 
-void confirmar_mensaje(queue_name id_cola ,uint32_t id_mensaje){ // Terminar esto
+void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje) { // Terminar esto
 
 	t_cola_de_mensajes* queue = int_a_nombre_cola(id_cola);
 	t_info_mensaje* mensaje = queue_peek(queue->cola);
@@ -77,21 +76,21 @@ void confirmar_mensaje(queue_name id_cola ,uint32_t id_mensaje){ // Terminar est
 	do {
 		mensaje = queue_pop(queue->cola);
 
-		if (mensaje->id == id_mensaje){
+		if (mensaje->id == id_mensaje) {
 			control = 1;
 			mensaje->cuantos_lo_recibieron++;
-		}
-		// eliminar mensaje si ya recibieron todos (testear si cumple)
-		if (mensaje->cuantos_lo_recibieron == list_size(queue->lista_suscriptores)) {
-			mensaje = queue_peek(queue->cola);
-			id_siguiente = mensaje->id;
+
+			if (mensaje->cuantos_lo_recibieron == list_size(queue->lista_suscriptores)) {
+				free(mensaje);
+			}
+
 		} else {
-			queue_push(queue->cola ,mensaje);
+			queue_push(queue->cola, mensaje);
 			mensaje = queue_peek(queue->cola);
 			id_siguiente = mensaje->id;
 		}
 
-	} while(control == 0 && id_primero != id_siguiente);
+	} while (control == 0 && id_primero != id_siguiente);
 }
 
 uint32_t crear_nuevo_id(){
@@ -186,27 +185,21 @@ bool revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_en_buffer) {
 
 	bool mensaje_nuevo = true;
 
-	if(!queue_is_empty(queue_a_revisar->cola)){
+	pthread_mutex_lock(&(sem_cola[id]));
+	if (!queue_is_empty(queue_a_revisar->cola)) {
 
-		t_queue* queue_para_revisar = queue_create();
-		queue_para_revisar = queue_a_revisar->cola;
+		for (int i = 0; i < queue_size(queue_a_revisar->cola); i++) {
 
-		for (int i =0; i < queue_size(queue_para_revisar) ; i++){
+			t_info_mensaje* elemento_a_testear = queue_pop(queue_a_revisar->cola);
+			void* msg = deserializar_buffer(id, elemento_a_testear->paquete->buffer);
 
-		t_info_mensaje* elemento_a_testear = queue_pop(queue_para_revisar);
-
-		if (es_el_mismo_mensaje(id,msg_en_buffer,elemento_a_testear->paquete->buffer->stream)){
-
-			 mensaje_nuevo = false;
-		 	 queue_push(queue_para_revisar,elemento_a_testear);
-
-		} else {
-
-			 queue_push(queue_para_revisar,elemento_a_testear);
+			if (es_el_mismo_mensaje(id, msg_en_buffer, msg)) {
+				mensaje_nuevo = false;
+			}
+			queue_push(queue_a_revisar->cola, elemento_a_testear);
 		}
-
 	}
-}
+	pthread_mutex_unlock(&(sem_cola[id]));
 	return mensaje_nuevo;
 }
 

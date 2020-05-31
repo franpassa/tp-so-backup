@@ -7,7 +7,6 @@ int main(){
 
 	int socket_servidor = iniciar_servidor_broker();
 
-
 	pthread_create(&hilo_suscripciones, NULL, (void*) esperar_cliente, &socket_servidor);
 	pthread_create(&hilo_estado_queues,NULL,(void*) estado_de_queues,&socket_servidor);
 	pthread_create(&hilo_mensajes, NULL, (void*) loop_productores, NULL);
@@ -16,6 +15,8 @@ int main(){
 	pthread_join(hilo_estado_queues,NULL);
 	pthread_join(hilo_suscripciones,NULL);
 	pthread_join(hilo_mensajes,NULL);
+
+	close(socket_servidor);
 
 	return 0;
 
@@ -117,9 +118,11 @@ void inicializar(){
 	sockets_productores = list_create();
 	pthread_mutex_init(&mutex_productores, NULL);
 	pthread_mutex_init(&semaforo_suscriber,NULL);
+	pthread_mutex_init(&semaforo_id,NULL);
 
 	for(int i = 0; i <= 5; i++){
 		pthread_mutex_init(&(sem_cola[i]),NULL);
+		//sem_init(&(contenido_cola[i]),0,0);
 	}
 }
 
@@ -138,8 +141,11 @@ void estado_de_queues(){
 
 void mostrar_estado_de_una_queue(t_cola_de_mensajes* cola){
 	printf("%s\n", enum_to_string(cola->tipo_cola));
+	printf("MENSAJES\n");
 	recorrer_cola_de_mensajes_para_mostrar(cola);
+	printf("\n");
 	list_iterate(cola->lista_suscriptores,print_list_sockets);
+	printf("\n");
 }
 
 
@@ -170,7 +176,7 @@ void recorrer_cola_de_mensajes_para_mostrar(t_cola_de_mensajes* queue_a_mostrar)
 }
 
 void print_list_sockets(void* numero){
-	printf("socket sub: %d\n", *(int*) numero);
+	printf("SUSCRIPTOR: %d\n", *(int*) numero);
 }
 
 void print_list_sockets_de_un_mensaje(void* numero){
