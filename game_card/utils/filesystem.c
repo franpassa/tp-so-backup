@@ -20,6 +20,14 @@ t_fspaths* init_fspaths(char* punto_montaje){
 	return paths;
 }
 
+void free_fspaths(t_fspaths* paths){
+	free(paths->bitmap_file);
+	free(paths->blocks_folder);
+	free(paths->files_folder);
+	free(paths->metadata_file);
+	free(paths);
+}
+
 /*
  * Esta función chequea si existe el archivo Bitmap.bin,
  * en caso que no se asume que se debe crear la estructura
@@ -74,7 +82,7 @@ void create_blocks(char* path, int cantidad){
 
 		if(block_file == NULL){
 			log_error(logger, "Error creando el bloque '%s'", block_path);
-			exit(1);
+			abort();
 		}
 
 		fclose(block_file);
@@ -165,16 +173,13 @@ void set_bit(char* bitmap_path, int index, bool value){
 	FILE* bitmap_file = fopen(bitmap_path, "rb+");
 
 	long file_size = get_file_size(bitmap_file);
-
 	char* data = malloc(file_size);
 	int bytes_read = fread(data, sizeof(char), file_size, bitmap_file);
-
 	if(file_size != bytes_read){
 		terminar_aplicacion("error seteando bitmap");
 	}
 
 	t_bitarray* bitarray = bitarray_create_with_mode(data, file_size, LSB_FIRST);
-
 	if(value){
 		bitarray_set_bit(bitarray, index);
 	} else {
@@ -190,7 +195,47 @@ void set_bit(char* bitmap_path, int index, bool value){
 	bitarray_destroy(bitarray);
 }
 
+bool existe_pokemon(char* nombre_pokemon){
+	char* path_pokemon = string_new();
+	char* lowered_pokemon = string_duplicate(nombre_pokemon);
+	string_to_lower(lowered_pokemon);
+	string_append_with_format(&path_pokemon, "%s/%s", fspaths->files_folder, lowered_pokemon);
 
+	struct stat st = {0};
+	bool pokemon_existe = stat(path_pokemon, &st) != -1;
+
+	free(path_pokemon);
+	free(lowered_pokemon);
+	return pokemon_existe;
+}
+
+//Devuelve 0 si OK, -1 en caso de error
+int crear_pokemon(char* nombre_pokemon){
+	char* path_pokemon = string_new();
+	char* lowered_pokemon = string_duplicate(nombre_pokemon);
+	string_to_lower(lowered_pokemon);
+	string_append_with_format(&path_pokemon, "%s/%s", fspaths->files_folder, lowered_pokemon);
+	mkdir(path_pokemon , 0700);
+	return 0;
+}
+
+int crear_metadata(char* path, bool is_file){
+	FILE* metadata = fopen(path, "w");
+	if(metadata){
+		if(is_file){
+			fprintf(metadata, "DIRECTORY=N\n"
+					"SIZE=0\n"
+					"BLOCKS=[]\n"
+					"OPEN=N");
+		} else {
+			fprintf(metadata, "DIRECTORY=Y");
+		}
+		fclose(metadata);
+		return 0;
+	} else {
+		return -1;
+	}
+}
 
 
 
