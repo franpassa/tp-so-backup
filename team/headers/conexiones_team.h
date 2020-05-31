@@ -14,5 +14,7 @@ void algoritmoFifo(t_entrenador* entrenador);
 bool necesitoElMensaje(uint32_t id); // Chequea si el id esta en la lista de ids_recibidos;
 void* buscarEntrenador(uint32_t id); // Buscar el entrenador que tiene ese idRecibido;
 void cambiarEstado(t_entrenador* entrenador);
+void invocarHiloReconexion();
+void conectarABroker();
 
 #endif /* _CONEXIONES_TEAM_H_*/

@@ -24,6 +24,7 @@
 #include <time.h>
 #include <pthread.h>
 #include <math.h>
+#include <semaphore.h>
 
 // conexiones
 #include <conexiones.h>
@@ -46,6 +47,9 @@ char** pokesObjetivos;
 char* ALGORITMO;
 int retardoCpu;
 int tiempo_reconexion;
+int socket_caught;
+int socket_localized;
+int socket_appeared;
 
 
 t_list* estado_exit;
@@ -62,11 +66,16 @@ pthread_mutex_t mutexEstadoBloqueado;
 pthread_mutex_t mutexEstadoNew;
 pthread_mutex_t mutexPokemonsRecibidosHistoricos;
 pthread_mutex_t mutexIdsEnviados;
+pthread_mutex_t mutexReconexion;
+
+sem_t semCaught;
+sem_t semLocalized;
+sem_t semAppeared;
 
 int ciclosConsumidos;
 
 bool hayEntrenadorProcesando; 	// funcion a futuro, chequear en otro proceso si hay un entrenador
-								// corriendo porque cuando sale del bloqueo porque ya le
+								//corriendo porque cuando sale del bloqueo porque ya le
 								// mandaron el caught
 
 //FUNCIONES

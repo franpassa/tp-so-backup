@@ -5,41 +5,36 @@ int main()
 	inicializarPrograma(); //Inicializo logger y config
 	inicializarVariables();
 
-	pthread_t hilo_escucha;
-	pthread_t hilo_estado_exec;
-	pthread_t hilo_pasar_a_ready;
+//	pthread_t hilo_escucha;
+//	pthread_t hilo_estado_exec;
+//	pthread_t hilo_pasar_a_ready;
 //	pthread_t hilo_recibir_localized;
-//	pthread_t hilo_recibir_caught;
+	pthread_t hilo_recibir_caught;
 
 	printf("\n");
 	int socket_escucha = iniciar_servidor(IP,PUERTO);
 	printf("\n");
 	if (socket_escucha == -1) abort(); //FINALIZA EL PROGRAMA EN CASO DE QUE FALLE LA INICIALIZACION DEL SERVIDOR
 
-	enviar_gets(objetivos_globales);
+//	enviar_gets(objetivos_globales);
 
-	t_pokemon* pikachu2 = malloc(sizeof(t_pokemon));
-	pikachu2->nombre = "pikachu2";
-	pikachu2->posicionX = 13;
-	pikachu2->posicionY = 14;
+	conectarABroker();
 
-	list_add(pokemons_recibidos,pikachu2);
-
-	pthread_create(&hilo_pasar_a_ready,NULL,(void*) pasar_a_ready, NULL);
-
-	pthread_create(&hilo_escucha,NULL,(void*) esperar_cliente, &socket_escucha);
-
-	pthread_create(&hilo_estado_exec, NULL, (void*) estado_exec, NULL);
+//	pthread_create(&hilo_pasar_a_ready,NULL,(void*) pasar_a_ready, NULL);
+//
+//	pthread_create(&hilo_escucha,NULL,(void*) esperar_cliente, &socket_escucha);
+//
+//	pthread_create(&hilo_estado_exec, NULL, (void*) estado_exec, NULL);
 
 //	pthread_create(&hilo_recibir_localized, NULL, (void*) recibirLocalized, NULL);
 //
-//	pthread_create(&hilo_recibir_caught, NULL, (void*) recibirCaught, NULL);
+	pthread_create(&hilo_recibir_caught, NULL, (void*) recibirCaught, NULL);
 
-	pthread_join(hilo_escucha, NULL);
-	pthread_join(hilo_estado_exec, NULL);
-	pthread_join(hilo_pasar_a_ready, NULL);
+//	pthread_join(hilo_escucha, NULL);
+//	pthread_join(hilo_estado_exec, NULL);
+//	pthread_join(hilo_pasar_a_ready, NULL);
 //	pthread_join(hilo_recibir_localized, NULL);
-//	pthread_join(hilo_recibir_caught, NULL);
+	pthread_join(hilo_recibir_caught, NULL);
 	terminar_programa(); //Finalizo el programa
 
 	close(socket_escucha);
@@ -89,6 +84,8 @@ void inicializarVariables(){
 	ids_enviados = list_create();
 	pokemons_recibidos = list_create();
 	pokemons_recibidos_historicos = list_create();
+	pthread_mutex_init(&mutexReconexion, NULL);
+	sem_init(&semCaught, 0, 1);
 
 	posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
 	pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
