@@ -229,12 +229,11 @@ void recibirLocalized() { // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 		uint32_t id;
 
 		sem_wait(&semLocalized);
-		mensaje_recibido_localized = (localized_pokemon_msg*) recibir_mensaje(socket_localized,&id); //Devuelve NULL si falla, falta manejar eso para que vuelva a reintentar la conexion.
+		mensaje_recibido_localized = recibir_mensaje(socket_localized,&id); //Devuelve NULL si falla, falta manejar eso para que vuelva a reintentar la conexion.
 		sem_post(&semLocalized);
 
 		if (mensaje_recibido_localized != NULL) {
-				printf("Conexion con la cola de mensajes LOCALIZED_POKEMON exitosa. Esperando mensajes...\n\n");
-
+				printf("HOLA");
 				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
 			if ((estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),objetivos_globales)) && (!(estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),pokemons_recibidos_historicos)))) {
 				agregarPokemonsRecibidosALista(pokemons_recibidos_historicos,mensaje_recibido_localized);
@@ -256,6 +255,7 @@ void recibirLocalized() { // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 				list_remove_by_condition(listaALaQuePertenece(entrenadorReady),(void*) esElMismo);
 			}
 		} else {
+			close(socket_localized);
 			invocarHiloReconexion();
 		}
 	}
@@ -274,6 +274,8 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 		sem_post(&semCaught);
 
 		if(mensaje_recibido != NULL){ //Verifico si recibo el mensaje.
+
+			printf("HOLA");
 
 			if(necesitoElMensaje(idRecibido)){ //Busco el entrenador que mando el mensaje.
 
@@ -353,7 +355,7 @@ void conectarABroker(){
 	int intento = 1;
 
 	sem_wait(&semCaught);
-//	sem_wait(&semLocalized);
+	sem_wait(&semLocalized);
 //	sem_wait(&semAppeared);
 
 	while (1){
@@ -372,7 +374,7 @@ void conectarABroker(){
 			printf("Suscripciones exitosas!\n\n");
 			sem_post(&semCaught);
 			sem_post(&semLocalized);
-			sem_post(&semAppeared);
+//			sem_post(&semAppeared);
 			break;
 		}
 	}
