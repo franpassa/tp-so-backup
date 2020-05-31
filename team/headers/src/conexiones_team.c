@@ -371,7 +371,14 @@ void conectarABroker(){
 			sleep(tiempo_reconexion);
 			intento++;
 		} else {
+
 			printf("Suscripciones exitosas!\n\n");
+
+			if(!envioGets){
+				enviar_gets(objetivos_globales);
+				envioGets = true;
+			}
+
 			sem_post(&semCaught);
 			sem_post(&semLocalized);
 //			sem_post(&semAppeared);
