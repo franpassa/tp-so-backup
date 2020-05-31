@@ -80,6 +80,7 @@ int conectar_como_productor(char* ip, char* puerto) {
 int suscribirse_a_cola(queue_name cola, char* ip, char* puerto) {
 
 	int socket_servidor = connect_sv(ip, puerto);
+	if(socket_servidor == -1) return -1;
 
 	send(socket_servidor, &cola, sizeof(queue_name), 0);
 
