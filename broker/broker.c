@@ -15,6 +15,7 @@ int main(){
 	pthread_join(hilo_estado_queues,NULL);
 	pthread_join(hilo_suscripciones,NULL);
 	pthread_join(hilo_mensajes,NULL);
+	pthread_join(hilo_enviar_mensaje, NULL);
 
 	close(socket_servidor);
 
@@ -122,7 +123,6 @@ void inicializar(){
 
 	for(int i = 0; i <= 5; i++){
 		pthread_mutex_init(&(sem_cola[i]),NULL);
-		//sem_init(&(contenido_cola[i]),0,0);
 	}
 }
 

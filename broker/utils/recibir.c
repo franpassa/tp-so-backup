@@ -47,7 +47,6 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 
 			pthread_mutex_lock(&(sem_cola[id_cola]));
 			agregar_a_cola(id_cola,paquete,id_mensaje);
-			//sem_post(&contenido_cola[id_cola]);
 			pthread_mutex_unlock(&(sem_cola[id_cola]));
 
 		}
@@ -64,7 +63,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 }
 
 
-void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje) { // Terminar esto
+void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje) { // falta probar
 
 	t_cola_de_mensajes* queue = int_a_nombre_cola(id_cola);
 	t_info_mensaje* mensaje = queue_peek(queue->cola);
