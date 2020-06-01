@@ -75,7 +75,7 @@ sem_t semAppeared;
 int ciclosConsumidos;
 
 bool hayEntrenadorProcesando; 	// funcion a futuro, chequear en otro proceso si hay un entrenador
-								//corriendo porque cuando sale del bloqueo porque ya le
+bool envioGets;								//corriendo porque cuando sale del bloqueo porque ya le
 								// mandaron el caught
 
 //FUNCIONES

@@ -5,17 +5,10 @@ int main()
 	inicializarPrograma(); //Inicializo logger y config
 	inicializarVariables();
 
-<<<<<<< HEAD
-//	pthread_t hilo_escucha;
-//	pthread_t hilo_estado_exec;
-//	pthread_t hilo_pasar_a_ready;
-//	pthread_t hilo_recibir_localized;
-=======
 	pthread_t hilo_escucha;
 	pthread_t hilo_estado_exec;
 	pthread_t hilo_pasar_a_ready;
 	pthread_t hilo_recibir_localized;
->>>>>>> 170a8a0ca7d516416507d3199bb592c62d880b37
 	pthread_t hilo_recibir_caught;
 
 	printf("\n");
@@ -23,24 +16,20 @@ int main()
 	printf("\n");
 	if (socket_escucha == -1) abort(); //FINALIZA EL PROGRAMA EN CASO DE QUE FALLE LA INICIALIZACION DEL SERVIDOR
 
-//	enviar_gets(objetivos_globales);
+	pthread_create(&hilo_pasar_a_ready,NULL,(void*) pasar_a_ready, NULL);
 
-	conectarABroker();
+	pthread_create(&hilo_escucha,NULL,(void*) esperar_cliente, &socket_escucha);
 
-//	pthread_create(&hilo_pasar_a_ready,NULL,(void*) pasar_a_ready, NULL);
-//
-//	pthread_create(&hilo_escucha,NULL,(void*) esperar_cliente, &socket_escucha);
-//
-//	pthread_create(&hilo_estado_exec, NULL, (void*) estado_exec, NULL);
+	pthread_create(&hilo_estado_exec, NULL, (void*) estado_exec, NULL);
 
-//	pthread_create(&hilo_recibir_localized, NULL, (void*) recibirLocalized, NULL);
-//
+	pthread_create(&hilo_recibir_localized, NULL, (void*) recibirLocalized, NULL);
+
 	pthread_create(&hilo_recibir_caught, NULL, (void*) recibirCaught, NULL);
 
-//	pthread_join(hilo_escucha, NULL);
-//	pthread_join(hilo_estado_exec, NULL);
-//	pthread_join(hilo_pasar_a_ready, NULL);
-//	pthread_join(hilo_recibir_localized, NULL);
+	pthread_join(hilo_escucha, NULL);
+	pthread_join(hilo_estado_exec, NULL);
+	pthread_join(hilo_pasar_a_ready, NULL);
+	pthread_join(hilo_recibir_localized, NULL);
 
 	pthread_join(hilo_recibir_caught, NULL);
 	terminar_programa(); //Finalizo el programa
@@ -93,7 +82,17 @@ void inicializarVariables(){
 	pokemons_recibidos = list_create();
 	pokemons_recibidos_historicos = list_create();
 	pthread_mutex_init(&mutexReconexion, NULL);
+	pthread_mutex_init(&mutexCiclosConsumidos, NULL);
+	pthread_mutex_init(&mutexEstadoBloqueado, NULL);
+	pthread_mutex_init(&mutexEstadoNew, NULL);
+	pthread_mutex_init(&mutexEstadoReady, NULL);
+	pthread_mutex_init(&mutexIdsEnviados, NULL);
+	pthread_mutex_init(&mutexPokemonsRecibidos, NULL);
+	pthread_mutex_init(&mutexPokemonsRecibidosHistoricos, NULL);
 	sem_init(&semCaught, 0, 1);
+	sem_init(&semLocalized, 0, 1);
+	sem_init(&semAppeared, 0, 1);
+	envioGets = false;
 
 	posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
 	pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
