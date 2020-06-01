@@ -33,7 +33,7 @@ void free_fspaths(t_fspaths* paths){
  * en caso que no se asume que se debe crear la estructura
  * del filesystem desde cero y retorna el bitarray correspondiente.
 */
-void init_fs(t_fspaths* fspaths){
+void init_fs(){
 
 	// TENGO QUE VERIFICAR QUE EXISTA LA CARPETA 'METADATA' O EL BITMAP.BIN?
 
@@ -56,16 +56,18 @@ void init_fs(t_fspaths* fspaths){
 
 		t_config* config_metadata = config_create(fspaths->metadata_file);
 		int cantidad_bloques = config_get_int_value(config_metadata, "BLOCKS");
-		create_bitmap(fspaths->bitmap_file, cantidad_bloques);
-
-		create_blocks(fspaths->blocks_folder, cantidad_bloques);
+		if(create_bitmap(cantidad_bloques) == -1) terminar_aplicacion("Error creando bitmap");
+		if(create_blocks(cantidad_bloques) == -1) terminar_aplicacion("Error creando bloques");
 
 		printf("Se crearon %d bloques\n", cantidad_bloques);
 		config_destroy(config_metadata);
 	}
 }
 
-void create_blocks(char* path, int cantidad){
+int create_blocks(int cantidad){
+	if(cantidad <= 0) return -1;
+
+	char* path = fspaths->blocks_folder;
 
 	struct stat st = {0};
 	if(stat(path, &st) == -1){
@@ -73,23 +75,21 @@ void create_blocks(char* path, int cantidad){
 	}
 
 	FILE* block_file;
-
-	for(int i = 0; i < cantidad; i++){
+	for(int block_number = 0; block_number < cantidad; block_number++){
 		char* block_path = string_new();
-		string_append_with_format(&block_path, "%s/%d.bin", path, i);
-
-		block_file = fopen(block_path, "wb");
+		string_append_with_format(&block_path, "%s/%d.bin", path, block_number);
+		block_file = fopen(block_path, "w");
 
 		if(block_file == NULL){
-			log_error(logger, "Error creando el bloque '%s'", block_path);
-			abort();
+			free(block_path);
+			return -1;
 		}
 
 		fclose(block_file);
-
 		free(block_path);
 	}
 
+	return 0;
 }
 
 void print_bitarray(t_bitarray* bitarray){
@@ -108,138 +108,85 @@ void print_bitarray(t_bitarray* bitarray){
 	free(bits_string);
 }
 
-t_bitarray* read_bitmap(char* bitmap_path){
-	t_bitarray* bitarray = NULL;
+int create_bitmap(int cantidad_bloques){
+	FILE* bitmap_ptr = fopen(fspaths->bitmap_file, "wb");
 
-	FILE* bitmap_ptr = fopen(bitmap_path, "rb");
+	if(bitmap_ptr == NULL) return -1;
 
-	if(bitmap_ptr == NULL){
-		char* mensaje_error = string_new();
-		string_append_with_format(&mensaje_error, "No existe el archivo %s", bitmap_path);
-		terminar_aplicacion(mensaje_error);
-	}
-
-	long file_size = get_file_size(bitmap_ptr);
-
-	char* buffer = calloc(1, file_size);
-	long bytes_read = fread(buffer, sizeof(char), file_size, bitmap_ptr);
-
-	if(file_size == bytes_read){
-		bitarray = bitarray_create_with_mode(buffer, file_size, LSB_FIRST);
+	int tam_en_bytes = cantidad_bloques/8;
+	char* bits = calloc(tam_en_bytes, sizeof(char));
+	if(bits == NULL) {
 		fclose(bitmap_ptr);
-	} else {
-		terminar_aplicacion("Error leyendo bitmap");
+		return -1;
 	}
 
-	return bitarray;
-}
+	fwrite(bits, tam_en_bytes, 1, bitmap_ptr);
+	fclose(bitmap_ptr);
+	free(bits);
 
-t_bitarray* create_bitmap(char* file_path, int cantidad_bloques){
-	t_bitarray* bitarray = NULL;
-
-	FILE* bitmap_ptr = fopen(file_path, "wb");
-
-	if(bitmap_ptr){
-		int tam_en_bytes = cantidad_bloques/8;
-
-		char* bits = calloc(tam_en_bytes, sizeof(char));
-
-		fwrite(bits, tam_en_bytes, 1, bitmap_ptr);
-		fclose(bitmap_ptr);
-
-		bitarray = bitarray_create_with_mode(bits, tam_en_bytes, LSB_FIRST);
-	} else {
-		terminar_aplicacion("Error creando bitmap");
-	}
-
-	return bitarray;
-}
-
-void crear_bloques(char* path, int cantidad_bloques){
-
-	FILE* bloque;
-
-	for(int i = 0; i < cantidad_bloques; i++){
-		char* nombre_bloque = string_new();
-		string_append_with_format(&nombre_bloque, "%d.bin", i);
-		bloque = fopen(nombre_bloque, "w");
-		free(nombre_bloque);
-		fclose(bloque);
-	}
-}
-
-// Cada vez que seteo un bit reescribo todo el bitmap, se puede optimizar?
-void set_bit(char* bitmap_path, int index, bool value){
-	FILE* bitmap_file = fopen(bitmap_path, "rb+");
-
-	long file_size = get_file_size(bitmap_file);
-	char* data = malloc(file_size);
-	int bytes_read = fread(data, sizeof(char), file_size, bitmap_file);
-	if(file_size != bytes_read){
-		terminar_aplicacion("error seteando bitmap");
-	}
-
-	t_bitarray* bitarray = bitarray_create_with_mode(data, file_size, LSB_FIRST);
-	if(value){
-		bitarray_set_bit(bitarray, index);
-	} else {
-		bitarray_clean_bit(bitarray, index);
-	}
-
-	// Reseteo el puntero al principio del archivo para reemplazar el contenido
-	fseek(bitmap_file, 0, SEEK_SET);
-
-	fwrite(data, sizeof(char), file_size, bitmap_file);
-	fclose(bitmap_file);
-	free(data);
-	bitarray_destroy(bitarray);
-}
-
-bool existe_pokemon(char* nombre_pokemon){
-	char* path_pokemon = string_new();
-	char* lowered_pokemon = string_duplicate(nombre_pokemon);
-	string_to_lower(lowered_pokemon);
-	string_append_with_format(&path_pokemon, "%s/%s", fspaths->files_folder, lowered_pokemon);
-
-	struct stat st = {0};
-	bool pokemon_existe = stat(path_pokemon, &st) != -1;
-
-	free(path_pokemon);
-	free(lowered_pokemon);
-	return pokemon_existe;
-}
-
-//Devuelve 0 si OK, -1 en caso de error
-int crear_pokemon(char* nombre_pokemon){
-	char* path_pokemon = string_new();
-	char* lowered_pokemon = string_duplicate(nombre_pokemon);
-	string_to_lower(lowered_pokemon);
-	string_append_with_format(&path_pokemon, "%s/%s", fspaths->files_folder, lowered_pokemon);
-	mkdir(path_pokemon , 0700);
 	return 0;
 }
 
-int crear_metadata(char* path, bool is_file){
-	FILE* metadata = fopen(path, "w");
-	if(metadata){
-		if(is_file){
-			fprintf(metadata, "DIRECTORY=N\n"
-					"SIZE=0\n"
-					"BLOCKS=[]\n"
-					"OPEN=N");
-		} else {
-			fprintf(metadata, "DIRECTORY=Y");
-		}
-		fclose(metadata);
-		return 0;
+// Esta función es una obra de arte
+void set_bit(int index, bool value){
+	FILE* bitmap_file = fopen(fspaths->bitmap_file, "rb+");
+
+	div_t division = div(index, 8); // Divido el indice del bit por la cantidad de bits en un byte para obtener el byte y la posición del bit dentro de ese (cociente y resto).
+	char* byte = calloc(1, sizeof(char));
+	fseek(bitmap_file, division.quot, SEEK_SET); // Posiciono el puntero del bitmap a la posicion del byte que me interesa
+	fread(byte, sizeof(char), 1, bitmap_file); // Leo ese byte
+	t_bitarray* mini_bitarray = bitarray_create_with_mode(byte, sizeof(char), LSB_FIRST); // Creo un bitarray para poder modificar el bit
+	if(value){
+		bitarray_set_bit(mini_bitarray, division.rem); // Seteo o limpio el bit de interés
 	} else {
-		return -1;
+		bitarray_clean_bit(mini_bitarray, division.rem);
 	}
+	fseek(bitmap_file, -1, SEEK_CUR); // Vuelvo un byte atrás para escribir el archivo
+	fwrite(byte, sizeof(char), 1, bitmap_file); // Reescribo el byte con un bit modificado
+
+	fclose(bitmap_file);
+	free(byte);
+	bitarray_destroy(mini_bitarray);
 }
 
+int get_free_block(){
+	long file_size;
+	t_bitarray* bitarray = read_bitmap(&file_size);
+	long bits_in_file = file_size * 8;
 
+	int free_block = -1;
+	for(int block = 0; block < bits_in_file; block++){
+		if(!bitarray_test_bit(bitarray, block)){
+			free_block = block;
+			break;
+		}
+	}
+	free(bitarray->bitarray);
+	free(bitarray);
 
+	return free_block;
+}
 
+t_bitarray* read_bitmap(long* file_size){
+	FILE* bitmap_file = fopen(fspaths->bitmap_file, "rb");
+	if(bitmap_file == NULL) return NULL;
 
+	*file_size = get_file_size(bitmap_file);
+	char* data = malloc(*file_size);
+	int bytes_read = fread(data, sizeof(char), *file_size, bitmap_file);
 
+	if(*file_size != bytes_read) return NULL;
 
+	t_bitarray* bitarray = bitarray_create_with_mode(data, *file_size, LSB_FIRST);
+	fclose(bitmap_file);
+
+	return bitarray;
+}
+
+int escribir_en_bloques(t_pokemon pokemon){
+	/* Tendría que saber si es un pokemon que ya tiene bloques asignados.
+	 * Si es así pregunto cual es el último y escribo ahí, si no alcanza
+	 * pido un bloque nuevo y escribo lo que resta.
+	 */
+	return 0;
+}
