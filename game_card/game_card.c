@@ -6,7 +6,7 @@ void inicializar(){
 
 	char* punto_montaje = config_get_string_value(config, "PUNTO_MONTAJE_TALLGRASS");
 	fspaths = init_fspaths(punto_montaje);
-	init_fs(fspaths);
+	init_fs();
 }
 
 void terminar(){
@@ -18,7 +18,8 @@ void terminar(){
 int main(){
 
 	inicializar();
-	//crear_metadata("/home/utnso/Escritorio/metadata.prueba", false);
+	t_pokemon pikachu = init_pokemon("eee", 3, 2, 1);
+	crear_pokemon(pikachu);
 	terminar();
 
 	return EXIT_SUCCESS;

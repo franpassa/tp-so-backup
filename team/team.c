@@ -16,8 +16,6 @@ int main()
 	printf("\n");
 	if (socket_escucha == -1) abort(); //FINALIZA EL PROGRAMA EN CASO DE QUE FALLE LA INICIALIZACION DEL SERVIDOR
 
-	enviar_gets(objetivos_globales);
-
 	pthread_create(&hilo_pasar_a_ready,NULL,(void*) pasar_a_ready, NULL);
 
 	pthread_create(&hilo_escucha,NULL,(void*) esperar_cliente, &socket_escucha);
@@ -94,6 +92,7 @@ void inicializarVariables(){
 	sem_init(&semCaught, 0, 1);
 	sem_init(&semLocalized, 0, 1);
 	sem_init(&semAppeared, 0, 1);
+	envioGets = false;
 
 	posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
 	pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");

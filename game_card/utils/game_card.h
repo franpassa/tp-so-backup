@@ -1,10 +1,3 @@
-/*
- * game_card.h
- *
- *  Created on: 11 abr. 2020
- *      Author: utnso
- */
-
 #ifndef GAME_CARD_H_
 #define GAME_CARD_H_
 
@@ -42,6 +35,13 @@ typedef struct {
 	char* files_folder;
 } t_fspaths;
 
+typedef struct {
+	char* nombre;
+	uint32_t cantidad;
+	uint32_t x;
+	uint32_t y;
+} t_pokemon;
+
 // -------- Globales --------
 
 t_config* config;
@@ -59,19 +59,21 @@ long get_file_size(FILE* file_ptr);
 
 // --- Filesystem ---
 
-void init_fs(t_fspaths* paths);
-void create_blocks(char* punto_montaje, int cantidad);
-void print_bitarray(t_bitarray* bitarray);
-t_bitarray* read_bitmap(char* bitmap_path);
-t_bitarray* create_bitmap(char* file_path, int cantidad_bloques);
 t_fspaths* init_fspaths(char* punto_montaje);
+void init_fs();
+int create_bitmap(int cantidad_bloques);
+int create_blocks(int cantidad);
+t_bitarray* read_bitmap(long* size_in_bytes);
+void print_bitarray(t_bitarray* bitarray);
+void set_bit(int index, bool value);
+int get_free_block();
 void free_fspaths(t_fspaths* paths);
-void set_bit(char* bitmap_path, int index, bool value);
 
 // --- Pokemons ---
+t_pokemon init_pokemon(char* nombre, uint32_t cantidad, uint32_t x, uint32_t y);
 int crear_metadata(char* path, bool is_file);
 bool existe_pokemon(char* nombre_pokemon);
-int crear_pokemon(char* nombre_pokemon);
+int crear_pokemon(t_pokemon pokemon);
 
 
 #endif
