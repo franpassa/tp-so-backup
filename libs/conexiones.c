@@ -251,20 +251,28 @@ void* serializar_paquete(t_paquete* paquete, int bytes) {
 	offset += sizeof(queue_name);
 	memcpy(a_enviar + offset, &(paquete->buffer->size), sizeof(uint32_t));
 	offset += sizeof(uint32_t);
-	memcpy(a_enviar + offset, paquete->buffer->stream, paquete->buffer->size);
+	memcpy(a_enviar + offset, paquete->buffer->stream, bytes - sizeof(queue_name) - sizeof(uint32_t));
 
 	return a_enviar;
 }
 
-void confirmar_recepcion(queue_name cola, uint32_t id_mensaje, int socket) {
+void confirmar_recepcion(queue_name cola, uint32_t id_mensaje, int socket_suscripcion, int socket_broker) {
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
 	paquete->cola_msg = cola;
 	paquete->buffer = malloc(sizeof(t_buffer));
 	paquete->buffer->size = 0;
-	paquete->buffer->stream = malloc(sizeof(uint32_t));
+	paquete->buffer->stream = malloc(sizeof(uint32_t) + sizeof(int));
 
-	memcpy(paquete->buffer->stream, &(id_mensaje), sizeof(uint32_t));
+	int offset = 0;
+	memcpy(paquete->buffer->stream, &id_mensaje, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+	memcpy(paquete->buffer->stream + offset, &socket_suscripcion, sizeof(int));
+
+	int bytes = sizeof(queue_name) + sizeof(uint32_t)*2 + sizeof(int);
+	void* a_enviar = serializar_paquete(paquete, bytes);
+
+	send(socket_broker, a_enviar, bytes, 0);
 }
 
 void* recibir_mensaje(int socket, uint32_t* id) {

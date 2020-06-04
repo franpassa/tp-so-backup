@@ -95,7 +95,7 @@ int conectar_como_productor(char* ip, char* puerto);
 int suscribirse_a_cola(queue_name cola, char* ip, char* puerto);
 uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructura_mensaje, bool esperar_id);
 void* recibir_mensaje(int socket, uint32_t* id_mensaje);
-void confirmar_recepcion(queue_name cola, uint32_t id_mensaje, int socket);
+void confirmar_recepcion(queue_name cola, uint32_t id_mensaje, int socket_suscripcion, int socket_broker); // SE ENVÍA queue_name - size - id_mensaje - socket_suscripcion
 void* serializar_paquete(t_paquete* paquete, int bytes);
 void* deserializar_buffer(queue_name cola, void* buffer_ptr);
 void free_paquete(t_paquete* paquete);
