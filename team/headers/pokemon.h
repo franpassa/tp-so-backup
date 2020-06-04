@@ -25,7 +25,8 @@ uint32_t cantidadDePokemonsPorEspecie(char* especie, t_list* lista);
 
 // listas nuevas / modificar listas
 t_list* crearListaObjetivoGlobal(t_list* pokesObjetivoGlobal);
-void agregarPokemonsRecibidosALista(t_list* pokemonsRecibidos, localized_pokemon_msg* pokemons);
+void agregarLocalizedRecibidoALista(t_list* pokemonsRecibidos, localized_pokemon_msg* pokemons);
+void agregarAppearedRecibidoALista(t_list* pokemonsRecibidos, appeared_pokemon_msg* pokemon);
 
 // liberar y mostrar
 void liberarEspecie(void* especie);

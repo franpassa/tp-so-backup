@@ -41,7 +41,7 @@ void enviar_gets(t_list* objetivos_globales) {
 		uint32_t* id_respuesta = malloc(sizeof(uint32_t));
 		*id_respuesta = enviar_mensaje(ip_broker, puerto_broker,GET_POKEMON,a_enviar,true);
 		if (*id_respuesta == -1) {
-			printf("Fallo el envio del mensaje GET_POKEMON '%s'\n",a_enviar->nombre_pokemon);
+			printf("No existen locaciones disponibles para el pokemon: '%s'\n",a_enviar->nombre_pokemon);
 		} else {
 			/*AGREGO EL ID A LA LISTA DE IDS ENVIADOS*/
 			printf("Envio del mensaje GET_POKEMON '%s' exitoso. ID asignado: %d\n",a_enviar->nombre_pokemon,*id_respuesta);
@@ -125,25 +125,22 @@ void estado_exec()
 	{
 		if (!list_is_empty(estado_ready))
 		{
-			t_entrenador* unEntrenador = (t_entrenador*) list_get(estado_ready,0);
-
-			bool esElMismo(t_entrenador* entrenador)
-			{
-				return entrenador->idEntrenador == unEntrenador->idEntrenador;
-			}
-
-			hayEntrenadorProcesando = true;
-
-			list_remove_by_condition(listaALaQuePertenece(unEntrenador),(void*) esElMismo);
-
 			if (string_equals_ignore_case(ALGORITMO, "FIFO"))
 			{
+				t_entrenador* unEntrenador = (t_entrenador*) list_get(estado_ready,0);
+
+				bool esElMismo(t_entrenador* entrenador)
+				{
+					return entrenador->idEntrenador == unEntrenador->idEntrenador;
+				}
+
+				hayEntrenadorProcesando = true;
+
+				list_remove_by_condition(listaALaQuePertenece(unEntrenador),(void*) esElMismo);
+
 				algoritmoFifo(unEntrenador);
 			}
 		}
-
-		sleep(2);
-
 	}
 }
 
@@ -221,6 +218,47 @@ void pasar_a_ready(){
 	}
 }
 
+void recibirAppeared() {
+	appeared_pokemon_msg* mensaje_recibido_appeared;
+
+	while(1){
+
+		uint32_t idRecibido;
+
+		sem_wait(&semAppeared);
+		mensaje_recibido_appeared = recibir_mensaje(socket_appeared,&idRecibido);
+		sem_post(&semAppeared);
+
+		if (mensaje_recibido_appeared != NULL) {
+				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
+			if ((estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),objetivos_globales)) && (!(estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),pokemons_recibidos_historicos)))) {
+				agregarAppearedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_appeared);
+				pthread_mutex_unlock(&mutexPokemonsRecibidosHistoricos);
+				t_list* entrenadoresAPlanificar = todosLosEntrenadoresAPlanificar();
+				pthread_mutex_lock(&mutexPokemonsRecibidos);
+				t_entrenador* entrenadorReady = entrenadorAReady(entrenadoresAPlanificar, pokemons_recibidos);
+				pthread_mutex_unlock(&mutexPokemonsRecibidos);
+
+				bool esElMismo(t_entrenador* entrenador) {
+					return entrenador->idEntrenador == entrenadorReady->idEntrenador;
+				}
+
+				list_remove_by_condition(listaALaQuePertenece(entrenadorReady),(void*) esElMismo);
+
+				pthread_mutex_lock(&mutexEstadoReady);
+				list_add(estado_ready,entrenadorAReady);
+				pthread_mutex_unlock(&mutexEstadoReady);
+
+				free(entrenadoresAPlanificar);
+			}
+		} else {
+			close(socket_appeared);
+			invocarHiloReconexion();
+		}
+
+	}
+}
+
 void recibirLocalized() { // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 
 	localized_pokemon_msg* mensaje_recibido_localized;
@@ -233,26 +271,26 @@ void recibirLocalized() { // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 		sem_post(&semLocalized);
 
 		if (mensaje_recibido_localized != NULL) {
-				printf("HOLA");
 				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
 			if ((estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),objetivos_globales)) && (!(estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),pokemons_recibidos_historicos)))) {
-				agregarPokemonsRecibidosALista(pokemons_recibidos_historicos,mensaje_recibido_localized);
+				agregarLocalizedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_localized);
 				pthread_mutex_unlock(&mutexPokemonsRecibidosHistoricos);
-				t_list* todosLosEntrenadores = todosLosEntrenadoresAPlanificar();
+				t_list* entrenadoresAPlanificar = todosLosEntrenadoresAPlanificar();
 				pthread_mutex_lock(&mutexPokemonsRecibidos);
-				agregarPokemonsRecibidosALista(pokemons_recibidos,mensaje_recibido_localized);
-				t_entrenador* entrenadorReady = entrenadorAReady(todosLosEntrenadores, pokemons_recibidos);
+				t_entrenador* entrenadorReady = entrenadorAReady(entrenadoresAPlanificar, pokemons_recibidos);
 				pthread_mutex_unlock(&mutexPokemonsRecibidos);
 
 				bool esElMismo(t_entrenador* entrenador) {
 					return entrenador->idEntrenador == entrenadorReady->idEntrenador;
 				}
 
+				list_remove_and_destroy_by_condition(listaALaQuePertenece(entrenadorReady),(void*) esElMismo, liberarEntrenador);
+
 				pthread_mutex_lock(&mutexEstadoReady);
 				list_add(estado_ready,entrenadorAReady);
 				pthread_mutex_unlock(&mutexEstadoReady);
 
-				list_remove_by_condition(listaALaQuePertenece(entrenadorReady),(void*) esElMismo);
+				free(entrenadoresAPlanificar);
 			}
 		} else {
 			close(socket_localized);
@@ -275,8 +313,6 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 
 		if(mensaje_recibido != NULL){ //Verifico si recibo el mensaje.
 
-			printf("HOLA");
-
 			if(necesitoElMensaje(idRecibido)){ //Busco el entrenador que mando el mensaje.
 
 				t_entrenador* entrenador = (t_entrenador*) buscarEntrenador(idRecibido);
@@ -288,7 +324,7 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 					}
 
 					pthread_mutex_lock(&mutexIdsEnviados);
-					list_remove_by_condition(ids_enviados,(void*) esIgual); // Saco el id de la lista de ids_enviados.
+					list_remove_and_destroy_by_condition(ids_enviados,(void*) esIgual, free); // Saco el id de la lista de ids_enviados.
 					pthread_mutex_unlock(&mutexIdsEnviados);
 
 
@@ -301,6 +337,8 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 					pthread_mutex_unlock(&mutexEstadoBloqueado);
 
 					cambiarEstado(entrenador);
+
+					pokemonMasCercano(entrenador,pokemons_recibidos);
 
 					if((entrenador->motivoBloqueo == MOTIVO_NADA)&&(list_size(pokemons_recibidos)>0)&&(list_size(estado_ready)==0)){
 						entrenador->pokemonAMoverse = pokemonMasCercano(entrenador,pokemons_recibidos);
@@ -356,7 +394,7 @@ void conectarABroker(){
 
 	sem_wait(&semCaught);
 	sem_wait(&semLocalized);
-//	sem_wait(&semAppeared);
+	sem_wait(&semAppeared);
 
 	while (1){
 
@@ -374,14 +412,9 @@ void conectarABroker(){
 
 			printf("Suscripciones exitosas!\n\n");
 
-			if(!envioGets){
-				enviar_gets(objetivos_globales);
-				envioGets = true;
-			}
-
 			sem_post(&semCaught);
 			sem_post(&semLocalized);
-//			sem_post(&semAppeared);
+			sem_post(&semAppeared);
 			break;
 		}
 	}

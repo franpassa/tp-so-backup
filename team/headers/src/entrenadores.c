@@ -139,9 +139,7 @@ void setearEnCeroEntrenador (t_entrenador* unEntrenador)
 // devuelve el pokemon de la lista que esta mas cerca a un entrenador
 t_pokemon*  pokemonMasCercano (t_entrenador* unEntrenador, t_list* pokemons)
 {
-	t_pokemon* pokemonFlag =  malloc(sizeof(t_pokemon));
-	setearEnCeroPokemon(pokemonFlag);
-	igualarPokemons(pokemonFlag,list_get(pokemons,0));
+	t_pokemon* pokemonFlag = list_get(pokemons,0);
 
 	for(int i = 0; i < (list_size(pokemons)-1); i++)
 	{
@@ -223,10 +221,8 @@ t_list* listaALaQuePertenece(t_entrenador* unEntrenador){
 }
 
 bool puedeAtrapar(t_entrenador* entrenador){
-	return list_size(entrenador->pokesObjetivos) >= list_size(entrenador->pokesAtrapados) + 1;
+	return list_size(entrenador->pokesObjetivos) > list_size(entrenador->pokesAtrapados);
 }
-
-
 
 
 
