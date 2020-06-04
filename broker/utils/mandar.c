@@ -21,8 +21,13 @@ void mandar_mensajes() {
 void mandar(t_paquete* paquete, uint32_t id, uint32_t sub) {
 	int total_bytes = paquete->buffer->size + sizeof(queue_name) + sizeof(uint32_t);
 	void* bytes = serializar_paquete(paquete, total_bytes);
-	send(sub, bytes, total_bytes, 0);
+	if ( send(sub, bytes, total_bytes, 0) == -1){
+		//sacar de listas
+
+	} else {
 	send(sub, &id, sizeof(uint32_t), 0);
+	}
+
 }
 
 void recorrer_cola(t_cola_de_mensajes* nombre) {

@@ -43,7 +43,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
  			uint32_t id_mensaje = crear_nuevo_id();
 			pthread_mutex_unlock(&semaforo_id);
 
-			send(*socket_escucha,&id_mensaje,sizeof(uint32_t),0);
+			send(*socket_escucha, &id_mensaje, sizeof(uint32_t), 0);
 
 			pthread_mutex_lock(&(sem_cola[id_cola]));
 			agregar_a_cola(id_cola,paquete,id_mensaje);
@@ -52,10 +52,14 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 		}
 	} else {
 
-		int id_correlativo = (int) paquete->buffer->stream ;
+		uint32_t id_correlativo;
+		recv(*socket_escucha, &id_correlativo, sizeof(uint32_t), MSG_WAITALL);
+
+		uint32_t socket_sub;
+		recv(*socket_escucha, &socket_sub, sizeof(uint32_t), MSG_WAITALL);
 
 		pthread_mutex_lock(&(sem_cola[id_cola]));
-		confirmar_mensaje(id_cola , id_correlativo);
+		confirmar_mensaje(id_cola , id_correlativo, socket_sub);
 		pthread_mutex_unlock(&(sem_cola[id_cola]));
 
 	}
@@ -63,7 +67,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 }
 
 
-void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje) { // falta probar
+void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, int socket_sub) { // falta probar
 
 	t_cola_de_mensajes* queue = int_a_nombre_cola(id_cola);
 	t_info_mensaje* mensaje = queue_peek(queue->cola);
@@ -77,12 +81,16 @@ void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje) { // falta proba
 
 		if (mensaje->id == id_mensaje) {
 			control = 1;
-			//esta mal, correguir. Hay que poner el socket subscripto a la cola./
-			list_add(mensaje->quienes_lo_recibieron, id_mensaje);
 
+			uint32_t *sub = malloc(sizeof(uint32_t));
+			*sub = socket_sub;
+
+			if (!esta_en_lista(mensaje->quienes_lo_recibieron,sub)) {
+			list_add(mensaje->quienes_lo_recibieron, sub);
+			}
 
 			if (list_size(mensaje->quienes_lo_recibieron) == list_size(queue->lista_suscriptores)) {
-				free(mensaje);
+				free_mensaje(mensaje);
 			}
 
 		} else {
