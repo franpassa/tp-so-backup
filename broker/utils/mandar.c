@@ -43,9 +43,11 @@ void recorrer_cola(t_cola_de_mensajes* nombre) {
 
 				for (int i = 0; i < list_size(subs_queue); i++) {
 					uint32_t* sub = (uint32_t*) list_get(subs_queue, i);
-					if (!esta_en_lista(info_a_sacar->a_quienes_fue_enviado,sub)) {
+					if (!esta_en_lista(info_a_sacar->quienes_lo_recibieron,sub)) {
 						mandar(info_a_sacar->paquete, info_a_sacar->id, *sub);
-						list_add(info_a_sacar->a_quienes_fue_enviado, sub);
+						if (!esta_en_lista(info_a_sacar->a_quienes_fue_enviado,sub)){
+							list_add(info_a_sacar->a_quienes_fue_enviado, sub);
+						}
 					}
 				}
 				queue_push(nombre->cola, info_a_sacar);

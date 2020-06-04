@@ -191,7 +191,7 @@ void print_mensaje_de_cola(t_info_mensaje* mensaje){
 	print_msg(id_cola, msg);
 
 	list_iterate(mensaje->a_quienes_fue_enviado,print_list_sockets_de_un_mensaje);
+	list_iterate(mensaje->quienes_lo_recibieron,print_list_sockets_de_un_mensaje);
 
-	uint32_t cantidad_recibidos = mensaje->cuantos_lo_recibieron;
-	printf("CUANTOS LO RECIBIERON: %d\n",cantidad_recibidos);
+
 }

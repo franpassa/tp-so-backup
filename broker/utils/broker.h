@@ -23,7 +23,7 @@ typedef struct {
 	uint32_t id;
 	t_paquete* paquete;
 	t_list* a_quienes_fue_enviado;
-	uint32_t cuantos_lo_recibieron;
+	t_list* quienes_lo_recibieron;
 } t_info_mensaje;
 
 typedef struct {

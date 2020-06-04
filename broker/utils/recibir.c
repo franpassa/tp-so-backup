@@ -78,9 +78,10 @@ void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje) { // Terminar es
 
 		if (mensaje->id == id_mensaje) {
 			control = 1;
-			mensaje->cuantos_lo_recibieron++;
+			//esta mal, correguir. Hay que poner el socket subscripto a la cola./
+			list_add(mensaje->quienes_lo_recibieron, id_mensaje);
 
-			if (mensaje->cuantos_lo_recibieron == list_size(queue->lista_suscriptores)) {
+			if (list_size(mensaje->quienes_lo_recibieron) == list_size(queue->lista_suscriptores)) {
 				free(mensaje);
 			}
 
@@ -104,11 +105,8 @@ void agregar_a_cola(uint32_t id_cola,t_paquete* paquete, int id_mensaje){
 	t_info_mensaje* msg = malloc(sizeof(t_info_mensaje));
 	msg->paquete = paquete;
 	msg->id = id_mensaje;
-	msg->cuantos_lo_recibieron = 0;
-
-	t_list* list = list_create();
-
-	msg->a_quienes_fue_enviado = list;
+	msg->quienes_lo_recibieron = list_create();
+	msg->a_quienes_fue_enviado = list_create();
 
 	queue_push(int_a_nombre_cola(id_cola)->cola, msg);
 }
