@@ -66,5 +66,4 @@ t_list* listaALaQuePertenece(t_entrenador* unEntrenador);
 
 bool puedeAtrapar(t_entrenador* entrenador);
 
-
 #endif /* ENTRENADOR_H_ */

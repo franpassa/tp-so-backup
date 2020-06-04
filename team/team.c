@@ -10,11 +10,14 @@ int main()
 	pthread_t hilo_pasar_a_ready;
 	pthread_t hilo_recibir_localized;
 	pthread_t hilo_recibir_caught;
+	pthread_t hilo_recibir_appeared;
 
 	printf("\n");
 	int socket_escucha = iniciar_servidor(IP,PUERTO);
 	printf("\n");
 	if (socket_escucha == -1) abort(); //FINALIZA EL PROGRAMA EN CASO DE QUE FALLE LA INICIALIZACION DEL SERVIDOR
+
+	enviar_gets(objetivos_globales); // ENVIO MENSAJES GET_POKEMON AL BROKER.
 
 	pthread_create(&hilo_pasar_a_ready,NULL,(void*) pasar_a_ready, NULL);
 
@@ -26,11 +29,13 @@ int main()
 
 	pthread_create(&hilo_recibir_caught, NULL, (void*) recibirCaught, NULL);
 
+	pthread_create(&hilo_recibir_appeared, NULL, (void*) recibirAppeared, NULL);
+
 	pthread_join(hilo_escucha, NULL);
 	pthread_join(hilo_estado_exec, NULL);
 	pthread_join(hilo_pasar_a_ready, NULL);
 	pthread_join(hilo_recibir_localized, NULL);
-
+	pthread_join(hilo_recibir_appeared, NULL);
 	pthread_join(hilo_recibir_caught, NULL);
 	terminar_programa(); //Finalizo el programa
 

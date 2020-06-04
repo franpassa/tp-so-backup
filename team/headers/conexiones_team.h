@@ -7,6 +7,7 @@ void enviar_gets(t_list* objetivos_globales);
 int suscribirse_a_queue(queue_name cola,char* ip_broker, char* puerto_broker);
 void recibirLocalized();
 void recibirCaught();
+void recibirAppeared();
 void esperar_cliente(int* socket_servidor);
 void estado_exec();
 void pasar_a_ready();
