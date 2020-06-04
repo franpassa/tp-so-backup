@@ -4,18 +4,28 @@ void cambiarEstado(t_entrenador* entrenador){
 	//CAMBIA EL ENTRENADOR A EXIT O BLOQUEADO
 	if(puedeAtrapar(entrenador)){
 		list_add(entrenador->pokesAtrapados,entrenador->pokemonAMoverse);
+		entrenador->pokemonAMoverse = NULL;
 
 		if(sonIguales(entrenador->pokesAtrapados,entrenador->pokesObjetivos)){
 			list_add(estado_exit,entrenador);
 		}
-		else{
+		else if (list_size(entrenador->pokesObjetivos) != list_size(entrenador->pokesAtrapados)){
 			entrenador->motivoBloqueo = MOTIVO_NADA;
 			pthread_mutex_lock(&mutexEstadoBloqueado);
 			list_add(estado_bloqueado,entrenador);
 			pthread_mutex_unlock(&mutexEstadoBloqueado);
 		}
+		else {
+			entrenador->motivoBloqueo = ESPERA_DEADLOCK;
+			pthread_mutex_lock(&mutexEstadoBloqueado);
+			list_add(estado_bloqueado,entrenador);
+			pthread_mutex_unlock(&mutexEstadoBloqueado);
+		}
 
-	} else if(!sonIguales(entrenador->pokesAtrapados,entrenador->pokesObjetivos)){
+	} else if(sonIguales(entrenador->pokesAtrapados,entrenador->pokesObjetivos)){
+		entrenador->pokemonAMoverse = NULL;
+		list_add(estado_exit,entrenador);
+	} else {
 		entrenador->motivoBloqueo = ESPERA_DEADLOCK;
 		pthread_mutex_lock(&mutexEstadoBloqueado);
 		list_add(estado_bloqueado,entrenador);
@@ -338,21 +348,21 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 
 					cambiarEstado(entrenador);
 
-					pokemonMasCercano(entrenador,pokemons_recibidos);
+					if((entrenador->motivoBloqueo == MOTIVO_NADA)&&(list_size(pokemons_recibidos)>0)){
 
-					if((entrenador->motivoBloqueo == MOTIVO_NADA)&&(list_size(pokemons_recibidos)>0)&&(list_size(estado_ready)==0)){
 						entrenador->pokemonAMoverse = pokemonMasCercano(entrenador,pokemons_recibidos);
-						pthread_mutex_lock(&mutexEstadoReady);
-						list_add(estado_ready,entrenador);
-						pthread_mutex_unlock(&mutexEstadoReady);
 
 						bool esElMismoPokemon(t_pokemon* pokemon){
-							return string_equals_ignore_case(pokemon->nombre,entrenador->pokemonAMoverse->nombre);
-						}
+								return string_equals_ignore_case(pokemon->nombre,entrenador->pokemonAMoverse->nombre);
+							}
 
 						pthread_mutex_lock(&mutexPokemonsRecibidos);
 						list_remove_by_condition(pokemons_recibidos,(void*) esElMismoPokemon);
 						pthread_mutex_unlock(&mutexPokemonsRecibidos);
+
+						pthread_mutex_lock(&mutexEstadoReady);
+						list_add(estado_ready,entrenador);
+						pthread_mutex_unlock(&mutexEstadoReady);
 					}
 				} else {
 					entrenador->pokemonAMoverse = NULL;
