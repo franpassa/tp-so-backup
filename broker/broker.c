@@ -112,7 +112,7 @@ void inicializar(){
 
 	inicializar_colas();
 
-	contador_id = 0;
+	contador_id = 1;
 	static const char* valores_colas[7] = {"NEW_POKEMON","APPEARED_POKEMON","CATCH_POKEMON","CAUGHT_POKEMON","GET_POKEMON","LOCALIZED_POKEMON", "PRODUCTOR"};
 	memcpy(nombres_colas,valores_colas,sizeof(valores_colas));
 

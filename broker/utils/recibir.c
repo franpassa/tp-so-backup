@@ -37,7 +37,8 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 		recv(*socket_escucha, paquete->buffer->stream, paquete->buffer->size, MSG_WAITALL);
 		void* msg = deserializar_buffer(id_cola, paquete->buffer);
 
-		if (revisar_si_mensaje_no_estaba_en_cola(id_cola, msg)){
+		int id_mens_en_cola = revisar_si_mensaje_no_estaba_en_cola(id_cola, msg);
+		if (id_mens_en_cola == 0){
 
 			pthread_mutex_lock(&semaforo_id);
  			uint32_t id_mensaje = crear_nuevo_id();
@@ -49,6 +50,9 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 			agregar_a_cola(id_cola,paquete,id_mensaje);
 			pthread_mutex_unlock(&(sem_cola[id_cola]));
 
+		} else {
+
+			send(*socket_escucha, &id_mens_en_cola, sizeof(uint32_t), 0);
 		}
 	} else {
 
@@ -195,7 +199,7 @@ bool revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_en_buffer) {
 
 	t_cola_de_mensajes* queue_a_revisar = int_a_nombre_cola(id);
 
-	bool mensaje_nuevo = true;
+	int mensaje_nuevo = 0;
 
 	pthread_mutex_lock(&(sem_cola[id]));
 	if (!queue_is_empty(queue_a_revisar->cola)) {
@@ -206,7 +210,7 @@ bool revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_en_buffer) {
 			void* msg = deserializar_buffer(id, elemento_a_testear->paquete->buffer);
 
 			if (es_el_mismo_mensaje(id, msg_en_buffer, msg)) {
-				mensaje_nuevo = false;
+				mensaje_nuevo = elemento_a_testear->id;
 			}
 			queue_push(queue_a_revisar->cola, elemento_a_testear);
 		}
