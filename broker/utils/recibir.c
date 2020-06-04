@@ -8,7 +8,7 @@ void loop_productores(){
 			list_iterate(sockets_productores, (void*) recibir_mensajes_para_broker);
 			sleep(2);
 		}
-	} // Por Ahora
+	}
 
 }
 
@@ -47,7 +47,6 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 
 			pthread_mutex_lock(&(sem_cola[id_cola]));
 			agregar_a_cola(id_cola,paquete,id_mensaje);
-			sem_post(&contenido_cola[id_cola]);
 			pthread_mutex_unlock(&(sem_cola[id_cola]));
 
 		}
@@ -64,7 +63,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 }
 
 
-void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje) { // Terminar esto
+void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje) { // falta probar
 
 	t_cola_de_mensajes* queue = int_a_nombre_cola(id_cola);
 	t_info_mensaje* mensaje = queue_peek(queue->cola);
@@ -81,6 +80,7 @@ void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje) { // Terminar es
 			//esta mal, correguir. Hay que poner el socket subscripto a la cola./
 			list_add(mensaje->quienes_lo_recibieron, id_mensaje);
 
+
 			if (list_size(mensaje->quienes_lo_recibieron) == list_size(queue->lista_suscriptores)) {
 				free(mensaje);
 			}
@@ -95,7 +95,6 @@ void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje) { // Terminar es
 }
 
 uint32_t crear_nuevo_id(){
-
 	contador_id ++;
 	return contador_id;
 }
@@ -105,10 +104,17 @@ void agregar_a_cola(uint32_t id_cola,t_paquete* paquete, int id_mensaje){
 	t_info_mensaje* msg = malloc(sizeof(t_info_mensaje));
 	msg->paquete = paquete;
 	msg->id = id_mensaje;
+
 	msg->quienes_lo_recibieron = list_create();
 	msg->a_quienes_fue_enviado = list_create();
 
+
+	t_list* list = list_create();
+	msg->a_quienes_fue_enviado = list;
+
+
 	queue_push(int_a_nombre_cola(id_cola)->cola, msg);
+
 }
 
 bool es_el_mismo_mensaje(queue_name id, void* mensaje,void* otro_mensaje) {
@@ -198,6 +204,7 @@ bool revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_en_buffer) {
 		}
 	}
 	pthread_mutex_unlock(&(sem_cola[id]));
+
 	return mensaje_nuevo;
 }
 

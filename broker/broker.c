@@ -15,6 +15,7 @@ int main(){
 	pthread_join(hilo_estado_queues,NULL);
 	pthread_join(hilo_suscripciones,NULL);
 	pthread_join(hilo_mensajes,NULL);
+	pthread_join(hilo_enviar_mensaje, NULL);
 
 	close(socket_servidor);
 
@@ -122,7 +123,6 @@ void inicializar(){
 
 	for(int i = 0; i <= 5; i++){
 		pthread_mutex_init(&(sem_cola[i]),NULL);
-		sem_init(&(contenido_cola[i]),0,NULL);
 	}
 }
 
@@ -141,8 +141,11 @@ void estado_de_queues(){
 
 void mostrar_estado_de_una_queue(t_cola_de_mensajes* cola){
 	printf("%s\n", enum_to_string(cola->tipo_cola));
+	printf("MENSAJES\n");
 	recorrer_cola_de_mensajes_para_mostrar(cola);
+	printf("\n");
 	list_iterate(cola->lista_suscriptores,print_list_sockets);
+	printf("\n");
 }
 
 
@@ -193,5 +196,11 @@ void print_mensaje_de_cola(t_info_mensaje* mensaje){
 	list_iterate(mensaje->a_quienes_fue_enviado,print_list_sockets_de_un_mensaje);
 	list_iterate(mensaje->quienes_lo_recibieron,print_list_sockets_de_un_mensaje);
 
+}
+
+void free_mensaje(t_info_mensaje* mensaje){
+	free_paquete(mensaje->paquete);
+	list_destroy_and_destroy_elements(mensaje->a_quienes_fue_enviado,free);
+	free(mensaje);
 
 }
