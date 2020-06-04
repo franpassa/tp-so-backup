@@ -8,7 +8,7 @@ void mandar_mensajes() {
 		if (cola_actual == 6) {
 			cola_actual = NEW_POKEMON;
 		}
-		if (queue_size(int_a_nombre_cola(cola_actual)->cola) != 0) { // sem_trywait(&contenido_cola[cola_actual]) == 0
+		if (queue_size(int_a_nombre_cola(cola_actual)->cola) != 0) {
 			pthread_mutex_lock(&(sem_cola[cola_actual]));
 			recorrer_cola(int_a_nombre_cola(cola_actual));
 			pthread_mutex_unlock(&(sem_cola[cola_actual]));
@@ -27,11 +27,7 @@ void mandar(t_paquete* paquete, uint32_t id, uint32_t sub) {
 
 void recorrer_cola(t_cola_de_mensajes* nombre) {
 
-	if (!queue_is_empty(nombre->cola)) {
-
-		t_list* subs_queue = nombre->lista_suscriptores;
-
-		if (!list_is_empty(subs_queue)) {
+	if (!queue_is_empty(nombre->cola) && list_size(nombre->lista_suscriptores) != 0) {
 
 			t_info_mensaje* info_a_sacar = queue_peek(nombre->cola);
 			uint32_t id_primero = info_a_sacar->id;
@@ -40,8 +36,8 @@ void recorrer_cola(t_cola_de_mensajes* nombre) {
 			do {
 				info_a_sacar = queue_pop(nombre->cola);
 
-				for (int i = 0; i < list_size(subs_queue); i++) {
-					uint32_t* sub = (uint32_t*) list_get(subs_queue, i);
+				for (int i = 0; i < list_size(nombre->lista_suscriptores); i++) {
+					uint32_t* sub = (uint32_t*) list_get(nombre->lista_suscriptores, i);
 					if (!esta_en_lista(info_a_sacar->a_quienes_fue_enviado,sub)) {
 						mandar(info_a_sacar->paquete, info_a_sacar->id, *sub);
 						list_add(info_a_sacar->a_quienes_fue_enviado, sub);
@@ -53,9 +49,8 @@ void recorrer_cola(t_cola_de_mensajes* nombre) {
 
 			} while (id_primero != id_siguiente);
 
-		}
-
 	}
+
 }
 
 bool esta_en_lista(t_list* a_los_que_envie, uint32_t* sub) {
@@ -66,7 +61,5 @@ bool esta_en_lista(t_list* a_los_que_envie, uint32_t* sub) {
 	}
 	return list_any_satisfy(a_los_que_envie, es_igual);
 }
-
-
 
 
