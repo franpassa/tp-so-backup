@@ -157,22 +157,16 @@ void estado_exec()
 void algoritmoFifo(t_entrenador* entrenador)
 {
 	t_pokemon* aMoverse = entrenador->pokemonAMoverse;
-	uint32_t ciclos = 0;
-
 	if (aMoverse!= NULL)
 	{
 		uint32_t distancia = distanciaEntrenadorPokemon(entrenador->posicionX, entrenador->posicionY,aMoverse->posicionX,aMoverse->posicionY);
-		while (ciclos <= distancia)
-		{
-			ciclos++;
-			sleep(retardoCpu);
-		}
+		moverEntrenador(entrenador,aMoverse->posicionX,aMoverse->posicionY,retardoCpu, logger);
 		pthread_mutex_lock(&mutexCiclosConsumidos);
-		ciclosConsumidos += ciclos; //ACUMULO LOS CICLOS DE CPU CONSUMIDOS
+		ciclosConsumidos += distancia; //ACUMULO LOS CICLOS DE CPU CONSUMIDOS
 		pthread_mutex_unlock(&mutexCiclosConsumidos);
-
-		entrenador->posicionX = aMoverse->posicionX;
-		entrenador->posicionY = aMoverse->posicionY;
+		pthread_mutex_lock(&mutexLog);
+		log_info(logger,"el entrenador %d termino de moverse y esta en la pos %d, %d",entrenador->idEntrenador,entrenador->posicionX,entrenador->posicionY);
+		pthread_mutex_unlock(&mutexLog);
 
 		//CONEXION AL BROKER Y ENVIO DE MENSAJE CATCH
 		catch_pokemon_msg* mensaje = catch_msg(aMoverse->nombre,aMoverse->posicionX,aMoverse->posicionY);
@@ -205,6 +199,10 @@ void pasar_a_ready(){
 			pthread_mutex_lock(&mutexPokemonsRecibidos);
 			entrenadorTemporal = entrenadorAReady(listaAPlanificar,pokemons_recibidos);
 			pthread_mutex_unlock(&mutexPokemonsRecibidos);
+			pthread_mutex_lock(&mutexLog);
+			log_info(logger,"el entrenador con id %d paso a la cola ready", entrenadorTemporal->idEntrenador);
+			pthread_mutex_unlock(&mutexLog);
+
 
 			bool es_el_mismo_entrenador(t_entrenador* unEntrenador){
 				return unEntrenador->idEntrenador == entrenadorTemporal->idEntrenador;

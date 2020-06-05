@@ -17,6 +17,24 @@ int main()
 	printf("\n");
 	if (socket_escucha == -1) abort(); //FINALIZA EL PROGRAMA EN CASO DE QUE FALLE LA INICIALIZACION DEL SERVIDOR
 
+	t_pokemon* pikachu = malloc(sizeof(t_pokemon));
+	pikachu->nombre = "pikachu";
+	pikachu->posicionX = 17;
+	pikachu->posicionY = 18;
+
+	t_entrenador* entrenador2 = malloc(sizeof(t_entrenador));
+	entrenador2->idEntrenador =  1;
+	entrenador2->posicionX = 14;
+	entrenador2->posicionY = 15;
+	entrenador2->pokesAtrapados = NULL;
+	entrenador2->pokesObjetivos = NULL;
+	entrenador2->idRecibido = 2;
+	entrenador2->pokemonAMoverse = pikachu;
+	entrenador2->motivoBloqueo = MOTIVO_NADA;
+
+
+	moverEntrenador(entrenador2,pikachu->posicionX,pikachu->posicionY,retardoCpu,logger);
+
 	enviar_gets(objetivos_globales); // ENVIO MENSAJES GET_POKEMON AL BROKER.
 
 	pthread_create(&hilo_pasar_a_ready,NULL,(void*) pasar_a_ready, NULL);
@@ -65,6 +83,7 @@ t_log* crear_log(){
 		return log_team;
 	}
 }
+
 
 void terminar_programa(){
 	log_destroy(logger);
