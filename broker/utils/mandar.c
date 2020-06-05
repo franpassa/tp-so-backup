@@ -27,7 +27,6 @@ int mandar(t_paquete* paquete, uint32_t id, uint32_t sub) {
 		control = -1;
 	} else {
 		send(sub, &id, sizeof(uint32_t), 0); // sino ya mando el msg y el id
-
 	}
 	free(bytes);
 	return control;
@@ -37,7 +36,8 @@ int mandar(t_paquete* paquete, uint32_t id, uint32_t sub) {
 
 void recorrer_cola(t_cola_de_mensajes* nombre) {
 
-	if (!queue_is_empty(nombre->cola) && (list_size(nombre->lista_suscriptores) != 0)) {
+	if (!queue_is_empty(nombre->cola)
+			&& (list_size(nombre->lista_suscriptores) != 0)) {
 
 		t_info_mensaje* info_a_sacar = queue_peek(nombre->cola);
 		uint32_t id_primero = info_a_sacar->id;
@@ -50,29 +50,28 @@ void recorrer_cola(t_cola_de_mensajes* nombre) {
 
 			for (int i = 0; i < list_size(nombre->lista_suscriptores); i++) {
 				uint32_t* sub = (uint32_t*) list_get(nombre->lista_suscriptores,i);
-				if (!esta_en_lista(info_a_sacar->quienes_lo_recibieron, sub)){
-					 if(mandar(info_a_sacar->paquete, info_a_sacar->id, *sub) == -1){
+				if (!esta_en_lista(info_a_sacar->quienes_lo_recibieron, sub)) {
+					if (mandar(info_a_sacar->paquete, info_a_sacar->id, *sub) == -1) {
 
-					sub_suscrito = false;
+						sub_suscrito = false;
 
-					bool es_igual_a(void* uno){
-						uint32_t nro = *(uint32_t*) uno;
-						return nro == *sub;
-					}
+						bool es_igual_a(void* uno) {
+							uint32_t nro = *(uint32_t*) uno;
+							return nro == *sub;
+						}
 
-					list_remove_by_condition(nombre->lista_suscriptores,es_igual_a);
+						list_remove_by_condition(nombre->lista_suscriptores,es_igual_a);
 
-					uint32_t id_afuera = info_a_sacar->id;
-					do {
-						list_remove_by_condition(info_a_sacar->a_quienes_fue_enviado,es_igual_a);
-						list_remove_by_condition(info_a_sacar->quienes_lo_recibieron,es_igual_a);
+						uint32_t id_afuera = info_a_sacar->id;
+						do {
+							list_remove_by_condition(info_a_sacar->a_quienes_fue_enviado,es_igual_a);
+							list_remove_by_condition(info_a_sacar->quienes_lo_recibieron,es_igual_a);
 
-						queue_push(nombre->cola, info_a_sacar);
-						info_a_sacar = queue_pop(nombre->cola);
-						id_siguiente = info_a_sacar->id;
+							queue_push(nombre->cola, info_a_sacar);
+							info_a_sacar = queue_pop(nombre->cola);
+							id_siguiente = info_a_sacar->id;
 
-					} while (id_afuera != id_siguiente);
-
+						} while (id_afuera != id_siguiente);
 
 					}
 					if (!esta_en_lista(info_a_sacar->a_quienes_fue_enviado, sub) && sub_suscrito) {

@@ -47,7 +47,8 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 
 			send(*socket_escucha, &id_mensaje, sizeof(uint32_t), 0);
 
-			printf("MENSAJE NUEVO CON ID: %d A COLA:%s\n",id_mensaje,nombres_colas[id_cola]);
+			printf("MENSAJE NUEVO -- ID: %d -- COLA: %s\n",id_mensaje,nombres_colas[id_cola]);
+			//log_info(logger, " MENSAJE NUEVO -- ID: %d -- COLA: %s ", id_mensaje, nombres_colas[id_cola]);
 
 			pthread_mutex_lock(&(sem_cola[id_cola]));
 			agregar_a_cola(id_cola,paquete,id_mensaje);
