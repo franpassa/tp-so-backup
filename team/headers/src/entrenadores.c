@@ -225,7 +225,26 @@ bool puedeAtrapar(t_entrenador* entrenador){
 }
 
 
+// funcion por si las dudas
+void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu, t_log* logger)
+{
+	while(unEntrenador->posicionY < posY)
+	{
+		sleep(retardoCpu);
+		unEntrenador-> posicionY += 1;
+		pthread_mutex_lock(&mutexLogEntrenador);
+		log_info(logger,"el entrenador %d se movio a la posicion (%d,%d)",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		pthread_mutex_unlock(&mutexLogEntrenador);
+	}
+	while(unEntrenador->posicionX < posX)
+	{
+		sleep(retardoCpu);
+		unEntrenador-> posicionX += 1;
+		pthread_mutex_lock(&mutexLogEntrenador);
+		log_info(logger,"el entrenador %d se movio a la posicion (%d,%d)",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		pthread_mutex_unlock(&mutexLogEntrenador);
+	}
 
-
+}
 
 

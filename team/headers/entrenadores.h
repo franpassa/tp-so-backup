@@ -3,6 +3,8 @@
 
 #include "pokemon.h"
 
+pthread_mutex_t mutexLogEntrenador;
+
 typedef enum{
 	ESPERA_CAUGHT,
 	MOTIVO_NADA,
@@ -65,5 +67,6 @@ bool estaEnLista(t_list* lista, t_entrenador* unEntrenador);
 t_list* listaALaQuePertenece(t_entrenador* unEntrenador);
 
 bool puedeAtrapar(t_entrenador* entrenador);
+void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu, t_log* logger);
 
 #endif /* ENTRENADOR_H_ */
