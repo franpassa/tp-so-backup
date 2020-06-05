@@ -110,7 +110,7 @@ void free_mensaje(t_info_mensaje*);
 
 void mandar_mensajes();
 bool esta_en_lista(t_list*,uint32_t*);
-void mandar(t_paquete* paquete,uint32_t id, uint32_t sub);
+int mandar(t_paquete* paquete,uint32_t id, uint32_t sub);
 void recorrer_cola(t_cola_de_mensajes*);
 
 
