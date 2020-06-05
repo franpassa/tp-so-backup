@@ -22,18 +22,7 @@ int main()
 	pikachu->posicionX = 17;
 	pikachu->posicionY = 18;
 
-	t_entrenador* entrenador2 = malloc(sizeof(t_entrenador));
-	entrenador2->idEntrenador =  1;
-	entrenador2->posicionX = 14;
-	entrenador2->posicionY = 15;
-	entrenador2->pokesAtrapados = NULL;
-	entrenador2->pokesObjetivos = NULL;
-	entrenador2->idRecibido = 2;
-	entrenador2->pokemonAMoverse = pikachu;
-	entrenador2->motivoBloqueo = MOTIVO_NADA;
-
-
-	moverEntrenador(entrenador2,pikachu->posicionX,pikachu->posicionY,retardoCpu,logger);
+	list_add(pokemons_recibidos,pikachu);
 
 	enviar_gets(objetivos_globales); // ENVIO MENSAJES GET_POKEMON AL BROKER.
 
@@ -116,7 +105,6 @@ void inicializarVariables(){
 	sem_init(&semCaught, 0, 1);
 	sem_init(&semLocalized, 0, 1);
 	sem_init(&semAppeared, 0, 1);
-	envioGets = false;
 
 	posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
 	pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
