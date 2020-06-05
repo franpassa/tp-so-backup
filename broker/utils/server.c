@@ -56,7 +56,6 @@ void esperar_cliente(int* socket_servidor) {
 			perror("Error al recibir el mensaje:");
 			printf("Error recibiendo mensaje\n");
 			continue; // vuelve al loop
-
 		}
 
 		if(cola == PRODUCTOR){

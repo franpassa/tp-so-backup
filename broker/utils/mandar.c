@@ -18,7 +18,7 @@ void mandar_mensajes() {
 	}
 }
 
-int mandar(t_paquete* paquete, uint32_t id, uint32_t sub) { // Lo manda infinitamente?
+int mandar(t_paquete* paquete, uint32_t id, uint32_t sub) {
 	int total_bytes = paquete->buffer->size + sizeof(queue_name) + sizeof(uint32_t);
 	void* bytes = serializar_paquete(paquete, total_bytes);
 	int control = 0;

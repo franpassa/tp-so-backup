@@ -25,6 +25,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 		return;
 	}
 
+
 	t_paquete* paquete= malloc(sizeof(t_paquete));
 	paquete->cola_msg = id_cola;
 
@@ -45,6 +46,8 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 			pthread_mutex_unlock(&semaforo_id);
 
 			send(*socket_escucha, &id_mensaje, sizeof(uint32_t), 0);
+
+			printf("MENSAJE NUEVO CON ID: %d A COLA:%s\n",id_mensaje,nombres_colas[id_cola]);
 
 			pthread_mutex_lock(&(sem_cola[id_cola]));
 			agregar_a_cola(id_cola,paquete,id_mensaje);
