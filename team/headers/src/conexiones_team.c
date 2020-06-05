@@ -321,7 +321,7 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 
 		if(mensaje_recibido != NULL){ //Verifico si recibo el mensaje.
 
-			if(necesitoElMensaje(idRecibido)){ //Busco el entrenador que mando el mensaje.
+			if(necesitoElMensaje(mensaje_recibido->id_correlativo)){ //Busco el entrenador que mando el mensaje.
 
 				t_entrenador* entrenador = (t_entrenador*) buscarEntrenador(idRecibido);
 
@@ -363,6 +363,15 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 						pthread_mutex_unlock(&mutexEstadoReady);
 					}
 				} else {
+
+					bool esIgual(uint32_t* unId){
+						return *unId == idRecibido;
+					}
+
+					pthread_mutex_lock(&mutexIdsEnviados);
+					list_remove_and_destroy_by_condition(ids_enviados,(void*) esIgual, free); // Saco el id de la lista de ids_enviados.
+					pthread_mutex_unlock(&mutexIdsEnviados);
+
 					entrenador->pokemonAMoverse = NULL;
 					entrenador->idRecibido = 0;
 					entrenador->motivoBloqueo = MOTIVO_NADA;
