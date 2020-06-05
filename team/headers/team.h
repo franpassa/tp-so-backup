@@ -68,6 +68,8 @@ pthread_mutex_t mutexPokemonsRecibidosHistoricos;
 pthread_mutex_t mutexIdsEnviados;
 pthread_mutex_t mutexReconexion;
 pthread_mutex_t mutexLog;
+pthread_mutex_t mutexLogEntrenador;
+pthread_mutex_t mutexHayEntrenadorProcesando;
 
 sem_t semCaught;
 sem_t semLocalized;

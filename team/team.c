@@ -5,12 +5,12 @@ int main()
 	inicializarPrograma(); //Inicializo logger y config
 	inicializarVariables();
 
-	pthread_t hilo_escucha;
+//	pthread_t hilo_escucha;
 	pthread_t hilo_estado_exec;
 	pthread_t hilo_pasar_a_ready;
-	pthread_t hilo_recibir_localized;
-	pthread_t hilo_recibir_caught;
-	pthread_t hilo_recibir_appeared;
+//	pthread_t hilo_recibir_localized;
+//	pthread_t hilo_recibir_caught;
+//	pthread_t hilo_recibir_appeared;
 
 	printf("\n");
 	int socket_escucha = iniciar_servidor(IP,PUERTO);
@@ -22,28 +22,35 @@ int main()
 	pikachu->posicionX = 17;
 	pikachu->posicionY = 18;
 
+	t_pokemon* squirtle = malloc(sizeof(t_pokemon));
+	squirtle->nombre = "squirtle";
+	squirtle->posicionX = 2;
+	squirtle->posicionY = 3;
+
 	list_add(pokemons_recibidos,pikachu);
+
+	list_add(pokemons_recibidos,squirtle);
 
 	enviar_gets(objetivos_globales); // ENVIO MENSAJES GET_POKEMON AL BROKER.
 
 	pthread_create(&hilo_pasar_a_ready,NULL,(void*) pasar_a_ready, NULL);
 
-	pthread_create(&hilo_escucha,NULL,(void*) esperar_cliente, &socket_escucha);
-
+//	pthread_create(&hilo_escucha,NULL,(void*) esperar_cliente, &socket_escucha);
+//
 	pthread_create(&hilo_estado_exec, NULL, (void*) estado_exec, NULL);
+//
+//	pthread_create(&hilo_recibir_localized, NULL, (void*) recibirLocalized, NULL);
+//
+//	pthread_create(&hilo_recibir_caught, NULL, (void*) recibirCaught, NULL);
+//
+//	pthread_create(&hilo_recibir_appeared, NULL, (void*) recibirAppeared, NULL);
 
-	pthread_create(&hilo_recibir_localized, NULL, (void*) recibirLocalized, NULL);
-
-	pthread_create(&hilo_recibir_caught, NULL, (void*) recibirCaught, NULL);
-
-	pthread_create(&hilo_recibir_appeared, NULL, (void*) recibirAppeared, NULL);
-
-	pthread_join(hilo_escucha, NULL);
+//	pthread_join(hilo_escucha, NULL);
 	pthread_join(hilo_estado_exec, NULL);
 	pthread_join(hilo_pasar_a_ready, NULL);
-	pthread_join(hilo_recibir_localized, NULL);
-	pthread_join(hilo_recibir_appeared, NULL);
-	pthread_join(hilo_recibir_caught, NULL);
+//	pthread_join(hilo_recibir_localized, NULL);
+//	pthread_join(hilo_recibir_appeared, NULL);
+//	pthread_join(hilo_recibir_caught, NULL);
 	terminar_programa(); //Finalizo el programa
 
 	close(socket_escucha);
@@ -102,6 +109,9 @@ void inicializarVariables(){
 	pthread_mutex_init(&mutexIdsEnviados, NULL);
 	pthread_mutex_init(&mutexPokemonsRecibidos, NULL);
 	pthread_mutex_init(&mutexPokemonsRecibidosHistoricos, NULL);
+	pthread_mutex_init(&mutexLog, NULL);
+	pthread_mutex_init(&mutexLogEntrenador, NULL);
+	pthread_mutex_init(&mutexHayEntrenadorProcesando, NULL);
 	sem_init(&semCaught, 0, 1);
 	sem_init(&semLocalized, 0, 1);
 	sem_init(&semAppeared, 0, 1);

@@ -1,4 +1,5 @@
 #include "../entrenadores.h"
+#include <pthread.h>
 
 uint32_t posicionXEntrenador(int nroEntrenador, char** posicionesEntrenadores){
 	char* posTemp = posicionesEntrenadores[nroEntrenador];
@@ -106,7 +107,7 @@ void mostrarEntrenador(void* entrenador)
 	list_iterate((((t_entrenador*)entrenador)->pokesAtrapados),mostrarString);
 	printf("\nLos pokemon obtenidos del entrenador son: \n");
 	list_iterate((((t_entrenador*)entrenador)->pokesObjetivos),mostrarString);
-	//mostrarPokemon(((t_entrenador*)entrenador)->pokemonAMoverse);
+	if(((t_entrenador*)entrenador)->pokemonAMoverse != NULL){mostrarPokemon(((t_entrenador*)entrenador)->pokemonAMoverse);}
 
 }
 
@@ -139,7 +140,8 @@ void setearEnCeroEntrenador (t_entrenador* unEntrenador)
 // devuelve el pokemon de la lista que esta mas cerca a un entrenador
 t_pokemon*  pokemonMasCercano (t_entrenador* unEntrenador, t_list* pokemons)
 {
-	t_pokemon* pokemonFlag = list_get(pokemons,0);
+	t_pokemon* pokemonFlag = malloc(sizeof(t_pokemon));
+	igualarPokemons(pokemonFlag,list_get(pokemons,0));
 
 	for(int i = 0; i < (list_size(pokemons)-1); i++)
 	{
@@ -182,6 +184,7 @@ t_entrenador* entrenadorAReady(t_list* listaEntrenadores, t_list* listaPokemons)
 				}
 		}
 	}
+
 	return entrenadorFlag;
 }
 
