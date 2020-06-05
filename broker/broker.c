@@ -106,13 +106,14 @@ t_cola_de_mensajes* int_a_nombre_cola(queue_name id){
 
 void inicializar(){
 
+	signal(SIGPIPE,SIG_IGN);
 
 	config = leer_config();
 	logger = iniciar_logger();
 
 	inicializar_colas();
 
-	contador_id = 1;
+	contador_id = 0;
 	static const char* valores_colas[7] = {"NEW_POKEMON","APPEARED_POKEMON","CATCH_POKEMON","CAUGHT_POKEMON","GET_POKEMON","LOCALIZED_POKEMON", "PRODUCTOR"};
 	memcpy(nombres_colas,valores_colas,sizeof(valores_colas));
 
@@ -180,8 +181,13 @@ void print_list_sockets(void* numero){
 }
 
 void print_list_sockets_de_un_mensaje(void* numero){
-	printf("MENSAJE RECIBIDO POR: %d\n", *(int*) numero);
+	printf("ENVIADO A: %d\n", *(int*) numero);
 }
+
+void print_list_sockets_ACK_de_un_mensaje(void* numero){
+	printf("CONFIRMADO POR: %d\n", *(int*) numero);
+}
+
 
 void print_mensaje_de_cola(t_info_mensaje* mensaje){
 
@@ -194,7 +200,7 @@ void print_mensaje_de_cola(t_info_mensaje* mensaje){
 	print_msg(id_cola, msg);
 
 	list_iterate(mensaje->a_quienes_fue_enviado,print_list_sockets_de_un_mensaje);
-	list_iterate(mensaje->quienes_lo_recibieron,print_list_sockets_de_un_mensaje);
+	list_iterate(mensaje->quienes_lo_recibieron,print_list_sockets_ACK_de_un_mensaje); // ACK
 
 }
 
