@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <signal.h>
 
 // CONEXIONES
 #include <sys/socket.h>
@@ -23,7 +24,7 @@ typedef struct {
 	uint32_t id;
 	t_paquete* paquete;
 	t_list* a_quienes_fue_enviado;
-	t_list* quienes_lo_recibieron;
+	t_list* quienes_lo_recibieron; // ACK
 } t_info_mensaje;
 
 typedef struct {
@@ -80,6 +81,7 @@ void estado_de_queues();
 void print_list_sockets(void* numero);
 void print_mensaje_de_cola(t_info_mensaje*);
 void print_list_sockets_de_un_mensaje(void* numero);
+void print_list_sockets_ACK_de_un_mensaje(void*);
 void recorrer_cola_de_mensajes_para_mostrar(t_cola_de_mensajes*);
 
 // FUNCIONES DE LOG Y CONFIG
@@ -103,7 +105,7 @@ void confirmar_mensaje(queue_name,uint32_t,int);
 uint32_t crear_nuevo_id();
 void agregar_a_cola(uint32_t,t_paquete*, int);
 bool es_el_mismo_mensaje(queue_name, void*,void*);
-bool revisar_si_mensaje_no_estaba_en_cola(queue_name, void*);
+int revisar_si_mensaje_no_estaba_en_cola(queue_name, void*);
 void free_mensaje(t_info_mensaje*);
 
 // Mandar
