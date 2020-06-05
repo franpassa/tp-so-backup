@@ -12,26 +12,26 @@ int main()
 //	pthread_t hilo_recibir_caught;
 //	pthread_t hilo_recibir_appeared;
 
-	printf("\n");
-	int socket_escucha = iniciar_servidor(IP,PUERTO);
-	printf("\n");
-	if (socket_escucha == -1) abort(); //FINALIZA EL PROGRAMA EN CASO DE QUE FALLE LA INICIALIZACION DEL SERVIDOR
+//	printf("\n");
+//	int socket_escucha = iniciar_servidor(IP,PUERTO);
+//	printf("\n");
+//	if (socket_escucha == -1) abort(); //FINALIZA EL PROGRAMA EN CASO DE QUE FALLE LA INICIALIZACION DEL SERVIDOR
 
 	t_pokemon* pikachu = malloc(sizeof(t_pokemon));
-	pikachu->nombre = "pikachu";
-	pikachu->posicionX = 17;
-	pikachu->posicionY = 18;
+	pikachu->nombre = "penitis";
+	pikachu->posicionX = 10;
+	pikachu->posicionY = 17;
 
 	t_pokemon* squirtle = malloc(sizeof(t_pokemon));
-	squirtle->nombre = "squirtle";
-	squirtle->posicionX = 2;
-	squirtle->posicionY = 3;
+	squirtle->nombre = "EL QUE LA TIENE MAS LARGONATOR";
+	squirtle->posicionX = 1000;
+	squirtle->posicionY = 200;
 
 	list_add(pokemons_recibidos,pikachu);
 
 	list_add(pokemons_recibidos,squirtle);
 
-	enviar_gets(objetivos_globales); // ENVIO MENSAJES GET_POKEMON AL BROKER.
+//	enviar_gets(objetivos_globales); // ENVIO MENSAJES GET_POKEMON AL BROKER.
 
 	pthread_create(&hilo_pasar_a_ready,NULL,(void*) pasar_a_ready, NULL);
 
@@ -52,8 +52,6 @@ int main()
 //	pthread_join(hilo_recibir_appeared, NULL);
 //	pthread_join(hilo_recibir_caught, NULL);
 	terminar_programa(); //Finalizo el programa
-
-	close(socket_escucha);
 
 	return 0;
 }
