@@ -137,18 +137,26 @@ void estado_exec()
 		{
 			if (string_equals_ignore_case(ALGORITMO, "FIFO"))
 			{
-				t_entrenador* unEntrenador = (t_entrenador*) list_get(estado_ready,0);
+				if(!hayEntrenadorProcesando){
+					pthread_mutex_lock(&mutexHayEntrenadorProcesando);
+					hayEntrenadorProcesando = true;
+					pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
 
-				bool esElMismo(t_entrenador* entrenador)
-				{
-					return entrenador->idEntrenador == unEntrenador->idEntrenador;
+					t_entrenador* unEntrenador = (t_entrenador*) list_get(estado_ready,0);
+
+					bool esElMismo(t_entrenador* entrenador)
+					{
+						return entrenador->idEntrenador == unEntrenador->idEntrenador;
+					}
+
+					list_remove_by_condition(listaALaQuePertenece(unEntrenador),(void*) esElMismo);
+
+					algoritmoFifo(unEntrenador);
+
+					pthread_mutex_lock(&mutexHayEntrenadorProcesando);
+					hayEntrenadorProcesando = false;
+					pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
 				}
-
-				hayEntrenadorProcesando = true;
-
-				list_remove_by_condition(listaALaQuePertenece(unEntrenador),(void*) esElMismo);
-
-				algoritmoFifo(unEntrenador);
 			}
 		}
 	}
@@ -173,6 +181,7 @@ void algoritmoFifo(t_entrenador* entrenador)
 		uint32_t* idMensajeExec = malloc(sizeof(int)); // no se libera aca porque se libera cuando liberamos  ids enviados
 		*idMensajeExec = enviar_mensaje(ip_broker,puerto_broker,CATCH_POKEMON,mensaje,true);
 
+		printf("Envio mensaje catch %s, posicion: (%d,%d), id: %d.\n",mensaje->nombre_pokemon,mensaje->coordenada_X,mensaje->coordenada_Y,*idMensajeExec);
 		if (*idMensajeExec == -1)
 		{
 			cambiarEstado(entrenador);
@@ -189,16 +198,14 @@ void algoritmoFifo(t_entrenador* entrenador)
 }
 
 void pasar_a_ready(){
-	t_entrenador* entrenadorTemporal;
-	t_list* listaAPlanificar;
-
 	while(1){
 		if(list_size(pokemons_recibidos)>0){
-			listaAPlanificar = todosLosEntrenadoresAPlanificar();
+			t_list* listaAPlanificar = todosLosEntrenadoresAPlanificar();
 
 			pthread_mutex_lock(&mutexPokemonsRecibidos);
-			entrenadorTemporal = entrenadorAReady(listaAPlanificar,pokemons_recibidos);
+			t_entrenador* entrenadorTemporal = entrenadorAReady(listaAPlanificar,pokemons_recibidos);
 			pthread_mutex_unlock(&mutexPokemonsRecibidos);
+
 			pthread_mutex_lock(&mutexLog);
 			log_info(logger,"el entrenador con id %d paso a la cola ready", entrenadorTemporal->idEntrenador);
 			pthread_mutex_unlock(&mutexLog);
@@ -209,11 +216,14 @@ void pasar_a_ready(){
 			}
 
 			//Aca tengo que poner mutex??
-			list_remove_by_condition(listaALaQuePertenece(entrenadorTemporal),(void*) es_el_mismo_entrenador);
+			t_list* lista = listaALaQuePertenece(entrenadorTemporal);
+			list_remove_by_condition(lista,(void*) es_el_mismo_entrenador);
 
 			pthread_mutex_lock(&mutexEstadoReady);
 			list_add(estado_ready,entrenadorTemporal);
 			pthread_mutex_unlock(&mutexEstadoReady);
+
+			//list_iterate(estado_ready,mostrarEntrenador);
 
 			bool es_el_mismo_pokemon(t_pokemon* pokemon){
 				return string_equals_ignore_case(pokemon->nombre, (entrenadorTemporal->pokemonAMoverse)->nombre);
