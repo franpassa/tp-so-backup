@@ -5,7 +5,7 @@
 #define PATH_CONFIG "/home/utnso/workspace/tp-2020-1c-Cuarenteam/team/team.config"
 #define PATH_LOG "/home/utnso/workspace/tp-2020-1c-Cuarenteam/team/team.log"
 #define IP "127.0.0.1"
-#define PUERTO "9090"
+#define PUERTO "9080"
 
 
 // general
@@ -32,8 +32,6 @@
 #include "conexiones_team.h"
 
 //VARIABLES GLOBALES
-
-
 
 t_log* logger;
 
@@ -68,7 +66,6 @@ pthread_mutex_t mutexPokemonsRecibidosHistoricos;
 pthread_mutex_t mutexIdsEnviados;
 pthread_mutex_t mutexReconexion;
 pthread_mutex_t mutexLog;
-pthread_mutex_t mutexLogEntrenador;
 pthread_mutex_t mutexHayEntrenadorProcesando;
 
 sem_t semCaught;

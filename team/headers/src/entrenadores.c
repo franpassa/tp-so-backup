@@ -1,5 +1,4 @@
 #include "../entrenadores.h"
-#include <pthread.h>
 
 uint32_t posicionXEntrenador(int nroEntrenador, char** posicionesEntrenadores){
 	char* posTemp = posicionesEntrenadores[nroEntrenador];
@@ -237,6 +236,7 @@ void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,ui
 		unEntrenador-> posicionY += 1;
 		pthread_mutex_lock(&mutexLogEntrenador);
 		log_info(logger,"el entrenador %d se movio a la posicion (%d,%d)",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
 		pthread_mutex_unlock(&mutexLogEntrenador);
 	}
 	while(unEntrenador->posicionX < posX)
@@ -245,6 +245,7 @@ void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,ui
 		unEntrenador-> posicionX += 1;
 		pthread_mutex_lock(&mutexLogEntrenador);
 		log_info(logger,"el entrenador %d se movio a la posicion (%d,%d)",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
 		pthread_mutex_unlock(&mutexLogEntrenador);
 	}
 

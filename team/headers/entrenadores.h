@@ -2,8 +2,7 @@
 #define ENTRENADOR_H_
 
 #include "pokemon.h"
-
-pthread_mutex_t mutexLogEntrenador;
+#include <pthread.h>
 
 typedef enum{
 	ESPERA_CAUGHT,
@@ -28,6 +27,8 @@ t_list* estado_new;
 // entrenadores en block
 t_list* estado_bloqueado;
 t_list* estado_ready;
+
+pthread_mutex_t mutexLogEntrenador;
 
 // posiciones
 uint32_t posicionXEntrenador(int nroEntrenador, char** posicionesEntrenadores);
