@@ -23,10 +23,10 @@ int mandar(t_paquete* paquete, uint32_t id, uint32_t sub) {
 	void* bytes = serializar_paquete(paquete, total_bytes);
 	int control = 0;
 
-	if (send(sub, bytes, total_bytes, 0) == -1) { // por si el socket se desconecta
+	if (send(sub, bytes, total_bytes, 0) == -1) {
 		control = -1;
 	} else {
-		send(sub, &id, sizeof(uint32_t), 0); // sino ya mando el msg y el id
+		send(sub, &id, sizeof(uint32_t), 0);
 	}
 	free(bytes);
 	return control;
@@ -36,8 +36,7 @@ int mandar(t_paquete* paquete, uint32_t id, uint32_t sub) {
 
 void recorrer_cola(t_cola_de_mensajes* nombre) {
 
-	if (!queue_is_empty(nombre->cola)
-			&& (list_size(nombre->lista_suscriptores) != 0)) {
+	if (!queue_is_empty(nombre->cola) && (list_size(nombre->lista_suscriptores) != 0)) {
 
 		t_info_mensaje* info_a_sacar = queue_peek(nombre->cola);
 		uint32_t id_primero = info_a_sacar->id;
@@ -60,12 +59,12 @@ void recorrer_cola(t_cola_de_mensajes* nombre) {
 							return nro == *sub;
 						}
 
-						list_remove_by_condition(nombre->lista_suscriptores,es_igual_a);
+						list_remove_and_destroy_by_condition(nombre->lista_suscriptores,es_igual_a,free);
 
 						uint32_t id_afuera = info_a_sacar->id;
 						do {
-							list_remove_by_condition(info_a_sacar->a_quienes_fue_enviado,es_igual_a);
-							list_remove_by_condition(info_a_sacar->quienes_lo_recibieron,es_igual_a);
+							list_remove_and_destroy_by_condition(info_a_sacar->a_quienes_fue_enviado,es_igual_a,free);
+							list_remove_and_destroy_by_condition(info_a_sacar->quienes_lo_recibieron,es_igual_a,free);
 
 							queue_push(nombre->cola, info_a_sacar);
 							info_a_sacar = queue_pop(nombre->cola);
