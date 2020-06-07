@@ -125,6 +125,10 @@ void inicializar(){
 	for(int i = 0; i <= 5; i++){
 		pthread_mutex_init(&(sem_cola[i]),NULL);
 	}
+
+
+	inicializar_memoria();
+
 }
 
 void estado_de_queues(){

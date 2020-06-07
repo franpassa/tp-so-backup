@@ -37,6 +37,17 @@ typedef struct {
 	queue_name tipo_cola;
 } t_cola_de_mensajes;
 
+// MEMORIA
+
+typedef struct {
+	int tipo_mensaje;
+	int tamanio;
+	int id;
+	int bit_inicio;
+	int orden;
+	int uso;
+}t_struct_secundaria;
+
 // VARIABLES GLOBALES
 
 t_cola_de_mensajes* QUEUE_NEW_POKEMON;
@@ -51,8 +62,17 @@ t_list* sockets_productores;
 t_log* logger;
 t_config* config;
 
+char* memoria;
 int contador_id;
 char* nombres_colas[7];
+
+t_list* struct_secundaria;
+
+t_struct_secundaria* structura;
+int flag;
+int entra;
+
+int cont_orden;
 
 // SEMAFOROS
 
