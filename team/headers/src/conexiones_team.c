@@ -248,10 +248,16 @@ void recibirAppeared() {
 		sem_post(&semAppeared);
 
 		if (mensaje_recibido_appeared != NULL) {
-				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
 			if ((estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),objetivos_globales)) && (!(estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),pokemons_recibidos_historicos)))) {
+
+				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
 				agregarAppearedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_appeared);
 				pthread_mutex_unlock(&mutexPokemonsRecibidosHistoricos);
+
+				pthread_mutex_lock(&mutexPokemonsRecibidos);
+				agregarAppearedRecibidoALista(pokemons_recibidos,mensaje_recibido_appeared);
+				pthread_mutex_unlock(&mutexPokemonsRecibidos);
+
 				t_list* entrenadoresAPlanificar = todosLosEntrenadoresAPlanificar();
 				pthread_mutex_lock(&mutexPokemonsRecibidos);
 				t_entrenador* entrenadorReady = entrenadorAReady(entrenadoresAPlanificar, pokemons_recibidos);
@@ -267,7 +273,7 @@ void recibirAppeared() {
 				list_add(estado_ready,entrenadorAReady);
 				pthread_mutex_unlock(&mutexEstadoReady);
 
-				free(entrenadoresAPlanificar);
+				list_destroy(entrenadoresAPlanificar);
 			}
 		} else {
 			close(socket_appeared);
@@ -289,10 +295,19 @@ void recibirLocalized() { // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 		sem_post(&semLocalized);
 
 		if (mensaje_recibido_localized != NULL) {
+
+			if ((estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),objetivos_globales))&&
+					(!(estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),pokemons_recibidos_historicos)))&&
+					necesitoElMensaje(mensaje_recibido_localized->id_correlativo)){
+
 				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
-			if ((estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),objetivos_globales)) && (!(estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),pokemons_recibidos_historicos)))) {
 				agregarLocalizedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_localized);
 				pthread_mutex_unlock(&mutexPokemonsRecibidosHistoricos);
+
+				pthread_mutex_lock(&mutexPokemonsRecibidos);
+				agregarLocalizedRecibidoALista(pokemons_recibidos,mensaje_recibido_localized);
+				pthread_mutex_unlock(&mutexPokemonsRecibidos);
+
 				t_list* entrenadoresAPlanificar = todosLosEntrenadoresAPlanificar();
 				pthread_mutex_lock(&mutexPokemonsRecibidos);
 				t_entrenador* entrenadorReady = entrenadorAReady(entrenadoresAPlanificar, pokemons_recibidos);
@@ -308,7 +323,7 @@ void recibirLocalized() { // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 				list_add(estado_ready,entrenadorAReady);
 				pthread_mutex_unlock(&mutexEstadoReady);
 
-				free(entrenadoresAPlanificar);
+				list_destroy(entrenadoresAPlanificar);
 			}
 		} else {
 			close(socket_localized);
@@ -333,12 +348,12 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 
 			if(necesitoElMensaje(mensaje_recibido->id_correlativo)){ //Busco el entrenador que mando el mensaje.
 
-				t_entrenador* entrenador = (t_entrenador*) buscarEntrenador(idRecibido);
+				t_entrenador* entrenador = (t_entrenador*) buscarEntrenador(mensaje_recibido->id_correlativo);
 
 				if(mensaje_recibido->resultado == 1){ //Verifico que la respuesta del mensaje sea SI. *****FALTA REVISAR*****
 
 					bool esIgual(uint32_t* unId){
-						return *unId == idRecibido;
+						return *unId == mensaje_recibido->id_correlativo;
 					}
 
 					pthread_mutex_lock(&mutexIdsEnviados);
