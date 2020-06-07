@@ -60,12 +60,12 @@ void terminar_programa(t_log* logger, t_config* config){
 }
 
 
-void inicializar_cola(t_cola_de_mensajes** nombre_cola, queue_name cola){
+void inicializar_cola(t_cola_de_mensajes** nombre_cola, queue_name id_cola){
 
 	*nombre_cola = malloc(sizeof(t_cola_de_mensajes));
 	(*nombre_cola)->cola = queue_create();
 	(*nombre_cola)->lista_suscriptores = list_create();
-	(*nombre_cola)->tipo_cola = cola;
+	(*nombre_cola)->tipo_cola = id_cola;
 
 }
 
@@ -209,4 +209,10 @@ void free_mensaje(t_info_mensaje* mensaje){
 	list_destroy_and_destroy_elements(mensaje->a_quienes_fue_enviado,free);
 	free(mensaje);
 
+}
+
+void free_queue(t_cola_de_mensajes* cola_de_mensajes){
+	queue_clean_and_destroy_elements(cola_de_mensajes->cola,free);
+	list_clean_and_destroy_elements(cola_de_mensajes->cola,free);
+	free(cola_de_mensajes);
 }
