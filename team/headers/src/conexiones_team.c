@@ -77,6 +77,10 @@ void esperar_cliente(int* socket_servidor) {
 		int socket_cliente = accept(*socket_servidor, (void*) &dir_cliente,(socklen_t*) &tam_direccion);
 		printf("Nuevo cliente entrante: %d\n", socket_cliente);
 
+		queue_name cola;
+
+		recv(socket_cliente,&cola,sizeof(queue_name),MSG_WAITALL);
+
 		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_cliente,&id);
 
 		if (mensaje_recibido_appeared != NULL) {
@@ -90,23 +94,6 @@ void esperar_cliente(int* socket_servidor) {
 				pthread_mutex_lock(&mutexPokemonsRecibidos);
 				agregarAppearedRecibidoALista(pokemons_recibidos,mensaje_recibido_appeared);
 				pthread_mutex_unlock(&mutexPokemonsRecibidos);
-
-				t_list* entrenadoresAPlanificar = todosLosEntrenadoresAPlanificar();
-				pthread_mutex_lock(&mutexPokemonsRecibidos);
-				t_entrenador* entrenadorReady = entrenadorAReady(entrenadoresAPlanificar, pokemons_recibidos);
-				pthread_mutex_unlock(&mutexPokemonsRecibidos);
-
-				bool esElMismo(t_entrenador* entrenador) {
-					return entrenador->idEntrenador == entrenadorReady->idEntrenador;
-				}
-
-				list_remove_by_condition(listaALaQuePertenece(entrenadorReady),(void*) esElMismo);
-
-				pthread_mutex_lock(&mutexEstadoReady);
-				list_add(estado_ready,entrenadorAReady);
-				pthread_mutex_unlock(&mutexEstadoReady);
-
-				list_destroy(entrenadoresAPlanificar);
 			}
 		}
 	}
@@ -194,7 +181,6 @@ void pasar_a_ready(){
 			log_info(logger,"el entrenador con id %d paso a la cola ready", entrenadorTemporal->idEntrenador);
 			pthread_mutex_unlock(&mutexLog);
 
-
 			bool es_el_mismo_entrenador(t_entrenador* unEntrenador){
 				return unEntrenador->idEntrenador == entrenadorTemporal->idEntrenador;
 			}
@@ -206,8 +192,6 @@ void pasar_a_ready(){
 			pthread_mutex_lock(&mutexEstadoReady);
 			list_add(estado_ready,entrenadorTemporal);
 			pthread_mutex_unlock(&mutexEstadoReady);
-
-			//list_iterate(estado_ready,mostrarEntrenador);
 
 			bool es_el_mismo_pokemon(t_pokemon* pokemon){
 				return string_equals_ignore_case(pokemon->nombre, (entrenadorTemporal->pokemonAMoverse)->nombre);
@@ -241,23 +225,6 @@ void recibirAppeared() {
 				pthread_mutex_lock(&mutexPokemonsRecibidos);
 				agregarAppearedRecibidoALista(pokemons_recibidos,mensaje_recibido_appeared);
 				pthread_mutex_unlock(&mutexPokemonsRecibidos);
-
-				t_list* entrenadoresAPlanificar = todosLosEntrenadoresAPlanificar();
-				pthread_mutex_lock(&mutexPokemonsRecibidos);
-				t_entrenador* entrenadorReady = entrenadorAReady(entrenadoresAPlanificar, pokemons_recibidos);
-				pthread_mutex_unlock(&mutexPokemonsRecibidos);
-
-				bool esElMismo(t_entrenador* entrenador) {
-					return entrenador->idEntrenador == entrenadorReady->idEntrenador;
-				}
-
-				list_remove_by_condition(listaALaQuePertenece(entrenadorReady),(void*) esElMismo);
-
-				pthread_mutex_lock(&mutexEstadoReady);
-				list_add(estado_ready,entrenadorAReady);
-				pthread_mutex_unlock(&mutexEstadoReady);
-
-				list_destroy(entrenadoresAPlanificar);
 			}
 		} else {
 			close(socket_appeared);
@@ -291,23 +258,6 @@ void recibirLocalized() { // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 				pthread_mutex_lock(&mutexPokemonsRecibidos);
 				agregarLocalizedRecibidoALista(pokemons_recibidos,mensaje_recibido_localized);
 				pthread_mutex_unlock(&mutexPokemonsRecibidos);
-
-				t_list* entrenadoresAPlanificar = todosLosEntrenadoresAPlanificar();
-				pthread_mutex_lock(&mutexPokemonsRecibidos);
-				t_entrenador* entrenadorReady = entrenadorAReady(entrenadoresAPlanificar, pokemons_recibidos);
-				pthread_mutex_unlock(&mutexPokemonsRecibidos);
-
-				bool esElMismo(t_entrenador* entrenador) {
-					return entrenador->idEntrenador == entrenadorReady->idEntrenador;
-				}
-
-				list_remove_and_destroy_by_condition(listaALaQuePertenece(entrenadorReady),(void*) esElMismo, liberarEntrenador);
-
-				pthread_mutex_lock(&mutexEstadoReady);
-				list_add(estado_ready,entrenadorAReady);
-				pthread_mutex_unlock(&mutexEstadoReady);
-
-				list_destroy(entrenadoresAPlanificar);
 			}
 		} else {
 			close(socket_localized);

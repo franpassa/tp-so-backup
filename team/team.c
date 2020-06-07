@@ -6,11 +6,11 @@ int main()
 	inicializarVariables();
 
 	pthread_t hilo_escucha;
-	pthread_t hilo_estado_exec;
-	pthread_t hilo_pasar_a_ready;
 //	pthread_t hilo_recibir_localized;
 //	pthread_t hilo_recibir_caught;
 //	pthread_t hilo_recibir_appeared;
+	pthread_t hilo_estado_exec;
+	pthread_t hilo_pasar_a_ready;
 
 	printf("\n");
 	int socket_escucha = iniciar_servidor(IP,PUERTO);
@@ -19,13 +19,15 @@ int main()
 
 //	t_pokemon* pikachu = malloc(sizeof(t_pokemon));
 //	pikachu->nombre = "penitis";
-//	pikachu->posicionX = 10;
-//	pikachu->posicionY = 17;
+//	pikachu->posicionX = 1;
+//	pikachu->posicionY = 2;
 //
 //	t_pokemon* squirtle = malloc(sizeof(t_pokemon));
 //	squirtle->nombre = "EL QUE LA TIENE MAS LARGONATOR";
-//	squirtle->posicionX = 14;
-//	squirtle->posicionY = 19;
+//	squirtle->posicionX = 2;
+//	squirtle->posicionY = 2;
+//
+//	t_entrenador* entrenador = list_get(estado_new,0);
 //
 //	list_add(pokemons_recibidos,pikachu);
 //
@@ -126,6 +128,7 @@ void inicializarVariables(){
 	estado_new = crearListaDeEntrenadores(posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
 	pokemons_objetivos = crearListaPokesObjetivos(estado_new);
 	objetivos_globales = crearListaObjetivoGlobal(pokemons_objetivos);
+	hayEntrenadorProcesando = false;
 }
 
 void liberarVariables()
