@@ -224,7 +224,7 @@ uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructur
 		perror("Error enviando mensaje");
 		return -1;
 	}
-
+// si hay error arriba esta funcion no libera nada, hacer funcion para liberar mensaje.
 	free(paquete->buffer->stream);
 	free(paquete->buffer);
 	free(paquete);
