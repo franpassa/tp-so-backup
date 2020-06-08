@@ -156,7 +156,7 @@ bool estaEnLaLista(char* unNombre, t_list* listadoDePokemons)
 {
 	for(int i = 0; i< list_size(listadoDePokemons); i++)
 	{
-		if(strcmp(unNombre,((t_especie*)list_get(listadoDePokemons,i))->especie)==0)
+		if(string_equals_ignore_case(unNombre,((t_especie*)list_get(listadoDePokemons,i))->especie))
 		{
 			return true;
 		}
