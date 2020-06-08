@@ -54,7 +54,7 @@ int flag;
 int entra;
 
 int cont_orden;
-
+int tamanio_memoria;
 t_list* estructura_secundaria;
 
 // VARIABLES GLOBALES
