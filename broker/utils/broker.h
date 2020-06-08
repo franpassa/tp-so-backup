@@ -22,7 +22,6 @@
 
 typedef struct {
 	uint32_t id;
-	t_paquete* paquete;
 	t_list* a_quienes_fue_enviado;
 	t_list* quienes_lo_recibieron; // ACK
 } t_info_mensaje;
@@ -44,14 +43,14 @@ typedef struct {
 	int tamanio;
 	int id;
 	int bit_inicio;
-	int orden;
-	int uso;
+	int auxiliar;
 }t_struct_secundaria;
 
 char* memoria;
 t_struct_secundaria* estructura;
 int flag;
 int entra;
+int tamanio_a_ocupar;
 
 int cont_orden;
 int tamanio_memoria;
@@ -125,7 +124,7 @@ void loop_productores();
 void recibir_mensajes_para_broker(int*);
 void confirmar_mensaje(queue_name, uint32_t,int);
 uint32_t crear_nuevo_id();
-void agregar_a_cola(uint32_t, t_paquete*, int);
+void agregar_a_cola(uint32_t,uint32_t,void*,int);
 bool es_el_mismo_mensaje(queue_name, void*,void*);
 int revisar_si_mensaje_no_estaba_en_cola(queue_name, void*);
 void free_mensaje(t_info_mensaje*);
@@ -134,16 +133,20 @@ void free_mensaje(t_info_mensaje*);
 
 void mandar_mensajes();
 bool esta_en_lista(t_list*, uint32_t*);
-int mandar(t_paquete*, uint32_t, uint32_t);
+int mandar(queue_name, void*, int,int);
 void recorrer_cola(t_cola_de_mensajes*);
 
 // MEMORIA
 
 void inicializar_memoria();
 void almacenar(void*, int, int , int);
-int paso_1(int);
-int paso_2(int);
-int paso_3(int);
+void paso_1();
+void paso_2();
+void paso_3();
 int cont_orden_f();
+void actualizar_bit_inicio(int);
+void mover_memoria(int);
+void* de_id_mensaje_a_mensaje(int);
+int de_id_mensaje_a_cola(int);
 
 #endif /* BROKER_H_ */

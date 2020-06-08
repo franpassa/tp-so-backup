@@ -198,10 +198,9 @@ void print_mensaje_de_cola(t_info_mensaje* mensaje){
 	uint32_t id_mensaje = mensaje->id;
 	printf("ID: %d\n",id_mensaje);
 
-	queue_name id_cola = mensaje->paquete->cola_msg;
-	void* msg = deserializar_buffer(id_cola,mensaje->paquete->buffer);
+	void* msg = de_id_mensaje_a_mensaje(id_mensaje);
 
-	print_msg(id_cola, msg);
+	print_msg(de_id_mensaje_a_cola(id_mensaje), msg);
 
 	list_iterate(mensaje->a_quienes_fue_enviado,print_list_sockets_de_un_mensaje);
 	list_iterate(mensaje->quienes_lo_recibieron,print_list_sockets_ACK_de_un_mensaje); // ACK
@@ -209,7 +208,6 @@ void print_mensaje_de_cola(t_info_mensaje* mensaje){
 }
 
 void free_mensaje(t_info_mensaje* mensaje){
-	free_paquete(mensaje->paquete);
 	list_destroy_and_destroy_elements(mensaje->a_quienes_fue_enviado,free);
 	free(mensaje);
 

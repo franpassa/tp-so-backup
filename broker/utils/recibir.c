@@ -53,7 +53,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 			//almacenar(msg,id_cola,id_mensaje,paquete->buffer->size);
 
 			pthread_mutex_lock(&(sem_cola[id_cola]));
-			agregar_a_cola(id_cola,paquete,id_mensaje);
+			agregar_a_cola(id_cola,paquete->buffer->size,deserializar_buffer(id_cola, paquete->buffer),id_mensaje);
 			pthread_mutex_unlock(&(sem_cola[id_cola]));
 
 		} else {
@@ -118,15 +118,14 @@ uint32_t crear_nuevo_id(){
 	return contador_id;
 }
 
-void agregar_a_cola(uint32_t id_cola,t_paquete* paquete, int id_mensaje){
+void agregar_a_cola(uint32_t id_cola,uint32_t size , void* mensaje, int id_mensaje){
 
 	t_info_mensaje* msg = malloc(sizeof(t_info_mensaje));
-	msg->paquete = paquete;
-	msg->id = id_mensaje;
 
 	msg->quienes_lo_recibieron = list_create();
 	msg->a_quienes_fue_enviado = list_create();
 
+	almacenar(mensaje,id_cola,id_mensaje,size);
 	queue_push(int_a_nombre_cola(id_cola)->cola, msg);
 
 }
@@ -209,7 +208,8 @@ int revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_en_buffer) {
 		for (int i = 0; i < queue_size(queue_a_revisar->cola); i++) {
 
 			t_info_mensaje* elemento_a_testear = queue_pop(queue_a_revisar->cola);
-			void* msg = deserializar_buffer(id, elemento_a_testear->paquete->buffer);
+
+			void* msg = de_id_mensaje_a_mensaje(elemento_a_testear->id);
 
 			if (es_el_mismo_mensaje(id, msg_en_buffer, msg)) {
 				mensaje_nuevo = elemento_a_testear->id; // asignas el id del que ya esta en la cola y se lo das al sub
