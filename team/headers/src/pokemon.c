@@ -57,7 +57,7 @@ void agregarLocalizedRecibidoALista(t_list* pokemonsRecibidos, localized_pokemon
 
 void agregarAppearedRecibidoALista(t_list* pokemonsRecibidos, appeared_pokemon_msg* pokemon){
 	t_pokemon* a_agregar = malloc(sizeof(t_pokemon));
-	char* copia_nombre = string_duplicate(a_agregar->nombre);
+	char* copia_nombre = string_duplicate(pokemon->nombre_pokemon);
 	a_agregar->nombre = copia_nombre;
 	a_agregar->posicionX = pokemon->coordenada_X;
 	a_agregar->posicionY = pokemon->coordenada_Y;
@@ -156,7 +156,7 @@ bool estaEnLaLista(char* unNombre, t_list* listadoDePokemons)
 {
 	for(int i = 0; i< list_size(listadoDePokemons); i++)
 	{
-		if(strcmp(unNombre,((t_especie*)list_get(listadoDePokemons,i))->especie)==0)
+		if(string_equals_ignore_case(unNombre,((t_especie*)list_get(listadoDePokemons,i))->especie))
 		{
 			return true;
 		}

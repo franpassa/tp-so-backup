@@ -68,6 +68,8 @@ bool estaEnLista(t_list* lista, t_entrenador* unEntrenador);
 t_list* listaALaQuePertenece(t_entrenador* unEntrenador);
 
 bool puedeAtrapar(t_entrenador* entrenador);
+void moverEntrenadorX(t_entrenador* unEntrenador, uint32_t posX,uint32_t retardoCpu, t_log* logger);
+void moverEntrenadorY(t_entrenador* unEntrenador, uint32_t posY,uint32_t retardoCpu, t_log* logger);
 void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu, t_log* logger);
 
 #endif /* ENTRENADOR_H_ */

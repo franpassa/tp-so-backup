@@ -6,32 +6,18 @@ int main()
 	inicializarVariables();
 
 	pthread_t hilo_escucha;
+	pthread_t hilo_recibir_localized;
+	pthread_t hilo_recibir_caught;
+	pthread_t hilo_recibir_appeared;
 	pthread_t hilo_estado_exec;
 	pthread_t hilo_pasar_a_ready;
-//	pthread_t hilo_recibir_localized;
-//	pthread_t hilo_recibir_caught;
-//	pthread_t hilo_recibir_appeared;
 
 	printf("\n");
 	int socket_escucha = iniciar_servidor(IP,PUERTO);
 	printf("\n");
 	if (socket_escucha == -1) abort(); //FINALIZA EL PROGRAMA EN CASO DE QUE FALLE LA INICIALIZACION DEL SERVIDOR
 
-//	t_pokemon* pikachu = malloc(sizeof(t_pokemon));
-//	pikachu->nombre = "penitis";
-//	pikachu->posicionX = 10;
-//	pikachu->posicionY = 17;
-//
-//	t_pokemon* squirtle = malloc(sizeof(t_pokemon));
-//	squirtle->nombre = "EL QUE LA TIENE MAS LARGONATOR";
-//	squirtle->posicionX = 14;
-//	squirtle->posicionY = 19;
-//
-//	list_add(pokemons_recibidos,pikachu);
-//
-//	list_add(pokemons_recibidos,squirtle);
-
-//	enviar_gets(objetivos_globales); // ENVIO MENSAJES GET_POKEMON AL BROKER.
+	enviar_gets(objetivos_globales); // ENVIO MENSAJES GET_POKEMON AL BROKER.
 
 	pthread_create(&hilo_pasar_a_ready,NULL,(void*) pasar_a_ready, NULL);
 
@@ -39,18 +25,18 @@ int main()
 
 	pthread_create(&hilo_estado_exec, NULL, (void*) estado_exec, NULL);
 
-//	pthread_create(&hilo_recibir_localized, NULL, (void*) recibirLocalized, NULL);
-//
-//	pthread_create(&hilo_recibir_caught, NULL, (void*) recibirCaught, NULL);
-//
-//	pthread_create(&hilo_recibir_appeared, NULL, (void*) recibirAppeared, NULL);
+	pthread_create(&hilo_recibir_localized, NULL, (void*) recibirLocalized, NULL);
+
+	pthread_create(&hilo_recibir_caught, NULL, (void*) recibirCaught, NULL);
+
+	pthread_create(&hilo_recibir_appeared, NULL, (void*) recibirAppeared, NULL);
 
 	pthread_join(hilo_escucha, NULL);
 	pthread_join(hilo_estado_exec, NULL);
 	pthread_join(hilo_pasar_a_ready, NULL);
-//	pthread_join(hilo_recibir_localized, NULL);
-//	pthread_join(hilo_recibir_appeared, NULL);
-//	pthread_join(hilo_recibir_caught, NULL);
+	pthread_join(hilo_recibir_localized, NULL);
+	pthread_join(hilo_recibir_appeared, NULL);
+	pthread_join(hilo_recibir_caught, NULL);
 	terminar_programa(); //Finalizo el programa
 
 	return 0;
@@ -126,6 +112,7 @@ void inicializarVariables(){
 	estado_new = crearListaDeEntrenadores(posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
 	pokemons_objetivos = crearListaPokesObjetivos(estado_new);
 	objetivos_globales = crearListaObjetivoGlobal(pokemons_objetivos);
+	hayEntrenadorProcesando = false;
 }
 
 void liberarVariables()

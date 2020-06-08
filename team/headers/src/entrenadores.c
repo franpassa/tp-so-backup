@@ -68,7 +68,7 @@ t_list* crearListaDeEntrenadores(char** posicionesEntrenadores, char** pokesEntr
 		entrenador->pokesAtrapados = insertarPokesEntrenador(i,entrenador->pokesAtrapados,pokesEntrenadores);
 		entrenador->pokesObjetivos = insertarPokesEntrenador(i,entrenador->pokesObjetivos,pokesObjetivos);
 		entrenador->idEntrenador = i;
-		entrenador->idRecibido = -1;
+		entrenador->idRecibido = 0;
 		entrenador->motivoBloqueo = MOTIVO_NADA;
 		entrenador->pokemonAMoverse = NULL;
 		list_add(entrenadores,entrenador);
@@ -228,27 +228,49 @@ bool puedeAtrapar(t_entrenador* entrenador){
 
 
 // funcion por si las dudas
-void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu, t_log* logger)
+void moverEntrenadorX(t_entrenador* unEntrenador, uint32_t posX,uint32_t retardoCpu, t_log* logger)
 {
-	while(unEntrenador->posicionY < posY)
-	{
-		sleep(retardoCpu);
-		unEntrenador-> posicionY += 1;
-		pthread_mutex_lock(&mutexLogEntrenador);
-		log_info(logger,"el entrenador %d se movio a la posicion (%d,%d)",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
-		printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
-		pthread_mutex_unlock(&mutexLogEntrenador);
-	}
-	while(unEntrenador->posicionX < posX)
-	{
-		sleep(retardoCpu);
-		unEntrenador-> posicionX += 1;
-		pthread_mutex_lock(&mutexLogEntrenador);
-		log_info(logger,"el entrenador %d se movio a la posicion (%d,%d)",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
-		printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
-		pthread_mutex_unlock(&mutexLogEntrenador);
-	}
-
+    while(abs(unEntrenador->posicionX - posX) > 0)
+    {
+        sleep(retardoCpu);
+        if(unEntrenador->posicionX > posX)
+        {
+            unEntrenador->posicionX --;
+        }
+        else
+        {
+            unEntrenador->posicionX ++;
+        }
+        pthread_mutex_lock(&mutexLogEntrenador);
+        log_info(logger,"el entrenador %d se movio a la posicion (%d,%d)",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+        printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+        pthread_mutex_unlock(&mutexLogEntrenador);
+    }
 }
 
+void moverEntrenadorY(t_entrenador* unEntrenador, uint32_t posY,uint32_t retardoCpu, t_log* logger)
+{
+    while(abs(unEntrenador->posicionY - posY) > 0)
+    {
+        sleep(retardoCpu);
+        if(unEntrenador->posicionY > posY)
+        {
+            unEntrenador->posicionY --;
+        }
+        else
+        {
+            unEntrenador->posicionY ++;
+        }
+        pthread_mutex_lock(&mutexLogEntrenador);
+        log_info(logger,"el entrenador %d se movio a la posicion (%d,%d)",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+        printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+        pthread_mutex_unlock(&mutexLogEntrenador);
+    }
+}
+
+void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu, t_log* logger)
+{
+    moverEntrenadorX(unEntrenador,posX,retardoCpu,logger);
+    moverEntrenadorY(unEntrenador,posY,retardoCpu,logger);
+}
 

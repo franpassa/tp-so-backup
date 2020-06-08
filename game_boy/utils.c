@@ -41,6 +41,7 @@ uint32_t send_team(char* nombre_pokemon, uint32_t X, uint32_t Y){
 	appeared_pokemon_msg* msg = appeared_msg(nombre_pokemon, X, Y);
 	uint32_t id = enviar_mensaje( ip_team, puerto_team, APPEARED_POKEMON, (void*) msg, false);
 
+
 	return id;
 }
 

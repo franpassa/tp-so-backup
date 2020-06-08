@@ -295,9 +295,9 @@ void* recibir_mensaje(int socket, uint32_t* id) {
 		free_paquete(paquete);
 		return NULL;
 	}
+
 	if (recv(socket, id, sizeof(uint32_t), MSG_WAITALL) <= 0) {
-		free_paquete(paquete);
-		return NULL;
+		*id = 0; // No se envio o hubo un error recibiendo el ID.
 	}
 
 	void* msg = deserializar_buffer(paquete->cola_msg, paquete->buffer);
