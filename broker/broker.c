@@ -217,6 +217,6 @@ void free_mensaje(t_info_mensaje* mensaje){
 
 void free_queue(t_cola_de_mensajes* cola_de_mensajes){
 	queue_clean_and_destroy_elements(cola_de_mensajes->cola,free);
-	list_clean_and_destroy_elements(cola_de_mensajes->cola,free);
+	list_clean_and_destroy_elements(cola_de_mensajes->lista_suscriptores,free);
 	free(cola_de_mensajes);
 }

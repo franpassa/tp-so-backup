@@ -48,6 +48,15 @@ typedef struct {
 	int uso;
 }t_struct_secundaria;
 
+char* memoria;
+t_struct_secundaria* estructura;
+int flag;
+int entra;
+
+int cont_orden;
+
+t_list* estructura_secundaria;
+
 // VARIABLES GLOBALES
 
 t_cola_de_mensajes* QUEUE_NEW_POKEMON;
@@ -62,17 +71,9 @@ t_list* sockets_productores;
 t_log* logger;
 t_config* config;
 
-char* memoria;
 int contador_id;
 char* nombres_colas[7];
 
-t_list* struct_secundaria;
-
-t_struct_secundaria* structura;
-int flag;
-int entra;
-
-int cont_orden;
 
 // SEMAFOROS
 
@@ -136,5 +137,13 @@ bool esta_en_lista(t_list*, uint32_t*);
 int mandar(t_paquete*, uint32_t, uint32_t);
 void recorrer_cola(t_cola_de_mensajes*);
 
+// MEMORIA
+
+void inicializar_memoria();
+void almacenar(void*, int, int , int);
+int paso_1(int);
+int paso_2(int);
+int paso_3(int);
+int cont_orden_f();
 
 #endif /* BROKER_H_ */
