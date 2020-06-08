@@ -144,7 +144,8 @@ bool perteneceALaSegundaLista(char* unPokemon,t_list* listaDePokemons)
 	bool flagEstado = false;
 	for(int i = 0; i < list_size(listaDePokemons); i++)
 	{
-		if((((t_pokemon*)list_get(listaDePokemons,i))->nombre) == unPokemon)
+		char* base = ((t_pokemon*)list_get(listaDePokemons,i))->nombre;
+		if(string_equals_ignore_case(base,unPokemon))
 		{
 			flagEstado = true;
 		}
@@ -166,7 +167,7 @@ bool estaEnLaLista(char* unNombre, t_list* listadoDePokemons)
 
 bool estaEnListaPokemon(t_list* lista, t_pokemon* pokemon){
 	for(int i = 0; i< list_size(lista); i++){
-		if(strcmp(pokemon->nombre,((t_pokemon*)list_get(lista,i))->nombre)==0){
+		if(string_equals_ignore_case(pokemon->nombre,((t_pokemon*)list_get(lista,i))->nombre)){
 			return true;
 		}
 	}

@@ -399,4 +399,17 @@ void conectarABroker(){
 }
 
 
+void deadlock()
+{
+	sleep(30); // con esto dejo el proceso corriendo y chequeo
+	if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && !list_all_satisfy(estado_bloqueado,bloqueadoPorNada))
+	{
+		t_entrenador* entrenador =	list_remove(estado_bloqueado,0);
+		t_entrenador* entrenadorAMoverse = list_get(quienTieneElPokeQueMeFalta(entrenador,estado_bloqueado),0);
+		moverEntrenador(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY,retardoCpu,logger);
+		realizarCambio(entrenador,entrenadorAMoverse);
+
+	}
+}
+
 

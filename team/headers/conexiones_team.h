@@ -16,5 +16,8 @@ void* buscarEntrenador(uint32_t id); // Buscar el entrenador que tiene ese idRec
 void cambiarEstado(t_entrenador* entrenador);
 void invocarHiloReconexion();
 void conectarABroker();
+bool todasLasColasEstanVacias();
+void detectarDeadlock();
+
 
 #endif /* _CONEXIONES_TEAM_H_*/
