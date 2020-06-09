@@ -53,7 +53,7 @@ void almacenar(void* mensaje,int id_cola,int id_mensaje,int size){
 		estructura->tipo_mensaje = id_cola;
 
 		list_add_in_index(estructura_secundaria, entra , estructura);
-		*(memoria + estructura->bit_inicio) = &mensaje;
+		*(memoria + estructura->bit_inicio) = mensaje;
 
 	}else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"BS")){
 
@@ -228,8 +228,9 @@ void mover_memoria(int a_sacar){
 	 t_struct_secundaria* estructura3 = malloc(sizeof(t_struct_secundaria));
 
 
-		bool es_igual_a(t_struct_secundaria* estructura_aux) {
-			return estructura_aux->id == id_mensaje;
+		bool es_igual_a(void* estructura_aux) {
+			t_struct_secundaria* estructura_nueva = (t_struct_secundaria*) estructura_aux;
+			return estructura_nueva->id == id_mensaje;
 		}
 
 	 estructura3 = list_find(estructura_secundaria,es_igual_a);
@@ -241,9 +242,10 @@ int de_id_mensaje_a_cola(int id_mensaje){
 	 t_struct_secundaria* estructura3 = malloc(sizeof(t_struct_secundaria));
 
 
-	 bool es_igual_a(t_struct_secundaria* estructura_aux) {
-	 	return estructura_aux->id == id_mensaje;
-	 }
+		bool es_igual_a(void* estructura_aux) {
+			t_struct_secundaria* estructura_nueva = (t_struct_secundaria*) estructura_aux;
+			return estructura_nueva->id == id_mensaje;
+		}
 
 	 estructura3 = list_find(estructura_secundaria,es_igual_a);
  	 return estructura3->tipo_mensaje;

@@ -100,7 +100,7 @@ void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, int socket_sub) 
 			}
 
 			if (list_size(mensaje->quienes_lo_recibieron) == list_size(queue->lista_suscriptores)) {
-				free_mensaje(mensaje);
+				free_msg_cola(mensaje);
 
 			}
 

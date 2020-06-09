@@ -207,7 +207,7 @@ void print_mensaje_de_cola(t_info_mensaje* mensaje){
 
 }
 
-void free_mensaje(t_info_mensaje* mensaje){
+void free_msg_cola(t_info_mensaje* mensaje){
 	list_destroy_and_destroy_elements(mensaje->a_quienes_fue_enviado,free);
 	free(mensaje);
 
