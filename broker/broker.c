@@ -111,6 +111,7 @@ void inicializar(){
 	config = leer_config();
 	logger = iniciar_logger();
 
+
 	inicializar_colas();
 
 	contador_id = 0;
@@ -126,8 +127,8 @@ void inicializar(){
 		pthread_mutex_init(&(sem_cola[i]),NULL);
 	}
 
-
 	inicializar_memoria();
+
 
 }
 

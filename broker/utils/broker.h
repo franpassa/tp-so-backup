@@ -46,6 +46,8 @@ typedef struct {
 	int auxiliar;
 }t_struct_secundaria;
 
+
+
 char* memoria;
 t_struct_secundaria* estructura;
 int flag;

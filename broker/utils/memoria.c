@@ -38,7 +38,7 @@ void almacenar(void* mensaje,int id_cola,int id_mensaje,int size){
 		}
 
 		estructura = list_get(estructura_secundaria,entra);
-		list_remove_and_destroy_element(estructura_secundaria,entra,free);
+
 
 		if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_REEMPLAZO"),"FIFO")){
 			cont_orden ++;
@@ -52,8 +52,12 @@ void almacenar(void* mensaje,int id_cola,int id_mensaje,int size){
 		estructura->tamanio = size;
 		estructura->tipo_mensaje = id_cola;
 
-		list_add_in_index(estructura_secundaria, entra , estructura);
-		*(memoria + estructura->bit_inicio) = mensaje;
+		list_replace_and_destroy_element(estructura_secundaria, entra, estructura,free);
+
+		char* nuevo_mensaje = malloc(size);
+		nuevo_mensaje = (char*) mensaje;
+
+		*(memoria + estructura->bit_inicio) = *nuevo_mensaje;
 
 	}else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"BS")){
 
@@ -117,18 +121,17 @@ void paso_2(){
 	int tamanio_lista_actual = list_size(estructura_secundaria);
 	for (int i = 0; i < tamanio_lista_actual; i++ ){
 		estructura = list_get(estructura_secundaria,i);
-		if (estructura->tipo_mensaje == 6 && i < list_size(estructura_secundaria)){
+		if (estructura->tipo_mensaje == 6 && i < list_size(estructura_secundaria)){ // ver esta duda
 			estructura2 = list_get(estructura_secundaria,(i+1));
 			if(estructura2->tipo_mensaje == 6){
 				estructura->tamanio += estructura2->tamanio;
 
 				list_remove_and_destroy_element(estructura_secundaria,(i+1),free);
-				list_remove_and_destroy_element(estructura_secundaria,(i),free);
-				list_add_in_index(estructura_secundaria,i,estructura);
+				list_replace_and_destroy_element(estructura_secundaria,i,estructura,free);
 
 				tamanio_lista_actual -= 1;
 				i -= 1;
-			}else{
+			} else {
 
 				actualizar_bit_inicio(i);
 
@@ -140,7 +143,6 @@ void paso_2(){
 				estructura2->tipo_mensaje = 6;
 
 				list_add(estructura_secundaria,estructura2);
-				tamanio_lista_actual -= 1;
 				i -= 1;
 			}
 		}
@@ -181,8 +183,7 @@ void paso_3(){
 				flag_2 = 1;
 			} else {
 				estructura->auxiliar = 0;
-				list_remove_and_destroy_element(estructura_secundaria,contador,free);
-				list_add_in_index(estructura_secundaria,contador,estructura);
+				list_replace_and_destroy_element(estructura_secundaria,contador,estructura,free);
 			}
 			contador ++;
 		} while(flag_2 == 0);
@@ -208,8 +209,8 @@ void actualizar_bit_inicio(int a_sacar){
 	for (int f = a_sacar; f < list_size(estructura_secundaria); f++) {
 		estructura2 = list_get(estructura_secundaria, f);
 		estructura2->bit_inicio = estructura2->bit_inicio - estructura->tamanio;
-		list_remove_and_destroy_element(estructura_secundaria, f , free);
-		list_add_in_index(estructura_secundaria, f , estructura2);
+		list_replace_and_destroy_element(estructura_secundaria,f,estructura2,free);
+
 	}
 
 }
@@ -234,7 +235,7 @@ void mover_memoria(int a_sacar){
 		}
 
 	 estructura3 = list_find(estructura_secundaria,es_igual_a);
-	 return strndup((memoria+estructura3->bit_inicio),estructura3->tamanio);
+	 return strndup((memoria+estructura3->bit_inicio),estructura3->tamanio); // tira segmentation fault aca
 
  }
 
