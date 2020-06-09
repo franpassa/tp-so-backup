@@ -4,18 +4,28 @@ void cambiarEstado(t_entrenador* entrenador){
 	//CAMBIA EL ENTRENADOR A EXIT O BLOQUEADO
 	if(puedeAtrapar(entrenador)){
 		list_add(entrenador->pokesAtrapados,entrenador->pokemonAMoverse);
+		entrenador->pokemonAMoverse = NULL;
 
 		if(sonIguales(entrenador->pokesAtrapados,entrenador->pokesObjetivos)){
 			list_add(estado_exit,entrenador);
 		}
-		else{
+		else if (list_size(entrenador->pokesObjetivos) != list_size(entrenador->pokesAtrapados)){
 			entrenador->motivoBloqueo = MOTIVO_NADA;
 			pthread_mutex_lock(&mutexEstadoBloqueado);
 			list_add(estado_bloqueado,entrenador);
 			pthread_mutex_unlock(&mutexEstadoBloqueado);
 		}
+		else {
+			entrenador->motivoBloqueo = ESPERA_DEADLOCK;
+			pthread_mutex_lock(&mutexEstadoBloqueado);
+			list_add(estado_bloqueado,entrenador);
+			pthread_mutex_unlock(&mutexEstadoBloqueado);
+		}
 
-	} else if(!sonIguales(entrenador->pokesAtrapados,entrenador->pokesObjetivos)){
+	} else if(sonIguales(entrenador->pokesAtrapados,entrenador->pokesObjetivos)){
+		entrenador->pokemonAMoverse = NULL;
+		list_add(estado_exit,entrenador);
+	} else {
 		entrenador->motivoBloqueo = ESPERA_DEADLOCK;
 		pthread_mutex_lock(&mutexEstadoBloqueado);
 		list_add(estado_bloqueado,entrenador);
@@ -41,46 +51,21 @@ void enviar_gets(t_list* objetivos_globales) {
 		uint32_t* id_respuesta = malloc(sizeof(uint32_t));
 		*id_respuesta = enviar_mensaje(ip_broker, puerto_broker,GET_POKEMON,a_enviar,true);
 		if (*id_respuesta == -1) {
-			printf("Fallo el envio del mensaje GET_POKEMON '%s'\n",a_enviar->nombre_pokemon);
+			printf("No existen locaciones disponibles para el pokemon: '%s'\n",a_enviar->nombre_pokemon);
 		} else {
 			/*AGREGO EL ID A LA LISTA DE IDS ENVIADOS*/
 			printf("Envio del mensaje GET_POKEMON '%s' exitoso. ID asignado: %d\n",a_enviar->nombre_pokemon,*id_respuesta);
 			list_add(ids_enviados, id_respuesta);
 		}
-		sleep(3);
+		sleep(1);
 	}
 
 	list_iterate(objetivos_globales, enviar);
 }
 
-int suscribirse_a_queue(queue_name cola, char* ip_broker, char* puerto_broker) {
-
-	int socket_cola = 0;
-
-	if (cola == APPEARED_POKEMON) {
-		socket_cola = suscribirse_a_cola(APPEARED_POKEMON, ip_broker,puerto_broker);
-		if (socket_cola == -1) {
-			printf("Error al suscribirse a la cola 'APPEARED POKEMON'.\n\n");
-			return socket_cola;
-		}
-	} else if (cola == CAUGHT_POKEMON) {
-		socket_cola = suscribirse_a_cola(CAUGHT_POKEMON, ip_broker,puerto_broker);
-		if (socket_cola == -1) {
-			printf("Error al suscribirse a la cola 'CAUGHT POKEMON'.\n\n");
-			return socket_cola;
-		}
-	} else if (cola == LOCALIZED_POKEMON) {
-		socket_cola = suscribirse_a_cola(LOCALIZED_POKEMON, ip_broker,puerto_broker);
-		if (socket_cola == -1) {
-			printf("Error al suscribirse a la cola 'LOCALIZED POKEMON'.\n\n");
-			return socket_cola;
-		}
-	}
-	return socket_cola;
-}
-
 void esperar_cliente(int* socket_servidor) {
-// ES UN ASCO
+
+	uint32_t id;
 
 	while (1) {
 
@@ -94,78 +79,72 @@ void esperar_cliente(int* socket_servidor) {
 
 		queue_name cola;
 
-		if (recv(socket_cliente, &cola, sizeof(queue_name), MSG_WAITALL) == -1) {
-			perror("Error al recibir el mensaje");
-			sleep(40);
-			continue; // vuelve al loop
-		}
+		recv(socket_cliente,&cola,sizeof(queue_name),MSG_WAITALL);
 
-		if (cola != PRODUCTOR) {
-			printf("flasheaste papi, cola incorrecta\n");
-			continue;
-		}
-		// ESTE TP DESTRUIRÁ MI CORDURA
-		queue_name otra_cola;
-		int bytes = recv(socket_cliente, &otra_cola, sizeof(queue_name),MSG_WAITALL);
-		if (bytes != -1) {
-			uint32_t id;
-			appeared_pokemon_msg* msg = recibir_mensaje(socket_cliente,&id);
-			printf("APPEARED POKEMON RECIBIDO: nombre: %s, X: %d, Y: %d\n",msg->nombre_pokemon, msg->coordenada_X, msg->coordenada_Y);
-			free(msg->nombre_pokemon);
-			free(msg);
-		} else {
-			perror("ups");
+		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_cliente,&id);
+
+		if (mensaje_recibido_appeared != NULL) {
+
+			if ((estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),objetivos_globales)) && (!(estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),pokemons_recibidos_historicos)))) {
+
+				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
+				agregarAppearedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_appeared);
+				pthread_mutex_unlock(&mutexPokemonsRecibidosHistoricos);
+
+				pthread_mutex_lock(&mutexPokemonsRecibidos);
+				agregarAppearedRecibidoALista(pokemons_recibidos,mensaje_recibido_appeared);
+				pthread_mutex_unlock(&mutexPokemonsRecibidos);
+			}
 		}
 	}
 }
 
 void estado_exec()
 {
-	while (1)
-	{
-		if (!list_is_empty(estado_ready))
-		{
-			t_entrenador* unEntrenador = (t_entrenador*) list_get(estado_ready,0);
+	while (1){
 
-			bool esElMismo(t_entrenador* entrenador)
-			{
-				return entrenador->idEntrenador == unEntrenador->idEntrenador;
-			}
+		if (!list_is_empty(estado_ready)){
 
-			hayEntrenadorProcesando = true;
+			if(!hayEntrenadorProcesando){
 
-			list_remove_by_condition(listaALaQuePertenece(unEntrenador),(void*) esElMismo);
+				pthread_mutex_lock(&mutexHayEntrenadorProcesando);
+				hayEntrenadorProcesando = true;
+				pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
 
-			if (string_equals_ignore_case(ALGORITMO, "FIFO"))
-			{
-				algoritmoFifo(unEntrenador);
+				if (string_equals_ignore_case(ALGORITMO, "FIFO")){
+
+						algoritmoFifo();
+				}
+
+				pthread_mutex_lock(&mutexHayEntrenadorProcesando);
+				hayEntrenadorProcesando = false;
+				pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
 			}
 		}
-
-		sleep(2);
-
 	}
 }
 
-void algoritmoFifo(t_entrenador* entrenador)
+void algoritmoFifo()
 {
+	t_entrenador* entrenador = (t_entrenador*) list_get(estado_ready,0);
+
+	bool esElMismo(t_entrenador* unEntrenador){
+		return unEntrenador->idEntrenador == entrenador->idEntrenador;
+	}
+
+	list_remove_by_condition(listaALaQuePertenece(entrenador),(void*) esElMismo);
 	t_pokemon* aMoverse = entrenador->pokemonAMoverse;
-	uint32_t ciclos = 0;
 
 	if (aMoverse!= NULL)
 	{
 		uint32_t distancia = distanciaEntrenadorPokemon(entrenador->posicionX, entrenador->posicionY,aMoverse->posicionX,aMoverse->posicionY);
-		while (ciclos <= distancia)
-		{
-			ciclos++;
-			sleep(retardoCpu);
-		}
+		moverEntrenador(entrenador,aMoverse->posicionX,aMoverse->posicionY,retardoCpu, logger);
 		pthread_mutex_lock(&mutexCiclosConsumidos);
-		ciclosConsumidos += ciclos; //ACUMULO LOS CICLOS DE CPU CONSUMIDOS
+		ciclosConsumidos += distancia; //ACUMULO LOS CICLOS DE CPU CONSUMIDOS
 		pthread_mutex_unlock(&mutexCiclosConsumidos);
-
-		entrenador->posicionX = aMoverse->posicionX;
-		entrenador->posicionY = aMoverse->posicionY;
+		pthread_mutex_lock(&mutexLog);
+		log_info(logger,"el entrenador %d termino de moverse y esta en la pos %d, %d",entrenador->idEntrenador,entrenador->posicionX,entrenador->posicionY);
+		pthread_mutex_unlock(&mutexLog);
 
 		//CONEXION AL BROKER Y ENVIO DE MENSAJE CATCH
 		catch_pokemon_msg* mensaje = catch_msg(aMoverse->nombre,aMoverse->posicionX,aMoverse->posicionY);
@@ -174,8 +153,10 @@ void algoritmoFifo(t_entrenador* entrenador)
 
 		if (*idMensajeExec == -1)
 		{
+			printf("Falló el envio del mensaje CATCH_POKEMON %s.\n",mensaje->nombre_pokemon);
 			cambiarEstado(entrenador);
 		} else {
+			printf("Envio mensaje catch %s, posicion: (%d,%d), id: %d.\n",mensaje->nombre_pokemon,mensaje->coordenada_X,mensaje->coordenada_Y,*idMensajeExec);
 			entrenador->idRecibido = *idMensajeExec;
 			entrenador->motivoBloqueo = ESPERA_CAUGHT;
 			list_add(ids_enviados, idMensajeExec);
@@ -188,23 +169,25 @@ void algoritmoFifo(t_entrenador* entrenador)
 }
 
 void pasar_a_ready(){
-	t_entrenador* entrenadorTemporal;
-	t_list* listaAPlanificar;
-
 	while(1){
 		if(list_size(pokemons_recibidos)>0){
-			listaAPlanificar = todosLosEntrenadoresAPlanificar();
+			t_list* listaAPlanificar = todosLosEntrenadoresAPlanificar();
 
 			pthread_mutex_lock(&mutexPokemonsRecibidos);
-			entrenadorTemporal = entrenadorAReady(listaAPlanificar,pokemons_recibidos);
+			t_entrenador* entrenadorTemporal = entrenadorAReady(listaAPlanificar,pokemons_recibidos);
 			pthread_mutex_unlock(&mutexPokemonsRecibidos);
+
+			pthread_mutex_lock(&mutexLog);
+			log_info(logger,"el entrenador con id %d paso a la cola ready", entrenadorTemporal->idEntrenador);
+			pthread_mutex_unlock(&mutexLog);
 
 			bool es_el_mismo_entrenador(t_entrenador* unEntrenador){
 				return unEntrenador->idEntrenador == entrenadorTemporal->idEntrenador;
 			}
 
 			//Aca tengo que poner mutex??
-			list_remove_by_condition(listaALaQuePertenece(entrenadorTemporal),(void*) es_el_mismo_entrenador);
+			t_list* lista = listaALaQuePertenece(entrenadorTemporal);
+			list_remove_by_condition(lista,(void*) es_el_mismo_entrenador);
 
 			pthread_mutex_lock(&mutexEstadoReady);
 			list_add(estado_ready,entrenadorTemporal);
@@ -221,6 +204,36 @@ void pasar_a_ready(){
 	}
 }
 
+void recibirAppeared() {
+	appeared_pokemon_msg* mensaje_recibido_appeared;
+
+	while(1){
+
+		uint32_t idRecibido;
+
+		sem_wait(&semAppeared);
+		mensaje_recibido_appeared = recibir_mensaje(socket_appeared,&idRecibido);
+		sem_post(&semAppeared);
+
+		if (mensaje_recibido_appeared != NULL) {
+			if ((estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),objetivos_globales)) && (!(estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),pokemons_recibidos_historicos)))) {
+
+				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
+				agregarAppearedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_appeared);
+				pthread_mutex_unlock(&mutexPokemonsRecibidosHistoricos);
+
+				pthread_mutex_lock(&mutexPokemonsRecibidos);
+				agregarAppearedRecibidoALista(pokemons_recibidos,mensaje_recibido_appeared);
+				pthread_mutex_unlock(&mutexPokemonsRecibidos);
+			}
+		} else {
+			close(socket_appeared);
+			invocarHiloReconexion();
+		}
+
+	}
+}
+
 void recibirLocalized() { // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 
 	localized_pokemon_msg* mensaje_recibido_localized;
@@ -233,26 +246,18 @@ void recibirLocalized() { // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 		sem_post(&semLocalized);
 
 		if (mensaje_recibido_localized != NULL) {
-				printf("HOLA");
+
+			if ((estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),objetivos_globales))&&
+					(!(estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),pokemons_recibidos_historicos)))&&
+					necesitoElMensaje(mensaje_recibido_localized->id_correlativo)){
+
 				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
-			if ((estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),objetivos_globales)) && (!(estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),pokemons_recibidos_historicos)))) {
-				agregarPokemonsRecibidosALista(pokemons_recibidos_historicos,mensaje_recibido_localized);
+				agregarLocalizedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_localized);
 				pthread_mutex_unlock(&mutexPokemonsRecibidosHistoricos);
-				t_list* todosLosEntrenadores = todosLosEntrenadoresAPlanificar();
+
 				pthread_mutex_lock(&mutexPokemonsRecibidos);
-				agregarPokemonsRecibidosALista(pokemons_recibidos,mensaje_recibido_localized);
-				t_entrenador* entrenadorReady = entrenadorAReady(todosLosEntrenadores, pokemons_recibidos);
+				agregarLocalizedRecibidoALista(pokemons_recibidos,mensaje_recibido_localized);
 				pthread_mutex_unlock(&mutexPokemonsRecibidos);
-
-				bool esElMismo(t_entrenador* entrenador) {
-					return entrenador->idEntrenador == entrenadorReady->idEntrenador;
-				}
-
-				pthread_mutex_lock(&mutexEstadoReady);
-				list_add(estado_ready,entrenadorAReady);
-				pthread_mutex_unlock(&mutexEstadoReady);
-
-				list_remove_by_condition(listaALaQuePertenece(entrenadorReady),(void*) esElMismo);
 			}
 		} else {
 			close(socket_localized);
@@ -275,20 +280,18 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 
 		if(mensaje_recibido != NULL){ //Verifico si recibo el mensaje.
 
-			printf("HOLA");
+			if(necesitoElMensaje(mensaje_recibido->id_correlativo)){ //Busco el entrenador que mando el mensaje.
 
-			if(necesitoElMensaje(idRecibido)){ //Busco el entrenador que mando el mensaje.
-
-				t_entrenador* entrenador = (t_entrenador*) buscarEntrenador(idRecibido);
+				t_entrenador* entrenador = (t_entrenador*) buscarEntrenador(mensaje_recibido->id_correlativo);
 
 				if(mensaje_recibido->resultado == 1){ //Verifico que la respuesta del mensaje sea SI. *****FALTA REVISAR*****
 
 					bool esIgual(uint32_t* unId){
-						return *unId == idRecibido;
+						return *unId == mensaje_recibido->id_correlativo;
 					}
 
 					pthread_mutex_lock(&mutexIdsEnviados);
-					list_remove_by_condition(ids_enviados,(void*) esIgual); // Saco el id de la lista de ids_enviados.
+					list_remove_and_destroy_by_condition(ids_enviados,(void*) esIgual, free); // Saco el id de la lista de ids_enviados.
 					pthread_mutex_unlock(&mutexIdsEnviados);
 
 
@@ -302,21 +305,32 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 
 					cambiarEstado(entrenador);
 
-					if((entrenador->motivoBloqueo == MOTIVO_NADA)&&(list_size(pokemons_recibidos)>0)&&(list_size(estado_ready)==0)){
+					if((entrenador->motivoBloqueo == MOTIVO_NADA)&&(list_size(pokemons_recibidos)>0)){
+
 						entrenador->pokemonAMoverse = pokemonMasCercano(entrenador,pokemons_recibidos);
-						pthread_mutex_lock(&mutexEstadoReady);
-						list_add(estado_ready,entrenador);
-						pthread_mutex_unlock(&mutexEstadoReady);
 
 						bool esElMismoPokemon(t_pokemon* pokemon){
-							return string_equals_ignore_case(pokemon->nombre,entrenador->pokemonAMoverse->nombre);
-						}
+								return string_equals_ignore_case(pokemon->nombre,entrenador->pokemonAMoverse->nombre);
+							}
 
 						pthread_mutex_lock(&mutexPokemonsRecibidos);
 						list_remove_by_condition(pokemons_recibidos,(void*) esElMismoPokemon);
 						pthread_mutex_unlock(&mutexPokemonsRecibidos);
+
+						pthread_mutex_lock(&mutexEstadoReady);
+						list_add(estado_ready,entrenador);
+						pthread_mutex_unlock(&mutexEstadoReady);
 					}
 				} else {
+
+					bool esIgual(uint32_t* unId){
+						return *unId == idRecibido;
+					}
+
+					pthread_mutex_lock(&mutexIdsEnviados);
+					list_remove_and_destroy_by_condition(ids_enviados,(void*) esIgual, free); // Saco el id de la lista de ids_enviados.
+					pthread_mutex_unlock(&mutexIdsEnviados);
+
 					entrenador->pokemonAMoverse = NULL;
 					entrenador->idRecibido = 0;
 					entrenador->motivoBloqueo = MOTIVO_NADA;
@@ -356,7 +370,7 @@ void conectarABroker(){
 
 	sem_wait(&semCaught);
 	sem_wait(&semLocalized);
-//	sem_wait(&semAppeared);
+	sem_wait(&semAppeared);
 
 	while (1){
 
@@ -374,14 +388,9 @@ void conectarABroker(){
 
 			printf("Suscripciones exitosas!\n\n");
 
-			if(!envioGets){
-				enviar_gets(objetivos_globales);
-				envioGets = true;
-			}
-
 			sem_post(&semCaught);
 			sem_post(&semLocalized);
-//			sem_post(&semAppeared);
+			sem_post(&semAppeared);
 			break;
 		}
 	}
@@ -389,5 +398,18 @@ void conectarABroker(){
 	pthread_mutex_unlock(&mutexReconexion);
 }
 
+
+void deadlock()
+{
+	sleep(30); // con esto dejo el proceso corriendo y chequeo
+	if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && !list_all_satisfy(estado_bloqueado,bloqueadoPorNada))
+	{
+		t_entrenador* entrenador =	list_remove(estado_bloqueado,0);
+		t_entrenador* entrenadorAMoverse = list_get(quienTieneElPokeQueMeFalta(entrenador,estado_bloqueado),0);
+		moverEntrenador(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY,retardoCpu,logger);
+		realizarCambio(entrenador,entrenadorAMoverse);
+
+	}
+}
 
 

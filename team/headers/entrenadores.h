@@ -2,6 +2,7 @@
 #define ENTRENADOR_H_
 
 #include "pokemon.h"
+#include <pthread.h>
 
 typedef enum{
 	ESPERA_CAUGHT,
@@ -26,6 +27,8 @@ t_list* estado_new;
 // entrenadores en block
 t_list* estado_bloqueado;
 t_list* estado_ready;
+
+pthread_mutex_t mutexLogEntrenador;
 
 // posiciones
 uint32_t posicionXEntrenador(int nroEntrenador, char** posicionesEntrenadores);
@@ -61,10 +64,24 @@ t_list* todosLosEntrenadoresAPlanificar();
 
 
 bool bloqueadoPorNada(void* unEntrenador);
+bool bloqueadoPorDeadlock(void* unEntrenador);
 bool estaEnLista(t_list* lista, t_entrenador* unEntrenador);
 t_list* listaALaQuePertenece(t_entrenador* unEntrenador);
 
 bool puedeAtrapar(t_entrenador* entrenador);
+void moverEntrenadorX(t_entrenador* unEntrenador, uint32_t posX,uint32_t retardoCpu, t_log* logger);
+void moverEntrenadorY(t_entrenador* unEntrenador, uint32_t posY,uint32_t retardoCpu, t_log* logger);
+void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu, t_log* logger);
+
+t_list* pokemonesAlPedo(t_entrenador* unEntrenador);
+t_list* pokemonesQueLeFaltan(t_entrenador* unEntrenador);
+t_list* quienTieneElPokeQueMeFalta(t_entrenador* unEntrenador, t_list* lista);
+uint32_t retornarIndice(t_list* lista, char* nombre);
+void realizarCambio(t_entrenador* entrenador1, t_entrenador* entrenador2);
+
+
+
+
 
 
 #endif /* ENTRENADOR_H_ */

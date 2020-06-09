@@ -42,7 +42,7 @@ t_list* crearListaObjetivoGlobal(t_list* pokesObjetivoGlobal){
 	return objetivoGlobal;
 }
 
-void agregarPokemonsRecibidosALista(t_list* pokemonsRecibidos, localized_pokemon_msg* pokemons){
+void agregarLocalizedRecibidoALista(t_list* pokemonsRecibidos, localized_pokemon_msg* pokemons){
 	int j = 1;
 	for(int i=0; i<(pokemons->cantidad_posiciones)*2; i+=2){
 			t_pokemon* pokemon = malloc(sizeof(t_pokemon));
@@ -53,6 +53,15 @@ void agregarPokemonsRecibidosALista(t_list* pokemonsRecibidos, localized_pokemon
 			list_add(pokemonsRecibidos,pokemon);
 			j+=2;
 	}
+}
+
+void agregarAppearedRecibidoALista(t_list* pokemonsRecibidos, appeared_pokemon_msg* pokemon){
+	t_pokemon* a_agregar = malloc(sizeof(t_pokemon));
+	char* copia_nombre = string_duplicate(pokemon->nombre_pokemon);
+	a_agregar->nombre = copia_nombre;
+	a_agregar->posicionX = pokemon->coordenada_X;
+	a_agregar->posicionY = pokemon->coordenada_Y;
+	list_add(pokemonsRecibidos,a_agregar);
 }
 
 void mostrarString(void *elemento){
@@ -135,7 +144,8 @@ bool perteneceALaSegundaLista(char* unPokemon,t_list* listaDePokemons)
 	bool flagEstado = false;
 	for(int i = 0; i < list_size(listaDePokemons); i++)
 	{
-		if((((t_pokemon*)list_get(listaDePokemons,i))->nombre) == unPokemon)
+		char* base = ((t_pokemon*)list_get(listaDePokemons,i))->nombre;
+		if(string_equals_ignore_case(base,unPokemon))
 		{
 			flagEstado = true;
 		}
@@ -147,7 +157,7 @@ bool estaEnLaLista(char* unNombre, t_list* listadoDePokemons)
 {
 	for(int i = 0; i< list_size(listadoDePokemons); i++)
 	{
-		if(strcmp(unNombre,((t_especie*)list_get(listadoDePokemons,i))->especie)==0)
+		if(string_equals_ignore_case(unNombre,((t_especie*)list_get(listadoDePokemons,i))->especie))
 		{
 			return true;
 		}
@@ -157,7 +167,7 @@ bool estaEnLaLista(char* unNombre, t_list* listadoDePokemons)
 
 bool estaEnListaPokemon(t_list* lista, t_pokemon* pokemon){
 	for(int i = 0; i< list_size(lista); i++){
-		if(strcmp(pokemon->nombre,((t_pokemon*)list_get(lista,i))->nombre)==0){
+		if(string_equals_ignore_case(pokemon->nombre,((t_pokemon*)list_get(lista,i))->nombre)){
 			return true;
 		}
 	}

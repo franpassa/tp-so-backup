@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <signal.h>
 
 // CONEXIONES
 #include <sys/socket.h>
@@ -21,9 +22,8 @@
 
 typedef struct {
 	uint32_t id;
-	t_paquete* paquete;
 	t_list* a_quienes_fue_enviado;
-	uint32_t cuantos_lo_recibieron;
+	t_list* quienes_lo_recibieron; // ACK
 } t_info_mensaje;
 
 typedef struct {
@@ -35,6 +35,26 @@ typedef struct {
 	t_list* lista_suscriptores;
 	queue_name tipo_cola;
 } t_cola_de_mensajes;
+
+// MEMORIA
+
+typedef struct {
+	int tipo_mensaje;
+	int tamanio;
+	int id;
+	int bit_inicio;
+	int auxiliar;
+}t_struct_secundaria;
+
+char* memoria;
+t_struct_secundaria* estructura;
+int flag;
+int entra;
+int tamanio_a_ocupar;
+
+int cont_orden;
+int tamanio_memoria;
+t_list* estructura_secundaria;
 
 // VARIABLES GLOBALES
 
@@ -52,6 +72,7 @@ t_config* config;
 
 int contador_id;
 char* nombres_colas[7];
+
 
 // SEMAFOROS
 
@@ -71,16 +92,18 @@ pthread_t hilo_enviar_mensaje;
 
 // FUNCIONES DE QUEUES
 
-void inicializar_cola(t_cola_de_mensajes** nombre_cola, queue_name cola);
+void inicializar_cola(t_cola_de_mensajes**, queue_name);
 void inicializar_colas();
-t_cola_de_mensajes* int_a_nombre_cola(queue_name id);
+t_cola_de_mensajes* int_a_nombre_cola(queue_name);
 void inicializar();
-void mostrar_estado_de_una_queue(t_cola_de_mensajes* cola);
+void mostrar_estado_de_una_queue(t_cola_de_mensajes*);
 void estado_de_queues();
 void print_list_sockets(void* numero);
 void print_mensaje_de_cola(t_info_mensaje*);
-void print_list_sockets_de_un_mensaje(void* numero);
+void print_list_sockets_de_un_mensaje(void*);
+void print_list_sockets_ACK_de_un_mensaje(void*);
 void recorrer_cola_de_mensajes_para_mostrar(t_cola_de_mensajes*);
+void free_queue(t_cola_de_mensajes*);
 
 // FUNCIONES DE LOG Y CONFIG
 
@@ -92,25 +115,38 @@ void terminar_programa(t_log*, t_config*);
 // Server
 
 int iniciar_servidor_broker();
-void esperar_cliente(int* socket_cliente);
-int suscribir_a_cola(int,queue_name);
+void esperar_cliente(int*);
+int suscribir_a_cola(int, queue_name);
 
 // Recibir
 
 void loop_productores();
-void recibir_mensajes_para_broker(int* socket_cliente);
-void confirmar_mensaje(queue_name,uint32_t);
+void recibir_mensajes_para_broker(int*);
+void confirmar_mensaje(queue_name, uint32_t,int);
 uint32_t crear_nuevo_id();
-void agregar_a_cola(uint32_t,t_paquete*, int);
+void agregar_a_cola(uint32_t,uint32_t,void*,int);
 bool es_el_mismo_mensaje(queue_name, void*,void*);
-bool revisar_si_mensaje_no_estaba_en_cola(queue_name, void*);
+int revisar_si_mensaje_no_estaba_en_cola(queue_name, void*);
+void free_mensaje(t_info_mensaje*);
 
 // Mandar
 
 void mandar_mensajes();
-bool esta_en_lista(t_list*,uint32_t*);
-void mandar(t_paquete* paquete,uint32_t id, uint32_t sub);
+bool esta_en_lista(t_list*, uint32_t*);
+int mandar(queue_name, void*, int,int);
 void recorrer_cola(t_cola_de_mensajes*);
 
+// MEMORIA
+
+void inicializar_memoria();
+void almacenar(void*, int, int , int);
+void paso_1();
+void paso_2();
+void paso_3();
+int cont_orden_f();
+void actualizar_bit_inicio(int);
+void mover_memoria(int);
+void* de_id_mensaje_a_mensaje(int);
+int de_id_mensaje_a_cola(int);
 
 #endif /* BROKER_H_ */

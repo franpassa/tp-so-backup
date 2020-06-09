@@ -33,8 +33,6 @@
 
 //VARIABLES GLOBALES
 
-
-
 t_log* logger;
 
 // variables globales sacadas del config
@@ -67,6 +65,8 @@ pthread_mutex_t mutexEstadoNew;
 pthread_mutex_t mutexPokemonsRecibidosHistoricos;
 pthread_mutex_t mutexIdsEnviados;
 pthread_mutex_t mutexReconexion;
+pthread_mutex_t mutexLog;
+pthread_mutex_t mutexHayEntrenadorProcesando;
 
 sem_t semCaught;
 sem_t semLocalized;

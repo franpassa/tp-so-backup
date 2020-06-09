@@ -15,6 +15,7 @@ int main(){
 	pthread_join(hilo_estado_queues,NULL);
 	pthread_join(hilo_suscripciones,NULL);
 	pthread_join(hilo_mensajes,NULL);
+	pthread_join(hilo_enviar_mensaje, NULL);
 
 	close(socket_servidor);
 
@@ -59,12 +60,12 @@ void terminar_programa(t_log* logger, t_config* config){
 }
 
 
-void inicializar_cola(t_cola_de_mensajes** nombre_cola, queue_name cola){
+void inicializar_cola(t_cola_de_mensajes** nombre_cola, queue_name id_cola){
 
 	*nombre_cola = malloc(sizeof(t_cola_de_mensajes));
 	(*nombre_cola)->cola = queue_create();
 	(*nombre_cola)->lista_suscriptores = list_create();
-	(*nombre_cola)->tipo_cola = cola;
+	(*nombre_cola)->tipo_cola = id_cola;
 
 }
 
@@ -105,6 +106,7 @@ t_cola_de_mensajes* int_a_nombre_cola(queue_name id){
 
 void inicializar(){
 
+	signal(SIGPIPE,SIG_IGN);
 
 	config = leer_config();
 	logger = iniciar_logger();
@@ -122,8 +124,11 @@ void inicializar(){
 
 	for(int i = 0; i <= 5; i++){
 		pthread_mutex_init(&(sem_cola[i]),NULL);
-		//sem_init(&(contenido_cola[i]),0,0);
 	}
+
+
+	inicializar_memoria();
+
 }
 
 void estado_de_queues(){
@@ -180,21 +185,36 @@ void print_list_sockets(void* numero){
 }
 
 void print_list_sockets_de_un_mensaje(void* numero){
-	printf("MENSAJE RECIBIDO POR: %d\n", *(int*) numero);
+	printf("ENVIADO A: %d\n", *(int*) numero);
 }
+
+void print_list_sockets_ACK_de_un_mensaje(void* numero){
+	printf("CONFIRMADO POR: %d\n", *(int*) numero);
+}
+
 
 void print_mensaje_de_cola(t_info_mensaje* mensaje){
 
 	uint32_t id_mensaje = mensaje->id;
 	printf("ID: %d\n",id_mensaje);
 
-	queue_name id_cola = mensaje->paquete->cola_msg;
-	void* msg = deserializar_buffer(id_cola,mensaje->paquete->buffer);
+	void* msg = de_id_mensaje_a_mensaje(id_mensaje);
 
-	print_msg(id_cola, msg);
+	print_msg(de_id_mensaje_a_cola(id_mensaje), msg);
 
 	list_iterate(mensaje->a_quienes_fue_enviado,print_list_sockets_de_un_mensaje);
+	list_iterate(mensaje->quienes_lo_recibieron,print_list_sockets_ACK_de_un_mensaje); // ACK
 
-	uint32_t cantidad_recibidos = mensaje->cuantos_lo_recibieron;
-	printf("CUANTOS LO RECIBIERON: %d\n",cantidad_recibidos);
+}
+
+void free_mensaje(t_info_mensaje* mensaje){
+	list_destroy_and_destroy_elements(mensaje->a_quienes_fue_enviado,free);
+	free(mensaje);
+
+}
+
+void free_queue(t_cola_de_mensajes* cola_de_mensajes){
+	queue_clean_and_destroy_elements(cola_de_mensajes->cola,free);
+	list_clean_and_destroy_elements(cola_de_mensajes->lista_suscriptores,free);
+	free(cola_de_mensajes);
 }

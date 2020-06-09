@@ -5,36 +5,50 @@ int main()
 	inicializarPrograma(); //Inicializo logger y config
 	inicializarVariables();
 
-	pthread_t hilo_escucha;
-	pthread_t hilo_estado_exec;
-	pthread_t hilo_pasar_a_ready;
-	pthread_t hilo_recibir_localized;
-	pthread_t hilo_recibir_caught;
+//	pthread_t hilo_escucha;
+//	pthread_t hilo_recibir_localized;
+//	pthread_t hilo_recibir_caught;
+//	pthread_t hilo_recibir_appeared;
+//	pthread_t hilo_estado_exec;
+//	pthread_t hilo_pasar_a_ready;
+//
 
-	printf("\n");
-	int socket_escucha = iniciar_servidor(IP,PUERTO);
-	printf("\n");
-	if (socket_escucha == -1) abort(); //FINALIZA EL PROGRAMA EN CASO DE QUE FALLE LA INICIALIZACION DEL SERVIDOR
+	t_entrenador* a = list_get(estado_new,0);
+	mostrarEntrenador(a);
+	t_entrenador* b = list_get(estado_new,1);
+	mostrarEntrenador(b);
+	realizarCambio(a,b);
+	printf("hice el cambio \n\n\n\n\n\n\n\n\n\n\n\n\n");
+	mostrarEntrenador(a);
+	mostrarEntrenador(b);
 
-	pthread_create(&hilo_pasar_a_ready,NULL,(void*) pasar_a_ready, NULL);
 
-	pthread_create(&hilo_escucha,NULL,(void*) esperar_cliente, &socket_escucha);
-
-	pthread_create(&hilo_estado_exec, NULL, (void*) estado_exec, NULL);
-
-	pthread_create(&hilo_recibir_localized, NULL, (void*) recibirLocalized, NULL);
-
-	pthread_create(&hilo_recibir_caught, NULL, (void*) recibirCaught, NULL);
-
-	pthread_join(hilo_escucha, NULL);
-	pthread_join(hilo_estado_exec, NULL);
-	pthread_join(hilo_pasar_a_ready, NULL);
-	pthread_join(hilo_recibir_localized, NULL);
-
-	pthread_join(hilo_recibir_caught, NULL);
+//	printf("\n");
+//	int socket_escucha = iniciar_servidor(IP,PUERTO);
+//	printf("\n");
+//	if (socket_escucha == -1) abort(); //FINALIZA EL PROGRAMA EN CASO DE QUE FALLE LA INICIALIZACION DEL SERVIDOR
+//
+//	enviar_gets(objetivos_globales); // ENVIO MENSAJES GET_POKEMON AL BROKER.
+//
+//	pthread_create(&hilo_pasar_a_ready,NULL,(void*) pasar_a_ready, NULL);
+//
+//	pthread_create(&hilo_escucha,NULL,(void*) esperar_cliente, &socket_escucha);
+//
+//	pthread_create(&hilo_estado_exec, NULL, (void*) estado_exec, NULL);
+//
+//	pthread_create(&hilo_recibir_localized, NULL, (void*) recibirLocalized, NULL);
+//
+//	pthread_create(&hilo_recibir_caught, NULL, (void*) recibirCaught, NULL);
+//
+//	pthread_create(&hilo_recibir_appeared, NULL, (void*) recibirAppeared, NULL);
+//
+//	pthread_join(hilo_escucha, NULL);
+//	pthread_join(hilo_estado_exec, NULL);
+//	pthread_join(hilo_pasar_a_ready, NULL);
+//	pthread_join(hilo_recibir_localized, NULL);
+//	pthread_join(hilo_recibir_appeared, NULL);
+//	pthread_join(hilo_recibir_caught, NULL);
 	terminar_programa(); //Finalizo el programa
-
-	close(socket_escucha);
 
 	return 0;
 }
@@ -60,6 +74,7 @@ t_log* crear_log(){
 		return log_team;
 	}
 }
+
 
 void terminar_programa(){
 	log_destroy(logger);
@@ -89,10 +104,12 @@ void inicializarVariables(){
 	pthread_mutex_init(&mutexIdsEnviados, NULL);
 	pthread_mutex_init(&mutexPokemonsRecibidos, NULL);
 	pthread_mutex_init(&mutexPokemonsRecibidosHistoricos, NULL);
+	pthread_mutex_init(&mutexLog, NULL);
+	pthread_mutex_init(&mutexLogEntrenador, NULL);
+	pthread_mutex_init(&mutexHayEntrenadorProcesando, NULL);
 	sem_init(&semCaught, 0, 1);
 	sem_init(&semLocalized, 0, 1);
 	sem_init(&semAppeared, 0, 1);
-	envioGets = false;
 
 	posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
 	pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
@@ -106,6 +123,7 @@ void inicializarVariables(){
 	estado_new = crearListaDeEntrenadores(posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
 	pokemons_objetivos = crearListaPokesObjetivos(estado_new);
 	objetivos_globales = crearListaObjetivoGlobal(pokemons_objetivos);
+	hayEntrenadorProcesando = false;
 }
 
 void liberarVariables()
