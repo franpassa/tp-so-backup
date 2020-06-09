@@ -142,9 +142,7 @@ int mandar(queue_name cola, void* estructura_mensaje, int id ,int socket_recepto
 
 	send(socket_receptor, &id, sizeof(uint32_t), 0);
 
-	free(paquete->buffer->stream);
-	free(paquete->buffer);
-	free(paquete);
+	free_paquete(paquete);
 	free(a_enviar);
 
 	return control;

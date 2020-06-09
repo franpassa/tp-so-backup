@@ -127,7 +127,7 @@ uint32_t crear_nuevo_id();
 void agregar_a_cola(uint32_t,uint32_t,void*,int);
 bool es_el_mismo_mensaje(queue_name, void*,void*);
 int revisar_si_mensaje_no_estaba_en_cola(queue_name, void*);
-void free_mensaje(t_info_mensaje*);
+void free_msg_cola(t_info_mensaje*);
 
 // Mandar
 
