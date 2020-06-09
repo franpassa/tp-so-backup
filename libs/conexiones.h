@@ -99,5 +99,6 @@ void confirmar_recepcion(queue_name cola, uint32_t id_mensaje, int socket);
 void* serializar_paquete(t_paquete* paquete, int bytes);
 void* deserializar_buffer(queue_name cola, void* buffer_ptr);
 void free_paquete(t_paquete* paquete);
+void free_mensaje(queue_name tipo_msg, void* msg);
 
 #endif

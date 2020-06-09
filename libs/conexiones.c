@@ -222,12 +222,12 @@ uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructur
 
 	if (send(socket_receptor, a_enviar, total_bytes, 0) == -1) {
 		perror("Error enviando mensaje");
+		free_paquete(paquete);
+		free(a_enviar);
 		return -1;
 	}
 
-	free(paquete->buffer->stream);
-	free(paquete->buffer);
-	free(paquete);
+	free_paquete(paquete);
 	free(a_enviar);
 
 	uint32_t id;
@@ -303,6 +303,40 @@ void free_paquete(t_paquete* paquete) {
 	free(paquete->buffer->stream);
 	free(paquete->buffer);
 	free(paquete);
+}
+
+void free_mensaje(queue_name tipo_msg, void* msg){
+	switch(tipo_msg){
+		case NEW_POKEMON:;
+			new_pokemon_msg* new_pok = (new_pokemon_msg*) msg;
+			free(new_pok->nombre_pokemon);
+			break;
+
+		case APPEARED_POKEMON:;
+			appeared_pokemon_msg* appeared_pok = (appeared_pokemon_msg*) msg;
+			free(appeared_pok->nombre_pokemon);
+			break;
+		case GET_POKEMON:;
+			get_pokemon_msg* get_pok = (get_pokemon_msg*) msg;
+			free(get_pok->nombre_pokemon);
+			break;
+
+		case LOCALIZED_POKEMON:;
+			localized_pokemon_msg* localized_pok = (localized_pokemon_msg*) msg;
+			free(localized_pok->nombre_pokemon);
+			free(localized_pok->pares_coordenadas);
+			break;
+
+		case CATCH_POKEMON:;
+			catch_pokemon_msg* catch_pok = (catch_pokemon_msg*) msg;
+			free(catch_pok->nombre_pokemon);
+			break;
+
+		default:
+			break;
+		}
+
+	free(msg);
 }
 
 // Retorna el tipo de msg que recibe por cola
