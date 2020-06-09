@@ -37,12 +37,11 @@ void init_fs(){
 
 	// TENGO QUE VERIFICAR QUE EXISTA LA CARPETA 'METADATA' O EL BITMAP.BIN?
 
-	/*char* metadata_path = string_new();
-	string_append_with_format(&metadata_path, "%s/Metadata", punto_montaje);
+	/* char* metadata_path = string_new();
+	** string_append_with_format(&metadata_path, "%s/Metadata", punto_montaje);
+	 */
 
-	DIR* metadata_dir = opendir(metadata_path);*/
-
-
+	metadata_config = config_create(fspaths->metadata_file);
 	FILE* bitmap_file = fopen(fspaths->bitmap_file, "r");
 
 	if(bitmap_file){
@@ -54,13 +53,11 @@ void init_fs(){
 		// Caso metadata NO existente
 		printf("Archivo Bitmap.bin no encontrado, creando...\n");
 
-		t_config* config_metadata = config_create(fspaths->metadata_file);
-		int cantidad_bloques = config_get_int_value(config_metadata, "BLOCKS");
+		int cantidad_bloques = config_get_int_value(metadata_config, "BLOCKS");
 		if(create_bitmap(cantidad_bloques) == -1) terminar_aplicacion("Error creando bitmap");
 		if(create_blocks(cantidad_bloques) == -1) terminar_aplicacion("Error creando bloques");
 
 		printf("Se crearon %d bloques\n", cantidad_bloques);
-		config_destroy(config_metadata);
 	}
 }
 
@@ -183,10 +180,120 @@ t_bitarray* read_bitmap(long* file_size){
 	return bitarray;
 }
 
-int escribir_en_bloques(t_pokemon pokemon){
-	/* Tendría que saber si es un pokemon que ya tiene bloques asignados.
-	 * Si es así pregunto cual es el último y escribo ahí, si no alcanza
-	 * pido un bloque nuevo y escribo lo que resta.
-	 */
+long get_block_size(int block){
+	char* block_path = get_block_path(block);
+
+	FILE* block_file = fopen(block_path, "r");
+	if(block_file == NULL) {
+		free(block_path);
+		return -1;
+	}
+	long block_size = get_file_size(block_file);
+	fclose(block_file);
+	free(block_path);
+
+	return block_size;
+}
+
+char* get_block_path(int block){
+	char* block_path = string_new();
+	string_append_with_format(&block_path, "%s/%d.bin", fspaths->blocks_folder, block);
+
+	return block_path;
+}
+
+// Retorno un puntero al string que no se pudo escribir (NULL si se escribió entero)
+char* write_block(char* string, int block, int max_bytes, bool sobreescribir){
+	char* block_path = get_block_path(block);
+	FILE* block_file;
+	if(sobreescribir){
+		block_file = fopen(block_path, "w");
+	} else {
+		block_file = fopen(block_path, "a");
+	}
+	free(block_path);
+
+	bool line_jump = false;
+	char* string_a_escribir;
+	char* string_exceso = NULL;
+	if(strlen(string) > max_bytes){
+		string_a_escribir = string_substring_until(string, max_bytes);
+		string_exceso = string_substring_from(string, max_bytes);
+	} else {
+		string_a_escribir = string_duplicate(string);
+		if(strlen(string_a_escribir) < max_bytes) line_jump = true; // Si queda espacio para escribir en el bloque, agrego un salto de linea.
+	}
+
+	if(line_jump){
+		fprintf(block_file, "%s\n", string_a_escribir);
+	} else {
+		fprintf(block_file, "%s", string_a_escribir);
+	}
+	fclose(block_file);
+	free(string_a_escribir);
+
+	return string_exceso;
+}
+
+char* format_pokemon(t_pokemon pokemon, uint32_t* length){
+	char* string_pokemon = string_new();
+	string_append_with_format(&string_pokemon, "%d-%d=%d", pokemon.x, pokemon.y, pokemon.cantidad);
+	*length = string_length(string_pokemon);
+
+	return string_pokemon;
+}
+
+int crear_metadata(char* folder_path, uint32_t file_size, t_list* blocks){
+	char* metadata_path = string_duplicate(folder_path);
+	string_append(&metadata_path, "/Metadata.bin");
+	char* blocks_string = list_to_string(blocks);
+	FILE* metadata = fopen(metadata_path, "w");
+	if(metadata == NULL) {
+		free(metadata_path);
+		return -1;
+	}
+	fprintf(metadata, "DIRECTORY=N\n"
+					  "SIZE=%d\n"
+					  "BLOCKS=[%s]\n"
+					  "OPEN=N", file_size, blocks_string);
+
+	free(metadata_path);
+	fclose(metadata);
 	return 0;
+}
+
+// Devuelvo una lista con los bloques escritos.
+t_list* escribir_en_bloques(t_pokemon pokemon, int ultimo_bloque, uint32_t *bytes_escritos){
+	bool nuevo_bloque = ultimo_bloque < 0;
+
+	uint32_t bytes_linea;
+	char* linea_input = format_pokemon(pokemon, &bytes_linea);
+	int bloque_a_escribir;
+
+	if(nuevo_bloque){
+		bloque_a_escribir = get_free_block();
+		if(bloque_a_escribir == -1) return NULL;
+	} else {
+		bloque_a_escribir = ultimo_bloque;
+	}
+
+	t_list* lista_bloques_escritos = list_create();
+	int block_max_size = config_get_int_value(metadata_config, "BLOCK_SIZE");
+	*bytes_escritos = 0;
+	char* linea_a_agregar = linea_input;
+	while(1){
+		linea_a_agregar = write_block(linea_a_agregar, bloque_a_escribir, block_max_size, nuevo_bloque); // Devuelve el string que no se pudo escribir
+		set_bit(bloque_a_escribir, true); //  PUEDE SER QUE DE PROBLEMA DE SINCRONIZACION
+		agregar_a_lista(lista_bloques_escritos, bloque_a_escribir);
+		if(linea_a_agregar == NULL) {
+			*bytes_escritos = bytes_linea;
+			break;
+		}
+		*bytes_escritos += bytes_linea - strlen(linea_a_agregar); // Los bytes que se escribieron son los totales menos lo que sobró
+		bloque_a_escribir = get_free_block();
+		nuevo_bloque = true;
+	}
+	free(linea_input);
+
+	return lista_bloques_escritos;
 }

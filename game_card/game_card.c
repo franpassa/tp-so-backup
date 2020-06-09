@@ -15,11 +15,17 @@ void terminar(){
 	free_fspaths(fspaths);
 }
 
+void print_ints(int* elem){
+	printf("%d\n", *elem);
+}
+
 int main(){
 
 	inicializar();
-	t_pokemon pikachu = init_pokemon("eee", 3, 2, 1);
-	crear_pokemon(pikachu);
+	t_pokemon pikachu = init_pokemon("pikachu", 1, 1, 3);
+	if(!existe_pokemon(pikachu.nombre)){
+		crear_pokemon(pikachu);
+	}
 	terminar();
 
 	return EXIT_SUCCESS;
