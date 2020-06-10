@@ -135,7 +135,7 @@ void free_msg_cola(t_info_mensaje*);
 
 void mandar_mensajes();
 bool esta_en_lista(t_list*, uint32_t*);
-int mandar(queue_name, void*, int,int);
+int mandar(queue_name, void*, int,int,int);
 void recorrer_cola(t_cola_de_mensajes*);
 
 // MEMORIA
@@ -150,5 +150,6 @@ void actualizar_bit_inicio(int);
 void mover_memoria(int);
 void* de_id_mensaje_a_mensaje(int);
 int de_id_mensaje_a_cola(int);
+int de_id_mensaje_a_size(int);
 
 #endif /* BROKER_H_ */

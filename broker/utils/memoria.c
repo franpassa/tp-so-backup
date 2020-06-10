@@ -48,16 +48,14 @@ void almacenar(void* mensaje,int id_cola,int id_mensaje,int size){
 		} else {
 		printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 		}
+
 		estructura->id = id_mensaje;
 		estructura->tamanio = size;
 		estructura->tipo_mensaje = id_cola;
 
 		list_replace_and_destroy_element(estructura_secundaria, entra, estructura,free);
 
-		char* nuevo_mensaje = malloc(size);
-		nuevo_mensaje = (char*) mensaje;
-
-		*(memoria + estructura->bit_inicio) = *nuevo_mensaje;
+		memcpy(memoria + estructura->bit_inicio, mensaje, size);
 
 	}else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"BS")){
 
@@ -215,14 +213,18 @@ void actualizar_bit_inicio(int a_sacar){
 
 }
 void mover_memoria(int a_sacar){
-	 t_struct_secundaria* estructura2 = malloc(sizeof(t_struct_secundaria));
 
-	 estructura = list_get(estructura_secundaria,(a_sacar+1));
-	 estructura2 = list_get(estructura_secundaria,a_sacar);
-	 char* memoria_a_mover = malloc(tamanio_memoria - estructura->bit_inicio);
-	 memoria_a_mover = strdup(memoria + estructura->bit_inicio);
-	 *(memoria + estructura2->bit_inicio) = *memoria_a_mover;
-	 list_remove_and_destroy_element(estructura_secundaria,a_sacar,free);
+	estructura =  list_get(estructura_secundaria,a_sacar);
+
+	int tamanio_a_mover = tamanio_memoria - (estructura->bit_inicio + estructura->tamanio);
+	char* comienzo_a_sacar = memoria + estructura-> bit_inicio;
+	// de donde voy a sacar la memoria a mover
+	char* de_donde = memoria + estructura->bit_inicio + estructura->tamanio;
+
+	memmove(comienzo_a_sacar,de_donde,tamanio_a_mover);
+
+	list_remove_and_destroy_element(estructura_secundaria,a_sacar,free);
+	list_add(estructura_secundaria,estructura);
  }
 
  void* de_id_mensaje_a_mensaje(int id_mensaje){
@@ -235,7 +237,9 @@ void mover_memoria(int a_sacar){
 		}
 
 	 estructura3 = list_find(estructura_secundaria,es_igual_a);
-	 return strndup((memoria+estructura3->bit_inicio),estructura3->tamanio); // tira segmentation fault aca
+	 void* mensaje = malloc(estructura3->tamanio);
+	 memcpy(mensaje, memoria + estructura3->bit_inicio,estructura3->tamanio);
+	 return mensaje; // tira segmentation fault aca
 
  }
 
@@ -251,3 +255,15 @@ int de_id_mensaje_a_cola(int id_mensaje){
 	 estructura3 = list_find(estructura_secundaria,es_igual_a);
  	 return estructura3->tipo_mensaje;
  }
+int de_id_mensaje_a_size(int id_mensaje){
+	t_struct_secundaria* estructura3 = malloc(sizeof(t_struct_secundaria));
+
+
+			bool es_igual_a(void* estructura_aux) {
+				t_struct_secundaria* estructura_nueva = (t_struct_secundaria*) estructura_aux;
+				return estructura_nueva->id == id_mensaje;
+			}
+
+		 estructura3 = list_find(estructura_secundaria,es_igual_a);
+	 	 return estructura3->tamanio;
+}

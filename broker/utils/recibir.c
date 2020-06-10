@@ -36,7 +36,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 
 		paquete->buffer->stream = malloc(paquete->buffer->size);
 		recv(*socket_escucha, paquete->buffer->stream, paquete->buffer->size, MSG_WAITALL);
-		void* msg = deserializar_buffer(id_cola, paquete->buffer);
+		void* msg = paquete->buffer->stream;
 
 		int id_mens_en_cola = revisar_si_mensaje_no_estaba_en_cola(id_cola, msg);
 		if (id_mens_en_cola == 0){ // Si es 0 no esta en la cola el msg
@@ -53,7 +53,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 			//almacenar(msg,id_cola,id_mensaje,paquete->buffer->size);
 
 			pthread_mutex_lock(&(sem_cola[id_cola]));
-			agregar_a_cola(id_cola,paquete->buffer->size,deserializar_buffer(id_cola, paquete->buffer),id_mensaje);
+			agregar_a_cola(id_cola,paquete->buffer->size,msg,id_mensaje);
 			pthread_mutex_unlock(&(sem_cola[id_cola]));
 
 		} else {
