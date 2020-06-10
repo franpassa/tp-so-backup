@@ -401,14 +401,21 @@ void conectarABroker(){
 
 void deadlock()
 {
-	sleep(30); // con esto dejo el proceso corriendo y chequeo
-	if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && !list_all_satisfy(estado_bloqueado,bloqueadoPorNada))
+	while(1)
 	{
-		t_entrenador* entrenador =	list_remove(estado_bloqueado,0);
-		t_entrenador* entrenadorAMoverse = list_get(quienTieneElPokeQueMeFalta(entrenador,estado_bloqueado),0);
-		moverEntrenador(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY,retardoCpu,logger);
-		realizarCambio(entrenador,entrenadorAMoverse);
-
+		printf("Chequeando si hay deadlock. \n");
+		//list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && !list_all_satisfy(estado_bloqueado,bloqueadoPorNada)
+		if(true)
+		{
+			printf("Hay deadlock. \n");
+			t_entrenador* entrenador =	list_remove(estado_bloqueado,0);
+			t_entrenador* entrenadorAMoverse = list_get(quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado),0);
+			moverEntrenador(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY,retardoCpu,logger);
+			realizarCambio(entrenador,entrenadorAMoverse);
+			cambiarEstado(entrenador);
+		}
+		printf("No hay deadlock. \n");
+		sleep(3); // con esto dejo el proceso corriendo y chequeo
 	}
 }
 
