@@ -157,7 +157,6 @@ t_pokemon*  pokemonMasCercano (t_entrenador* unEntrenador, t_list* pokemons)
 		}
 	}
 	return pokemonFlag;
-
 }
 
 t_entrenador* entrenadorAReady(t_list* listaEntrenadores, t_list* listaPokemons)

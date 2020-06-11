@@ -229,10 +229,9 @@ void recibirAppeared() {
 				pthread_mutex_unlock(&mutexPokemonsRecibidos);
 			}
 		} else {
-			close(socket_appeared);
+			if(socket_appeared > 0) close(socket_appeared);
 			invocarHiloReconexion();
 		}
-
 	}
 }
 
@@ -262,7 +261,7 @@ void recibirLocalized() { // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 				pthread_mutex_unlock(&mutexPokemonsRecibidos);
 			}
 		} else {
-			close(socket_localized);
+			if(socket_localized > 0) close(socket_localized);
 			invocarHiloReconexion();
 		}
 	}
@@ -339,7 +338,7 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 				}
 			}
 		} else {
-			close(socket_caught);
+			if(socket_caught > 0) close(socket_caught);
 			invocarHiloReconexion();
 		}
 	}
@@ -382,6 +381,7 @@ void conectarABroker(){
 		bool conexionExitosa = socket_caught != -1 && socket_localized != -1 && socket_appeared != -1;
 
 		if(!conexionExitosa){
+
 			printf("Falló la conexion con el Broker. Intento de reconexion numero %d...\n\n", intento);
 			sleep(tiempo_reconexion);
 			intento++;
@@ -399,12 +399,12 @@ void conectarABroker(){
 	pthread_mutex_unlock(&mutexReconexion);
 }
 
-
 void deadlock()
 {
 	while(1)
 	{
 		printf("Chequeando si hay deadlock. \n");
+
 		if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && !list_all_satisfy(estado_bloqueado,bloqueadoPorNada))
 		{
 			printf("Hay deadlock. \n");
@@ -423,6 +423,10 @@ void deadlock()
 		printf("No hay deadlock. \n");
 		sleep(3); // con esto dejo el proceso corriendo y chequeo
 	}
+
+	printf("Los entrenadores fueron planificados en su totalidad.\n");
+
+	exit(0);
 }
 
 

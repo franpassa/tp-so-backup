@@ -24,7 +24,7 @@ int main()
 
 	pthread_create(&hilo_recibir_appeared, NULL, (void*) recibirAppeared, NULL);
 
-	pthread_create(&hilo_deadlock,NULL,(void*)deadlock,NULL);
+	pthread_create(&hilo_deadlock,NULL,(void*) deadlock,NULL);
 
 	pthread_join(hilo_escucha, NULL);
 	pthread_join(hilo_estado_exec, NULL);
@@ -66,6 +66,7 @@ void terminar_programa(){
 	log_destroy(logger);
 	config_destroy(config);
 	liberarVariables();
+	printf("El programa finalizó correctamente.\n");
 }
 
 void inicializarPrograma(){
@@ -96,6 +97,7 @@ void inicializarVariables(){
 	sem_init(&semCaught, 0, 1);
 	sem_init(&semLocalized, 0, 1);
 	sem_init(&semAppeared, 0, 1);
+	terminarPrograma = false;
 
 	posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
 	pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");

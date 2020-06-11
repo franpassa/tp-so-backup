@@ -80,6 +80,7 @@ pthread_t hilo_deadlock;
 sem_t semCaught;
 sem_t semLocalized;
 sem_t semAppeared;
+bool terminarPrograma;
 
 int ciclosConsumidos;
 
