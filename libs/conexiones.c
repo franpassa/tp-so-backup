@@ -97,10 +97,10 @@ int suscribirse_a_cola(queue_name cola, char* ip, char* puerto) {
 	}
 }
 
-uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructura_mensaje, bool esperar_id) {
+uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructura_mensaje, uint32_t id_mensaje, bool esperar_id_respuesta) {
 
 	int socket_receptor = conectar_como_productor(ip, puerto);
-	if (socket_receptor == -1) return -1;
+	if (socket_receptor == -1) return -1; // Es un uint32_t y estoy devolviendo -1...
 
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
@@ -224,13 +224,17 @@ uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructur
 		free_paquete(paquete);
 		free(a_enviar);
 		return -1;
+	} else {
+		if(id_mensaje > 0){
+			send(socket_receptor, &id_mensaje, sizeof(uint32_t), 0);
+		}
 	}
 
 	free_paquete(paquete);
 	free(a_enviar);
 
 	uint32_t id;
-	if (esperar_id) {
+	if (esperar_id_respuesta) {
 		int status_recv = recv(socket_receptor, &id, sizeof(uint32_t), MSG_WAITALL);
 		if (status_recv <= 0) id = -1;
 	} else {
@@ -274,7 +278,7 @@ void confirmar_recepcion(queue_name cola, uint32_t id_mensaje, uint32_t socket_s
 	send(socket_broker, a_enviar, bytes, 0);
 }
 
-void* recibir_mensaje(int socket, uint32_t* id) {
+void* recibir_mensaje(int socket, uint32_t* id, queue_name* tipo_msg) {
 
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
@@ -282,6 +286,7 @@ void* recibir_mensaje(int socket, uint32_t* id) {
 		free(paquete);
 		return NULL;
 	}
+	*tipo_msg = paquete->cola_msg;
 
 	paquete->buffer = malloc(sizeof(t_buffer));
 	if (recv(socket, &(paquete->buffer->size), sizeof(uint32_t), MSG_WAITALL) <= 0) {
@@ -299,7 +304,7 @@ void* recibir_mensaje(int socket, uint32_t* id) {
 		*id = 0; // No se envio o hubo un error recibiendo el ID.
 	}
 
-	void* msg = deserializar_buffer(paquete->cola_msg, paquete->buffer);
+	void* msg = deserializar_buffer(*tipo_msg, paquete->buffer);
 	free_paquete(paquete);
 
 	return msg;

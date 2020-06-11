@@ -94,8 +94,9 @@ int iniciar_servidor(char* ip, char* puerto);
 // Pasa 'queue_name' = PRODUCTOR y no espera confirmación del Broker.
 int conectar_como_productor(char* ip, char* puerto);
 int suscribirse_a_cola(queue_name cola, char* ip, char* puerto);
-uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructura_mensaje, bool esperar_id);
-void* recibir_mensaje(int socket, uint32_t* id_mensaje);
+// Si no se le quiere pasar el ID del mensaje, se le pasa 0.
+uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructura_mensaje, uint32_t id_mensaje, bool esperar_id_rta);
+void* recibir_mensaje(int socket, uint32_t* id_mensaje, queue_name* tipo_msg);
 void confirmar_recepcion(queue_name cola, uint32_t id_mensaje, uint32_t socket_suscripcion, uint32_t socket_broker); // SE ENVÍA queue_name - size - id_mensaje - socket_suscripcion
 void* serializar_paquete(t_paquete* paquete, int bytes);
 void* deserializar_buffer(queue_name cola, void* buffer_ptr);
