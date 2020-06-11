@@ -39,7 +39,7 @@ int main(int argc, char** argv){
 	} else if(string_equals_ignore_case(destinatario, "BROKER")) {
 
 		char nombre_pokemon[20];
-		uint32_t x, y, cantidad, id;
+		uint32_t x, y, cantidad, id, id_correlativo;
 		int scan_result;
 
 		switch(cola){
@@ -52,10 +52,10 @@ int main(int argc, char** argv){
 				break;
 
 			case APPEARED_POKEMON:
-				scan_result = sscanf(argumentos_string, "%s %d %d", nombre_pokemon, &x, &y);
-				if(scan_result != 3) cortar_ejecucion("Parametros incorrectos");
+				scan_result = sscanf(argumentos_string, "%s %d %d %d", nombre_pokemon, &x, &y, &id_correlativo);
+				if(scan_result != 4) cortar_ejecucion("Parametros incorrectos");
 
-				appeared_pokemon_msg* appeared_pok = appeared_msg(nombre_pokemon, x, y);
+				appeared_pokemon_msg* appeared_pok = appeared_msg(id_correlativo, nombre_pokemon, x, y);
 				id = send_broker(cola, appeared_pok);
 				break;
 
@@ -68,7 +68,7 @@ int main(int argc, char** argv){
 				break;
 
 			case CAUGHT_POKEMON:;
-				uint32_t id_correlativo, caught_status;
+				uint32_t caught_status;
 				scan_result = sscanf(argumentos_string, "%d %d", &id_correlativo, &caught_status);
 				if (scan_result != 2) cortar_ejecucion("Parametros incorrectos");
 				if(caught_status != 0 && caught_status != 1) cortar_ejecucion("Status de CAUGHT incorrecto");
@@ -96,6 +96,39 @@ int main(int argc, char** argv){
 		}
 
 	} else if(string_equals_ignore_case(destinatario, "GAMECARD")){
+
+		char nombre_pokemon[20];
+		uint32_t x, y, cantidad, id_mensaje;
+		int scan_result;
+
+		switch(cola){
+		case NEW_POKEMON:
+			scan_result = sscanf(argumentos_string, "%s %d %d %d %d", nombre_pokemon, &x, &y, &cantidad, &id_mensaje);
+			if(scan_result != 5) cortar_ejecucion("Parametros incorrectos");
+
+			new_pokemon_msg* new_pok = new_msg(nombre_pokemon, x, y, cantidad);
+			send_gamecard(cola, new_pok, id_mensaje);
+			break;
+
+		case CATCH_POKEMON:
+			scan_result = sscanf(argumentos_string, "%s %d %d %d", nombre_pokemon, &x, &y, &id_mensaje);
+			if(scan_result != 4) cortar_ejecucion("Parametros incorrectos");
+
+			catch_pokemon_msg* catch_pok = catch_msg(nombre_pokemon, x, y);
+			send_gamecard(cola, catch_pok, id_mensaje);
+			break;
+
+		case GET_POKEMON:
+			scan_result = sscanf(argumentos_string, "%s %d", nombre_pokemon, &id_mensaje);
+			if (scan_result != 2) cortar_ejecucion("Parametros incorrectos");
+
+			get_pokemon_msg* get_pok = get_msg(nombre_pokemon);
+			send_gamecard(cola, get_pok, id_mensaje);
+			break;
+
+		default:
+			cortar_ejecucion("Cola incorrecta");
+	}
 
 	} else if(string_equals_ignore_case(destinatario, "SUSCRIPTOR")){
 

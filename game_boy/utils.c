@@ -38,11 +38,9 @@ uint32_t send_team(char* nombre_pokemon, uint32_t X, uint32_t Y){
 	char* ip_team = config_get_string_value(config, "IP_TEAM");
 	char* puerto_team = config_get_string_value(config, "PUERTO_TEAM");
 
-	appeared_pokemon_msg* msg = appeared_msg(nombre_pokemon, X, Y);
-	uint32_t id = enviar_mensaje( ip_team, puerto_team, APPEARED_POKEMON, (void*) msg, false);
+	appeared_pokemon_msg* msg = appeared_msg(0, nombre_pokemon, X, Y); // Hardcodeado el id_correlativo porque el team no lo necesita.
 
-
-	return id;
+	return enviar_mensaje(ip_team, puerto_team, APPEARED_POKEMON, (void*) msg, 0, false);
 }
 
 uint32_t send_broker(queue_name cola, void* mensaje){
@@ -50,9 +48,15 @@ uint32_t send_broker(queue_name cola, void* mensaje){
 	char* ip_broker = config_get_string_value(config, "IP_BROKER");
 	char* puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
 
-	uint32_t id = enviar_mensaje(ip_broker, puerto_broker, cola, mensaje, true);
+	return enviar_mensaje(ip_broker, puerto_broker, cola, mensaje, 0, true);
+}
 
-	return id;
+uint32_t send_gamecard(queue_name cola, void* mensaje, uint32_t id){
+
+	char* ip_gamecard = config_get_string_value(config, "IP_GAMECARD");
+	char* puerto_gamecard = config_get_string_value(config, "PUERTO_GAMECARD");
+
+	return enviar_mensaje(ip_gamecard, puerto_gamecard, cola, mensaje, id, false);
 }
 
 char* unir_args(char** args, int cant){
@@ -71,7 +75,8 @@ void recibir_mensajes(suscripcion_t* info_suscripcion){
 
 	while(1){
 		uint32_t id;
-		void* msg = recibir_mensaje(info_suscripcion->socket, &id);
+		queue_name tipo_msg;
+		void* msg = recibir_mensaje(info_suscripcion->socket, &id, &tipo_msg);
 		printf("id: %d ->", id);
 		print_msg(info_suscripcion->cola, msg);
 	}
