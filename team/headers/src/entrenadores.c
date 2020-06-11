@@ -106,6 +106,7 @@ void mostrarEntrenador(void* entrenador)
 	list_iterate((((t_entrenador*)entrenador)->pokesAtrapados),mostrarString);
 	printf("\nLos pokemon obtenidos del entrenador son: \n");
 	list_iterate((((t_entrenador*)entrenador)->pokesObjetivos),mostrarString);
+	printf("\nEl estado del entrenador es: %d\n",((t_entrenador*) entrenador)->motivoBloqueo);
 	if(((t_entrenador*)entrenador)->pokemonAMoverse != NULL){mostrarPokemon(((t_entrenador*)entrenador)->pokemonAMoverse);}
 
 }
@@ -157,7 +158,6 @@ t_pokemon*  pokemonMasCercano (t_entrenador* unEntrenador, t_list* pokemons)
 		}
 	}
 	return pokemonFlag;
-
 }
 
 t_entrenador* entrenadorAReady(t_list* listaEntrenadores, t_list* listaPokemons)
@@ -307,7 +307,7 @@ t_list* pokemonesQueLeFaltan(t_entrenador* unEntrenador)
 // devuelve una lista de los entrenadores que tienen el/los pokemon que me faltan
 // el t_list* lista es una lista con todos los blockeados menos el mismo
 
-t_list* quienTieneElPokeQueMeFalta(t_entrenador* unEntrenador, t_list* lista)
+t_list* quienesTienenElPokeQueMeFalta(t_entrenador* unEntrenador, t_list* lista)
 {
 	// nos dice si el segundo entrenador tiene algun pokemon de sobra que necesite el primero
 	bool tieneUnPokemonQueLeFalta( t_entrenador* otroEntrenador)

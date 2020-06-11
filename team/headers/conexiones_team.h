@@ -17,7 +17,7 @@ void cambiarEstado(t_entrenador* entrenador);
 void invocarHiloReconexion();
 void conectarABroker();
 bool todasLasColasEstanVacias();
-void detectarDeadlock();
+void deadlock();
 
 
 #endif /* _CONEXIONES_TEAM_H_*/

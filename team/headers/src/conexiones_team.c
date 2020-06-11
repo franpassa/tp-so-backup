@@ -3,7 +3,7 @@
 void cambiarEstado(t_entrenador* entrenador){
 	//CAMBIA EL ENTRENADOR A EXIT O BLOQUEADO
 	if(puedeAtrapar(entrenador)){
-		list_add(entrenador->pokesAtrapados,entrenador->pokemonAMoverse);
+		list_add(entrenador->pokesAtrapados,(entrenador->pokemonAMoverse)->nombre);
 		entrenador->pokemonAMoverse = NULL;
 
 		if(sonIguales(entrenador->pokesAtrapados,entrenador->pokesObjetivos)){
@@ -55,7 +55,9 @@ void enviar_gets(t_list* objetivos_globales) {
 		} else {
 			/*AGREGO EL ID A LA LISTA DE IDS ENVIADOS*/
 			printf("Envio del mensaje GET_POKEMON '%s' exitoso. ID asignado: %d\n",a_enviar->nombre_pokemon,*id_respuesta);
+			pthread_mutex_lock(&mutexIdsEnviados);
 			list_add(ids_enviados, id_respuesta);
+			pthread_mutex_unlock(&mutexIdsEnviados);
 		}
 		sleep(1);
 	}
@@ -187,6 +189,7 @@ void pasar_a_ready(){
 
 			//Aca tengo que poner mutex??
 			t_list* lista = listaALaQuePertenece(entrenadorTemporal);
+
 			list_remove_by_condition(lista,(void*) es_el_mismo_entrenador);
 
 			pthread_mutex_lock(&mutexEstadoReady);
@@ -227,10 +230,9 @@ void recibirAppeared() {
 				pthread_mutex_unlock(&mutexPokemonsRecibidos);
 			}
 		} else {
-			close(socket_appeared);
+			if(socket_appeared > 0) close(socket_appeared);
 			invocarHiloReconexion();
 		}
-
 	}
 }
 
@@ -260,7 +262,7 @@ void recibirLocalized() { // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 				pthread_mutex_unlock(&mutexPokemonsRecibidos);
 			}
 		} else {
-			close(socket_localized);
+			if(socket_localized > 0) close(socket_localized);
 			invocarHiloReconexion();
 		}
 	}
@@ -337,7 +339,7 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 				}
 			}
 		} else {
-			close(socket_caught);
+			if(socket_caught > 0) close(socket_caught);
 			invocarHiloReconexion();
 		}
 	}
@@ -353,7 +355,6 @@ void* buscarEntrenador(uint32_t id){
 }
 
 void invocarHiloReconexion(){
-	pthread_t hiloReconexion;
 
 	pthread_create(&hiloReconexion, NULL,(void*) conectarABroker, NULL);
 
@@ -381,6 +382,7 @@ void conectarABroker(){
 		bool conexionExitosa = socket_caught != -1 && socket_localized != -1 && socket_appeared != -1;
 
 		if(!conexionExitosa){
+
 			printf("Falló la conexion con el Broker. Intento de reconexion numero %d...\n\n", intento);
 			sleep(tiempo_reconexion);
 			intento++;
@@ -398,18 +400,40 @@ void conectarABroker(){
 	pthread_mutex_unlock(&mutexReconexion);
 }
 
-
 void deadlock()
 {
-	sleep(30); // con esto dejo el proceso corriendo y chequeo
-	if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && !list_all_satisfy(estado_bloqueado,bloqueadoPorNada))
+	while(1)
 	{
-		t_entrenador* entrenador =	list_remove(estado_bloqueado,0);
-		t_entrenador* entrenadorAMoverse = list_get(quienTieneElPokeQueMeFalta(entrenador,estado_bloqueado),0);
-		moverEntrenador(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY,retardoCpu,logger);
-		realizarCambio(entrenador,entrenadorAMoverse);
+		printf("Chequeando si hay deadlock. \n");
 
+		if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && !list_all_satisfy(estado_bloqueado,bloqueadoPorNada))
+		{
+			printf("Hay deadlock. \n");
+			t_entrenador* entrenador =	list_remove(estado_bloqueado,0);
+			t_entrenador* entrenadorAMoverse = list_get(quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado),0);
+
+			if(entrenadorAMoverse == NULL){
+				cambiarEstado(entrenador);
+				printf("Se resolvió el deadlock.\n");
+				break;
+			}
+
+			moverEntrenador(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY,retardoCpu,logger);
+			realizarCambio(entrenador,entrenadorAMoverse);
+			cambiarEstado(entrenador);
+		}
+		printf("No hay deadlock. \n");
+		sleep(3); // con esto dejo el proceso corriendo y chequeo
 	}
+
+	printf("Los entrenadores fueron planificados en su totalidad.\n");
+
+	printf("Los entrenadores en estado exit son: \n");
+
+	list_iterate(estado_exit,mostrarEntrenador);
+
+	sem_post(&entrenadoresSatisfechos);
+
 }
 
 

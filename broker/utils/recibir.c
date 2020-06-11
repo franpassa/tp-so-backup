@@ -36,7 +36,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 
 		paquete->buffer->stream = malloc(paquete->buffer->size);
 		recv(*socket_escucha, paquete->buffer->stream, paquete->buffer->size, MSG_WAITALL);
-		void* msg = deserializar_buffer(id_cola, paquete->buffer);
+		void* msg = paquete->buffer->stream;
 
 		int id_mens_en_cola = revisar_si_mensaje_no_estaba_en_cola(id_cola, msg);
 		if (id_mens_en_cola == 0){ // Si es 0 no esta en la cola el msg
@@ -50,10 +50,10 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 			printf("MENSAJE NUEVO -- ID: %d -- COLA: %s\n",id_mensaje,nombres_colas[id_cola]);
 			//log_info(logger, " MENSAJE NUEVO -- ID: %d -- COLA: %s ", id_mensaje, nombres_colas[id_cola]);
 
-			//almacenar(msg,id_cola,id_mensaje,paquete->buffer->size);
+			almacenar(msg,id_cola,id_mensaje,paquete->buffer->size);
 
 			pthread_mutex_lock(&(sem_cola[id_cola]));
-			agregar_a_cola(id_cola,paquete->buffer->size,deserializar_buffer(id_cola, paquete->buffer),id_mensaje);
+			agregar_a_cola(id_cola,paquete->buffer->size,msg,id_mensaje);
 			pthread_mutex_unlock(&(sem_cola[id_cola]));
 
 		} else {
@@ -77,7 +77,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 }
 
 
-void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, int socket_sub) { // falta probar
+void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, int socket_sub) {
 
 	t_cola_de_mensajes* queue = int_a_nombre_cola(id_cola);
 	t_info_mensaje* mensaje = queue_peek(queue->cola);
@@ -121,7 +121,7 @@ uint32_t crear_nuevo_id(){
 void agregar_a_cola(uint32_t id_cola,uint32_t size , void* mensaje, int id_mensaje){
 
 	t_info_mensaje* msg = malloc(sizeof(t_info_mensaje));
-
+	msg->id = id_mensaje;
 	msg->quienes_lo_recibieron = list_create();
 	msg->a_quienes_fue_enviado = list_create();
 

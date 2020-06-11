@@ -2,13 +2,14 @@
 
 void mandar_mensajes() {
 
-	int cola_actual = 0;
+	uint32_t cola_actual = 0;
 
 	while (1) {
 		if (cola_actual == 6) {
 			cola_actual = 0;
 		}
-		if (queue_size(int_a_nombre_cola(cola_actual)->cola) != 0) {
+		t_cola_de_mensajes* cola_a_revisar = int_a_nombre_cola(cola_actual);
+		if (!queue_is_empty(cola_a_revisar->cola)){
 			pthread_mutex_lock(&(sem_cola[cola_actual]));
 			recorrer_cola(int_a_nombre_cola(cola_actual));
 			pthread_mutex_unlock(&(sem_cola[cola_actual]));
@@ -18,119 +19,16 @@ void mandar_mensajes() {
 	}
 }
 
-int mandar(queue_name cola, void* estructura_mensaje, int id ,int socket_receptor) {
+int mandar(queue_name cola, void* stream, int id ,int socket_receptor, int size) {
 	int control = 0;
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
 	paquete->cola_msg = cola;
 	paquete->buffer = malloc(sizeof(t_buffer));
-	void* stream;
-	int offset = 0;
-
-	switch (cola) {
-	case NEW_POKEMON:;
-		new_pokemon_msg* msg_new = (new_pokemon_msg*) estructura_mensaje;
-
-		paquete->buffer->size = sizeof(uint32_t) * 4 + msg_new->tamanio_nombre;
-		stream = malloc(paquete->buffer->size);
-
-		memcpy(stream + offset, &(msg_new->tamanio_nombre), sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-		memcpy(stream + offset, msg_new->nombre_pokemon,
-				msg_new->tamanio_nombre);
-		offset += msg_new->tamanio_nombre;
-		memcpy(stream + offset, &(msg_new->coordenada_X), sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-		memcpy(stream + offset, &(msg_new->coordenada_Y), sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-		memcpy(stream + offset, &(msg_new->cantidad_pokemon), sizeof(uint32_t));
-
-		break;
-
-	case APPEARED_POKEMON:;
-		appeared_pokemon_msg* msg_appeared = (appeared_pokemon_msg*) estructura_mensaje;
-
-		paquete->buffer->size = sizeof(uint32_t) * 3 + msg_appeared->tamanio_nombre;
-		stream = malloc(paquete->buffer->size);
-
-		memcpy(stream + offset, &(msg_appeared->tamanio_nombre), sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-		memcpy(stream + offset, msg_appeared->nombre_pokemon,
-				msg_appeared->tamanio_nombre);
-		offset += msg_appeared->tamanio_nombre;
-		memcpy(stream + offset, &(msg_appeared->coordenada_X), sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-		memcpy(stream + offset, &(msg_appeared->coordenada_Y),
-				sizeof(uint32_t));
-
-		break;
-
-	case GET_POKEMON:;
-		get_pokemon_msg* msg_get = (get_pokemon_msg*) estructura_mensaje;
-
-		paquete->buffer->size = sizeof(uint32_t) * 2 + msg_get->tamanio_nombre;
-		stream = malloc(paquete->buffer->size);
-
-		memcpy(stream + offset, &(msg_get->tamanio_nombre), sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-		memcpy(stream + offset, msg_get->nombre_pokemon, msg_get->tamanio_nombre);
-
-		break;
-
-	case LOCALIZED_POKEMON:;
-		localized_pokemon_msg* msg_localized = (localized_pokemon_msg*) estructura_mensaje;
-
-		uint32_t tamanio_pares_coordenadas = sizeof(uint32_t) * msg_localized->cantidad_posiciones * 2;
-
-		paquete->buffer->size = sizeof(uint32_t) * 3 + tamanio_pares_coordenadas + msg_localized->tamanio_nombre;
-		stream = malloc(paquete->buffer->size);
-
-		memcpy(stream + offset, &(msg_localized->id_correlativo), sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-		memcpy(stream + offset, &(msg_localized->tamanio_nombre), sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-		memcpy(stream + offset, msg_localized->nombre_pokemon, msg_localized->tamanio_nombre);
-		offset += msg_localized->tamanio_nombre;
-		memcpy(stream + offset, &(msg_localized->cantidad_posiciones), sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-		memcpy(stream + offset, msg_localized->pares_coordenadas, tamanio_pares_coordenadas);
-
-		break;
-
-	case CATCH_POKEMON:;
-		catch_pokemon_msg* msg_catch = (catch_pokemon_msg*) estructura_mensaje;
-
-		paquete->buffer->size = sizeof(uint32_t) * 4 + msg_catch->tamanio_nombre;
-		stream = malloc(paquete->buffer->size);
-
-		memcpy(stream + offset, &(msg_catch->tamanio_nombre), sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-		memcpy(stream + offset, msg_catch->nombre_pokemon, msg_catch->tamanio_nombre);
-		offset += msg_catch->tamanio_nombre;
-		memcpy(stream + offset, &(msg_catch->coordenada_X), sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-		memcpy(stream + offset, &(msg_catch->coordenada_Y), sizeof(uint32_t));
-
-		break;
-
-	case CAUGHT_POKEMON:;
-		caught_pokemon_msg* msg_caught = (caught_pokemon_msg*) estructura_mensaje;
-
-		paquete->buffer->size = sizeof(uint32_t) * 2;
-		stream = malloc(paquete->buffer->size);
-
-		memcpy(stream + offset, &(msg_caught->id_correlativo), sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-		memcpy(stream + offset, &(msg_caught->resultado), sizeof(uint32_t));
-
-		break;
-
-	default:
-		break;
-	}
+	paquete->buffer->size = size;
 
 	// El tamaño total sería: id_cola (4) + buffer_size (4) + stream (buffer_size)
-	int total_bytes = paquete->buffer->size + sizeof(queue_name) + sizeof(uint32_t);
+	int total_bytes = size + sizeof(queue_name) + sizeof(uint32_t);
 
 	paquete->buffer->stream = stream;
 	void* a_enviar = serializar_paquete(paquete, total_bytes);
@@ -165,7 +63,7 @@ void recorrer_cola(t_cola_de_mensajes* nombre) {
 			for (int i = 0; i < list_size(nombre->lista_suscriptores); i++) {
 				uint32_t* sub = (uint32_t*) list_get(nombre->lista_suscriptores,i);
 				if (!esta_en_lista(info_a_sacar->quienes_lo_recibieron, sub)) {
-					if (mandar(nombre->tipo_cola, de_id_mensaje_a_mensaje(info_a_sacar->id), info_a_sacar->id , *sub) == -1) {
+					if (mandar(nombre->tipo_cola, de_id_mensaje_a_mensaje(info_a_sacar->id), info_a_sacar->id , *sub,de_id_mensaje_a_size(info_a_sacar->id)) == -1) {
 
 						sub_suscrito = false;
 
