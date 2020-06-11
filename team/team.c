@@ -26,15 +26,17 @@ int main()
 
 	pthread_create(&hilo_deadlock,NULL,(void*) deadlock,NULL);
 
-	pthread_join(hilo_escucha, NULL);
-	pthread_join(hilo_estado_exec, NULL);
-	pthread_join(hilo_pasar_a_ready, NULL);
-	pthread_join(hilo_recibir_localized, NULL);
-	pthread_join(hilo_recibir_appeared, NULL);
-	pthread_join(hilo_recibir_caught, NULL);
-	pthread_join(hilo_deadlock,NULL);
+	pthread_detach(hilo_escucha);
+	pthread_detach(hilo_estado_exec);
+	pthread_detach(hilo_pasar_a_ready);
+	pthread_detach(hilo_recibir_localized);
+	pthread_detach(hilo_recibir_appeared);
+	pthread_detach(hilo_recibir_caught);
+	pthread_detach(hilo_deadlock);
 
-	terminar_programa(); //Finalizo el programa
+	sem_wait(&entrenadoresSatisfechos);
+
+	liberar_recursos(); //Finalizo el programa
 
 	return 0;
 }
@@ -62,7 +64,7 @@ t_log* crear_log(){
 }
 
 
-void terminar_programa(){
+void liberar_recursos(){
 	log_destroy(logger);
 	config_destroy(config);
 	liberarVariables();
@@ -97,7 +99,7 @@ void inicializarVariables(){
 	sem_init(&semCaught, 0, 1);
 	sem_init(&semLocalized, 0, 1);
 	sem_init(&semAppeared, 0, 1);
-	terminarPrograma = false;
+	sem_init(&entrenadoresSatisfechos, 0, 0);
 
 	posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
 	pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");

@@ -80,7 +80,7 @@ pthread_t hilo_deadlock;
 sem_t semCaught;
 sem_t semLocalized;
 sem_t semAppeared;
-bool terminarPrograma;
+sem_t entrenadoresSatisfechos;
 
 int ciclosConsumidos;
 
@@ -93,7 +93,7 @@ bool envioGets;								//corriendo porque cuando sale del bloqueo porque ya le
 t_log* crear_log();
 t_config* leer_config();
 void inicializarPrograma();
-void terminar_programa();
+void liberar_recursos();
 void estado_exec();
 void mostrar_ids(void* id);
 void inicializarVariables();

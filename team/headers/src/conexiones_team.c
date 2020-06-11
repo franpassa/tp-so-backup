@@ -413,6 +413,7 @@ void deadlock()
 			t_entrenador* entrenadorAMoverse = list_get(quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado),0);
 
 			if(entrenadorAMoverse == NULL){
+				cambiarEstado(entrenador);
 				printf("Se resolvió el deadlock.\n");
 				break;
 			}
@@ -427,14 +428,12 @@ void deadlock()
 
 	printf("Los entrenadores fueron planificados en su totalidad.\n");
 
-	printf("Los entrenadores en el estado exit son: \n");
+	printf("Los entrenadores en estado exit son: \n");
+
 	list_iterate(estado_exit,mostrarEntrenador);
 
-	printf("Los entrenadores en el estado bloqueado son: \n");
-	list_iterate(estado_bloqueado,mostrarEntrenador);
+	sem_post(&entrenadoresSatisfechos);
 
-	printf("Los entrenadores en el estado ready son: \n");
-	list_iterate(estado_ready,mostrarEntrenador);
 }
 
 
