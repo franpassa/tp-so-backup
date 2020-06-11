@@ -90,6 +90,7 @@ void inicializarVariables(){
 	pthread_mutex_init(&mutexEstadoBloqueado, NULL);
 	pthread_mutex_init(&mutexEstadoNew, NULL);
 	pthread_mutex_init(&mutexEstadoReady, NULL);
+	pthread_mutex_init(&mutexEstadoExit, NULL);
 	pthread_mutex_init(&mutexIdsEnviados, NULL);
 	pthread_mutex_init(&mutexPokemonsRecibidos, NULL);
 	pthread_mutex_init(&mutexPokemonsRecibidosHistoricos, NULL);
@@ -99,7 +100,6 @@ void inicializarVariables(){
 	sem_init(&semCaught, 0, 1);
 	sem_init(&semLocalized, 0, 1);
 	sem_init(&semAppeared, 0, 1);
-	//sem_init(&entrenadoresSatisfechos, 0, 0);
 
 	posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
 	pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
@@ -125,12 +125,27 @@ void liberarVariables()
 	liberarArray(pokesObjetivos);
 	list_destroy_and_destroy_elements(pokemons_objetivos, free);
 	list_destroy_and_destroy_elements(objetivos_globales,liberarEspecie);
-	list_destroy_and_destroy_elements(estado_bloqueado,liberarEntrenador);
-	list_destroy_and_destroy_elements(estado_ready,liberarEntrenador);
-	list_destroy_and_destroy_elements(estado_new,liberarEntrenador);
+	list_destroy(estado_bloqueado);
+	list_destroy(estado_ready);
+	list_destroy(estado_new);
 	list_destroy_and_destroy_elements(estado_exit,liberarEntrenador);
 	list_destroy_and_destroy_elements(pokemons_recibidos_historicos,liberarPokemon);
 	list_destroy_and_destroy_elements(ids_enviados,free);
+	pthread_mutex_destroy(&mutexCiclosConsumidos);
+	pthread_mutex_destroy(&mutexEstadoBloqueado);
+	pthread_mutex_destroy(&mutexEstadoNew);
+	pthread_mutex_destroy(&mutexEstadoExit);
+	pthread_mutex_destroy(&mutexEstadoReady);
+	pthread_mutex_destroy(&mutexHayEntrenadorProcesando);
+	pthread_mutex_destroy(&mutexIdsEnviados);
+	pthread_mutex_destroy(&mutexLog);
+	pthread_mutex_destroy(&mutexLogEntrenador);
+	pthread_mutex_destroy(&mutexPokemonsRecibidos);
+	pthread_mutex_destroy(&mutexPokemonsRecibidosHistoricos);
+	pthread_mutex_destroy(&mutexReconexion);
+	sem_destroy(&semAppeared);
+	sem_destroy(&semCaught);
+	sem_destroy(&semLocalized);
 }
 
 void mostrar_ids(void* id){

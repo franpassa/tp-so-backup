@@ -7,7 +7,9 @@ void cambiarEstado(t_entrenador* entrenador){
 		entrenador->pokemonAMoverse = NULL;
 
 		if(sonIguales(entrenador->pokesAtrapados,entrenador->pokesObjetivos)){
+			pthread_mutex_lock(&mutexEstadoExit);
 			list_add(estado_exit,entrenador);
+			pthread_mutex_unlock(&mutexEstadoExit);
 		}
 		else if (list_size(entrenador->pokesObjetivos) != list_size(entrenador->pokesAtrapados)){
 			entrenador->motivoBloqueo = MOTIVO_NADA;
@@ -24,7 +26,9 @@ void cambiarEstado(t_entrenador* entrenador){
 
 	} else if(sonIguales(entrenador->pokesAtrapados,entrenador->pokesObjetivos)){
 		entrenador->pokemonAMoverse = NULL;
+		pthread_mutex_lock(&mutexEstadoExit);
 		list_add(estado_exit,entrenador);
+		pthread_mutex_unlock(&mutexEstadoExit);
 	} else {
 		entrenador->motivoBloqueo = ESPERA_DEADLOCK;
 		pthread_mutex_lock(&mutexEstadoBloqueado);
@@ -49,7 +53,7 @@ void enviar_gets(t_list* objetivos_globales) {
 		char* mensaje = ((t_especie*) especie)->especie;
 		get_pokemon_msg* a_enviar = get_msg(mensaje);
 		uint32_t* id_respuesta = malloc(sizeof(uint32_t));
-		*id_respuesta = enviar_mensaje(ip_broker, puerto_broker,GET_POKEMON,a_enviar,true);
+		*id_respuesta = enviar_mensaje(ip_broker, puerto_broker,GET_POKEMON,a_enviar,0,true);
 		if (*id_respuesta == -1) {
 			printf("No existen locaciones disponibles para el pokemon: '%s'\n",a_enviar->nombre_pokemon);
 		} else {
@@ -59,6 +63,7 @@ void enviar_gets(t_list* objetivos_globales) {
 			list_add(ids_enviados, id_respuesta);
 			pthread_mutex_unlock(&mutexIdsEnviados);
 		}
+		free(mensaje);
 		sleep(1);
 	}
 
@@ -83,7 +88,9 @@ void esperar_cliente(int* socket_servidor) {
 
 		recv(socket_cliente,&cola,sizeof(queue_name),MSG_WAITALL);
 
-		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_cliente,&id);
+		queue_name otraCola = APPEARED_POKEMON;
+
+		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_cliente,&id,&otraCola);
 
 		if (mensaje_recibido_appeared != NULL) {
 
@@ -153,7 +160,7 @@ void algoritmoFifo()
 		//CONEXION AL BROKER Y ENVIO DE MENSAJE CATCH
 		catch_pokemon_msg* mensaje = catch_msg(aMoverse->nombre,aMoverse->posicionX,aMoverse->posicionY);
 		uint32_t* idMensajeExec = malloc(sizeof(int)); // no se libera aca porque se libera cuando liberamos  ids enviados
-		*idMensajeExec = enviar_mensaje(ip_broker,puerto_broker,CATCH_POKEMON,mensaje,true);
+		*idMensajeExec = enviar_mensaje(ip_broker,puerto_broker,CATCH_POKEMON,mensaje,0,true);
 
 		if (*idMensajeExec == -1)
 		{
@@ -181,7 +188,7 @@ void pasar_a_ready(){
 			t_entrenador* entrenadorTemporal = entrenadorAReady(listaAPlanificar,pokemons_recibidos);
 			pthread_mutex_unlock(&mutexPokemonsRecibidos);
 
-			list_destroy(listaAPlanificar);
+			//list_destroy(listaAPlanificar);
 
 			pthread_mutex_lock(&mutexLog);
 			log_info(logger,"el entrenador con id %d paso a la cola ready", entrenadorTemporal->idEntrenador);
@@ -213,13 +220,14 @@ void pasar_a_ready(){
 
 void recibirAppeared() {
 	appeared_pokemon_msg* mensaje_recibido_appeared;
+	queue_name cola = APPEARED_POKEMON;
 
 	while(1){
 
 		uint32_t idRecibido;
 
 		sem_wait(&semAppeared);
-		mensaje_recibido_appeared = recibir_mensaje(socket_appeared,&idRecibido);
+		mensaje_recibido_appeared = recibir_mensaje(socket_appeared,&idRecibido,&cola);
 		sem_post(&semAppeared);
 
 		if (mensaje_recibido_appeared != NULL) {
@@ -243,12 +251,13 @@ void recibirAppeared() {
 void recibirLocalized() { // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 
 	localized_pokemon_msg* mensaje_recibido_localized;
+	queue_name cola = LOCALIZED_POKEMON;
 
 	while (1) {
 		uint32_t id;
 
 		sem_wait(&semLocalized);
-		mensaje_recibido_localized = recibir_mensaje(socket_localized,&id); //Devuelve NULL si falla, falta manejar eso para que vuelva a reintentar la conexion.
+		mensaje_recibido_localized = recibir_mensaje(socket_localized,&id,&cola); //Devuelve NULL si falla, falta manejar eso para que vuelva a reintentar la conexion.
 		sem_post(&semLocalized);
 
 		if (mensaje_recibido_localized != NULL) {
@@ -275,13 +284,14 @@ void recibirLocalized() { // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 
 	caught_pokemon_msg* mensaje_recibido;
+	queue_name cola = CAUGHT_POKEMON;
 
 	while(1){
 
 		uint32_t idRecibido;
 
 		sem_wait(&semCaught);
-		mensaje_recibido = recibir_mensaje(socket_caught,&idRecibido);
+		mensaje_recibido = recibir_mensaje(socket_caught,&idRecibido,&cola);
 		sem_post(&semCaught);
 
 		if(mensaje_recibido != NULL){ //Verifico si recibo el mensaje.
@@ -435,8 +445,6 @@ void deadlock()
 	printf("Los entrenadores en estado exit son: \n");
 
 	list_iterate(estado_exit,mostrarEntrenador);
-
-	//sem_post(&entrenadoresSatisfechos);
 
 }
 

@@ -62,6 +62,7 @@ pthread_mutex_t mutexPokemonsRecibidos;
 pthread_mutex_t mutexEstadoReady;
 pthread_mutex_t mutexEstadoBloqueado;
 pthread_mutex_t mutexEstadoNew;
+pthread_mutex_t mutexEstadoExit;
 pthread_mutex_t mutexPokemonsRecibidosHistoricos;
 pthread_mutex_t mutexIdsEnviados;
 pthread_mutex_t mutexReconexion;
@@ -80,7 +81,6 @@ pthread_t hilo_deadlock;
 sem_t semCaught;
 sem_t semLocalized;
 sem_t semAppeared;
-//sem_t entrenadoresSatisfechos;
 
 int ciclosConsumidos;
 
