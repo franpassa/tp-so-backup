@@ -22,11 +22,11 @@ void print_ints(int* elem){
 int main(){
 
 	inicializar();
-	t_pokemon pikachu = init_pokemon("pikachu", 1, 1, 3);
-	if(!existe_pokemon(pikachu.nombre)){
-		crear_pokemon(pikachu);
-	}
-	terminar();
 
+	pthread_t hilo_gameboy;
+	pthread_create(&hilo_gameboy, NULL, (void*) escuchar_gameboy, NULL);
+	pthread_join(hilo_gameboy, NULL);
+
+	terminar();
 	return EXIT_SUCCESS;
 }
