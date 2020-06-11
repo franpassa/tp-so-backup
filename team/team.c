@@ -5,15 +5,6 @@ int main()
 	inicializarPrograma(); //Inicializo logger y config
 	inicializarVariables();
 
-	pthread_t hilo_escucha;
-	pthread_t hilo_recibir_localized;
-	pthread_t hilo_recibir_caught;
-	pthread_t hilo_recibir_appeared;
-	pthread_t hilo_estado_exec;
-	pthread_t hilo_pasar_a_ready;
-	pthread_t hilo_deadlock;
-
-
 	printf("\n");
 	int socket_escucha = iniciar_servidor(IP,PUERTO);
 	printf("\n");
@@ -34,7 +25,6 @@ int main()
 	pthread_create(&hilo_recibir_appeared, NULL, (void*) recibirAppeared, NULL);
 
 	pthread_create(&hilo_deadlock,NULL,(void*)deadlock,NULL);
-
 
 	pthread_join(hilo_escucha, NULL);
 	pthread_join(hilo_estado_exec, NULL);
@@ -115,6 +105,8 @@ void inicializarVariables(){
 	ALGORITMO = config_get_string_value(config,"ALGORITMO_PLANIFICACION");
 	retardoCpu = config_get_int_value(config, "RETARDO_CICLO_CPU");
 	tiempo_reconexion = config_get_int_value(config, "TIEMPO_RECONEXION");
+	IP = config_get_string_value(config, "IP_TEAM");
+	PUERTO = config_get_string_value(config, "PUERTO_TEAM");
 
 	estado_new = crearListaDeEntrenadores(posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
 	pokemons_objetivos = crearListaPokesObjetivos(estado_new);

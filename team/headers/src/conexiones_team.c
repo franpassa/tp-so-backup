@@ -55,7 +55,9 @@ void enviar_gets(t_list* objetivos_globales) {
 		} else {
 			/*AGREGO EL ID A LA LISTA DE IDS ENVIADOS*/
 			printf("Envio del mensaje GET_POKEMON '%s' exitoso. ID asignado: %d\n",a_enviar->nombre_pokemon,*id_respuesta);
+			pthread_mutex_lock(&mutexIdsEnviados);
 			list_add(ids_enviados, id_respuesta);
+			pthread_mutex_unlock(&mutexIdsEnviados);
 		}
 		sleep(1);
 	}
@@ -353,7 +355,6 @@ void* buscarEntrenador(uint32_t id){
 }
 
 void invocarHiloReconexion(){
-	pthread_t hiloReconexion;
 
 	pthread_create(&hiloReconexion, NULL,(void*) conectarABroker, NULL);
 
@@ -404,12 +405,17 @@ void deadlock()
 	while(1)
 	{
 		printf("Chequeando si hay deadlock. \n");
-		//list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && !list_all_satisfy(estado_bloqueado,bloqueadoPorNada)
-		if(true)
+		if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && !list_all_satisfy(estado_bloqueado,bloqueadoPorNada))
 		{
 			printf("Hay deadlock. \n");
 			t_entrenador* entrenador =	list_remove(estado_bloqueado,0);
 			t_entrenador* entrenadorAMoverse = list_get(quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado),0);
+
+			if(entrenadorAMoverse == NULL){
+				printf("Se resolvió el deadlock.\n");
+				break;
+			}
+
 			moverEntrenador(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY,retardoCpu,logger);
 			realizarCambio(entrenador,entrenadorAMoverse);
 			cambiarEstado(entrenador);

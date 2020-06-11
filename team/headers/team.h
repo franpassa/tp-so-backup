@@ -4,8 +4,6 @@
 #define PROGRAM_NAME "team"
 #define PATH_CONFIG "/home/utnso/workspace/tp-2020-1c-Cuarenteam/team/team.config"
 #define PATH_LOG "/home/utnso/workspace/tp-2020-1c-Cuarenteam/team/team.log"
-#define IP "127.0.0.1"
-#define PUERTO "9090"
 
 
 // general
@@ -39,6 +37,8 @@ t_log* logger;
 t_config* config;
 char* ip_broker;
 char* puerto_broker;
+char* IP;
+char* PUERTO;
 char** posicionesEntrenadores;
 char** pokesEntrenadores;
 char** pokesObjetivos;
@@ -67,6 +67,15 @@ pthread_mutex_t mutexIdsEnviados;
 pthread_mutex_t mutexReconexion;
 pthread_mutex_t mutexLog;
 pthread_mutex_t mutexHayEntrenadorProcesando;
+
+pthread_t hiloReconexion;
+pthread_t hilo_escucha;
+pthread_t hilo_recibir_localized;
+pthread_t hilo_recibir_caught;
+pthread_t hilo_recibir_appeared;
+pthread_t hilo_estado_exec;
+pthread_t hilo_pasar_a_ready;
+pthread_t hilo_deadlock;
 
 sem_t semCaught;
 sem_t semLocalized;

@@ -131,26 +131,20 @@ bool sonIguales(t_list* pokemonsAtrapados,t_list* pokemonsObjetivos)
 
 bool todosLosElementosDeLaPrimerListaEstanEnLaSegunda(t_list* listaA,t_list* listaB)
 {
-	bool flagEstado = true;
-	for(int i = 0; i < list_size(listaA); i++)
-	{
-		flagEstado = flagEstado && perteneceALaSegundaLista(((t_pokemon*)list_get(listaA,i))->nombre,listaB);
+	bool comparar(char* unPokemon){
+		return perteneceALaSegundaLista(unPokemon,listaB);
 	}
-	return flagEstado;
+
+	return list_all_satisfy(listaA,(void*) comparar);
 }
 
-bool perteneceALaSegundaLista(char* unPokemon,t_list* listaDePokemons)
+bool perteneceALaSegundaLista(char* pokemon,t_list* listaDePokemons)
 {
-	bool flagEstado = false;
-	for(int i = 0; i < list_size(listaDePokemons); i++)
-	{
-		char* base = ((t_pokemon*)list_get(listaDePokemons,i))->nombre;
-		if(string_equals_ignore_case(base,unPokemon))
-		{
-			flagEstado = true;
-		}
+	bool comparar(char* unPokemon){
+		return string_equals_ignore_case(unPokemon,pokemon);
 	}
-	return flagEstado;
+
+	return list_any_satisfy(listaDePokemons,(void*) comparar);
 }
 
 bool estaEnLaLista(char* unNombre, t_list* listadoDePokemons)
