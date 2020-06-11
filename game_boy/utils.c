@@ -38,7 +38,7 @@ uint32_t send_team(char* nombre_pokemon, uint32_t X, uint32_t Y){
 	char* ip_team = config_get_string_value(config, "IP_TEAM");
 	char* puerto_team = config_get_string_value(config, "PUERTO_TEAM");
 
-	appeared_pokemon_msg* msg = appeared_msg(nombre_pokemon, X, Y);
+	appeared_pokemon_msg* msg = appeared_msg(0, nombre_pokemon, X, Y);
 	uint32_t id = enviar_mensaje( ip_team, puerto_team, APPEARED_POKEMON, (void*) msg, false);
 
 

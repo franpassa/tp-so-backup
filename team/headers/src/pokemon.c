@@ -138,7 +138,7 @@ bool todosLosElementosDeLaPrimerListaEstanEnLaSegunda(t_list* listaA,t_list* lis
 	return list_all_satisfy(listaA,(void*) comparar);
 }
 
-bool perteneceALaSegundaLista(char* pokemon,t_list* listaDePokemons)
+bool perteneceALaSegundaLista(char* pokemon,t_list* listaDePokemons) // esta compara el nombre del pokemon con una lista de strings
 {
 	bool comparar(char* unPokemon){
 		return string_equals_ignore_case(unPokemon,pokemon);
@@ -147,16 +147,13 @@ bool perteneceALaSegundaLista(char* pokemon,t_list* listaDePokemons)
 	return list_any_satisfy(listaDePokemons,(void*) comparar);
 }
 
-bool estaEnLaLista(char* unNombre, t_list* listadoDePokemons)
+bool estaEnLaLista(char* unNombre, t_list* listadoDePokemons) // esta compara el nombre del pokemon con una lista de pokemons
 {
-	for(int i = 0; i< list_size(listadoDePokemons); i++)
-	{
-		if(string_equals_ignore_case(unNombre,((t_especie*)list_get(listadoDePokemons,i))->especie))
-		{
-			return true;
-		}
+	bool comparar(t_pokemon* pokemon){
+		return string_equals_ignore_case(pokemon->nombre, unNombre);
 	}
-	return false;
+
+	return list_any_satisfy(listadoDePokemons,(void*) comparar);
 }
 
 bool estaEnListaPokemon(t_list* lista, t_pokemon* pokemon){
