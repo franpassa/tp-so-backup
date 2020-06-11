@@ -2,13 +2,14 @@
 
 void mandar_mensajes() {
 
-	int cola_actual = 0;
+	uint32_t cola_actual = 0;
 
 	while (1) {
 		if (cola_actual == 6) {
 			cola_actual = 0;
 		}
-		if (queue_size(int_a_nombre_cola(cola_actual)->cola) != 0) {
+		t_cola_de_mensajes* cola_a_revisar = int_a_nombre_cola(cola_actual);
+		if (!queue_is_empty(cola_a_revisar->cola)){
 			pthread_mutex_lock(&(sem_cola[cola_actual]));
 			recorrer_cola(int_a_nombre_cola(cola_actual));
 			pthread_mutex_unlock(&(sem_cola[cola_actual]));
