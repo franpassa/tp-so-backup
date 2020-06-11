@@ -3,7 +3,7 @@
 void cambiarEstado(t_entrenador* entrenador){
 	//CAMBIA EL ENTRENADOR A EXIT O BLOQUEADO
 	if(puedeAtrapar(entrenador)){
-		list_add(entrenador->pokesAtrapados,entrenador->pokemonAMoverse);
+		list_add(entrenador->pokesAtrapados,(entrenador->pokemonAMoverse)->nombre);
 		entrenador->pokemonAMoverse = NULL;
 
 		if(sonIguales(entrenador->pokesAtrapados,entrenador->pokesObjetivos)){
@@ -189,6 +189,7 @@ void pasar_a_ready(){
 
 			//Aca tengo que poner mutex??
 			t_list* lista = listaALaQuePertenece(entrenadorTemporal);
+
 			list_remove_by_condition(lista,(void*) es_el_mismo_entrenador);
 
 			pthread_mutex_lock(&mutexEstadoReady);
@@ -426,7 +427,14 @@ void deadlock()
 
 	printf("Los entrenadores fueron planificados en su totalidad.\n");
 
-	exit(0);
+	printf("Los entrenadores en el estado exit son: \n");
+	list_iterate(estado_exit,mostrarEntrenador);
+
+	printf("Los entrenadores en el estado bloqueado son: \n");
+	list_iterate(estado_bloqueado,mostrarEntrenador);
+
+	printf("Los entrenadores en el estado ready son: \n");
+	list_iterate(estado_ready,mostrarEntrenador);
 }
 
 

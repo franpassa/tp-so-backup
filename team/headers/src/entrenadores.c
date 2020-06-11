@@ -106,6 +106,7 @@ void mostrarEntrenador(void* entrenador)
 	list_iterate((((t_entrenador*)entrenador)->pokesAtrapados),mostrarString);
 	printf("\nLos pokemon obtenidos del entrenador son: \n");
 	list_iterate((((t_entrenador*)entrenador)->pokesObjetivos),mostrarString);
+	printf("\nEl estado del entrenador es: %d\n",((t_entrenador*) entrenador)->motivoBloqueo);
 	if(((t_entrenador*)entrenador)->pokemonAMoverse != NULL){mostrarPokemon(((t_entrenador*)entrenador)->pokemonAMoverse);}
 
 }
