@@ -32,9 +32,9 @@ int main()
 	pthread_detach(hilo_recibir_localized);
 	pthread_detach(hilo_recibir_appeared);
 	pthread_detach(hilo_recibir_caught);
-	pthread_detach(hilo_deadlock);
+	pthread_join(hilo_deadlock, NULL);
 
-	sem_wait(&entrenadoresSatisfechos);
+	//sem_wait(&entrenadoresSatisfechos);
 
 	liberar_recursos(); //Finalizo el programa
 
@@ -99,7 +99,7 @@ void inicializarVariables(){
 	sem_init(&semCaught, 0, 1);
 	sem_init(&semLocalized, 0, 1);
 	sem_init(&semAppeared, 0, 1);
-	sem_init(&entrenadoresSatisfechos, 0, 0);
+	//sem_init(&entrenadoresSatisfechos, 0, 0);
 
 	posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
 	pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
@@ -124,14 +124,13 @@ void liberarVariables()
 	liberarArray(pokesEntrenadores);
 	liberarArray(pokesObjetivos);
 	list_destroy_and_destroy_elements(pokemons_objetivos, free);
-	list_destroy_and_destroy_elements(estado_new,liberarEntrenador);
 	list_destroy_and_destroy_elements(objetivos_globales,liberarEspecie);
-	list_destroy(estado_bloqueado);
-	list_destroy(estado_ready);
-	list_destroy(estado_exit);
-	list_destroy(ids_enviados);
-	list_destroy(pokemons_recibidos);
-	list_destroy(pokemons_recibidos_historicos);
+	list_destroy_and_destroy_elements(estado_bloqueado,liberarEntrenador);
+	list_destroy_and_destroy_elements(estado_ready,liberarEntrenador);
+	list_destroy_and_destroy_elements(estado_new,liberarEntrenador);
+	list_destroy_and_destroy_elements(estado_exit,liberarEntrenador);
+	list_destroy_and_destroy_elements(pokemons_recibidos_historicos,liberarPokemon);
+	list_destroy_and_destroy_elements(ids_enviados,free);
 }
 
 void mostrar_ids(void* id){

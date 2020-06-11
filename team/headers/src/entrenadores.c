@@ -198,20 +198,19 @@ bool bloqueadoPorDeadlock(void* unEntrenador)
 
 t_list* todosLosEntrenadoresAPlanificar()
 {
-	t_list* temporal = list_create();
+	t_list* temporal = list_filter(estado_bloqueado,bloqueadoPorNada);
 	list_add_all(temporal,estado_new);
-	list_add_all(temporal,list_filter(estado_bloqueado,bloqueadoPorNada));
 
 	return temporal;
 }
 
-bool estaEnLista(t_list* lista, t_entrenador* unEntrenador){
-	for(int i = 0; i< list_size(lista); i++){
-		if(unEntrenador->idEntrenador == ((t_entrenador*)list_get(lista,i))->idEntrenador){
-			return true;
-		}
+bool estaEnLista(t_list* lista, t_entrenador* entrenador){
+
+	bool esElMismo(t_entrenador* unEntrenador){
+		return unEntrenador->idEntrenador == entrenador->idEntrenador;
 	}
-	return false;
+
+	return list_any_satisfy(lista,(void*) esElMismo);
 }
 
 t_list* listaALaQuePertenece(t_entrenador* unEntrenador){

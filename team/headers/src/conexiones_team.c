@@ -98,6 +98,8 @@ void esperar_cliente(int* socket_servidor) {
 				pthread_mutex_unlock(&mutexPokemonsRecibidos);
 			}
 		}
+
+
 	}
 }
 
@@ -172,12 +174,14 @@ void algoritmoFifo()
 
 void pasar_a_ready(){
 	while(1){
-		if(list_size(pokemons_recibidos)>0){
+		if(list_size(pokemons_recibidos)>0 && list_size(todosLosEntrenadoresAPlanificar())>0){
 			t_list* listaAPlanificar = todosLosEntrenadoresAPlanificar();
 
 			pthread_mutex_lock(&mutexPokemonsRecibidos);
 			t_entrenador* entrenadorTemporal = entrenadorAReady(listaAPlanificar,pokemons_recibidos);
 			pthread_mutex_unlock(&mutexPokemonsRecibidos);
+
+			list_destroy(listaAPlanificar);
 
 			pthread_mutex_lock(&mutexLog);
 			log_info(logger,"el entrenador con id %d paso a la cola ready", entrenadorTemporal->idEntrenador);
@@ -432,7 +436,7 @@ void deadlock()
 
 	list_iterate(estado_exit,mostrarEntrenador);
 
-	sem_post(&entrenadoresSatisfechos);
+	//sem_post(&entrenadoresSatisfechos);
 
 }
 
