@@ -307,7 +307,7 @@ t_list* pokemonesQueLeFaltan(t_entrenador* unEntrenador)
 // devuelve una lista de los entrenadores que tienen el/los pokemon que me faltan
 // el t_list* lista es una lista con todos los blockeados menos el mismo
 
-t_list* quienTieneElPokeQueMeFalta(t_entrenador* unEntrenador, t_list* lista)
+t_list* quienesTienenElPokeQueMeFalta(t_entrenador* unEntrenador, t_list* lista)
 {
 	// nos dice si el segundo entrenador tiene algun pokemon de sobra que necesite el primero
 	bool tieneUnPokemonQueLeFalta( t_entrenador* otroEntrenador)

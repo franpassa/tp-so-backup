@@ -55,7 +55,9 @@ void enviar_gets(t_list* objetivos_globales) {
 		} else {
 			/*AGREGO EL ID A LA LISTA DE IDS ENVIADOS*/
 			printf("Envio del mensaje GET_POKEMON '%s' exitoso. ID asignado: %d\n",a_enviar->nombre_pokemon,*id_respuesta);
+			pthread_mutex_lock(&mutexIdsEnviados);
 			list_add(ids_enviados, id_respuesta);
+			pthread_mutex_unlock(&mutexIdsEnviados);
 		}
 		sleep(1);
 	}
@@ -353,7 +355,6 @@ void* buscarEntrenador(uint32_t id){
 }
 
 void invocarHiloReconexion(){
-	pthread_t hiloReconexion;
 
 	pthread_create(&hiloReconexion, NULL,(void*) conectarABroker, NULL);
 
@@ -401,14 +402,26 @@ void conectarABroker(){
 
 void deadlock()
 {
-	sleep(30); // con esto dejo el proceso corriendo y chequeo
-	if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && !list_all_satisfy(estado_bloqueado,bloqueadoPorNada))
+	while(1)
 	{
-		t_entrenador* entrenador =	list_remove(estado_bloqueado,0);
-		t_entrenador* entrenadorAMoverse = list_get(quienTieneElPokeQueMeFalta(entrenador,estado_bloqueado),0);
-		moverEntrenador(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY,retardoCpu,logger);
-		realizarCambio(entrenador,entrenadorAMoverse);
+		printf("Chequeando si hay deadlock. \n");
+		if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && !list_all_satisfy(estado_bloqueado,bloqueadoPorNada))
+		{
+			printf("Hay deadlock. \n");
+			t_entrenador* entrenador =	list_remove(estado_bloqueado,0);
+			t_entrenador* entrenadorAMoverse = list_get(quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado),0);
 
+			if(entrenadorAMoverse == NULL){
+				printf("Se resolvió el deadlock.\n");
+				break;
+			}
+
+			moverEntrenador(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY,retardoCpu,logger);
+			realizarCambio(entrenador,entrenadorAMoverse);
+			cambiarEstado(entrenador);
+		}
+		printf("No hay deadlock. \n");
+		sleep(3); // con esto dejo el proceso corriendo y chequeo
 	}
 }
 
