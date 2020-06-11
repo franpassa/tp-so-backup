@@ -35,6 +35,7 @@ typedef struct {
 } new_pokemon_msg;
 
 typedef struct {
+	uint32_t id_correlativo;
 	uint32_t tamanio_nombre;
 	char* nombre_pokemon;
 	uint32_t coordenada_X;
@@ -79,7 +80,7 @@ typedef struct {
 } t_paquete;
 
 new_pokemon_msg* new_msg(char* nombre_pokemon, uint32_t x, uint32_t y, uint32_t cantidad);
-appeared_pokemon_msg* appeared_msg(char* nombre_pokemon, uint32_t x, uint32_t y);
+appeared_pokemon_msg* appeared_msg(uint32_t id_correlativo, char* nombre_pokemon, uint32_t x, uint32_t y);
 get_pokemon_msg* get_msg(char* nombre_pokemon);
 localized_pokemon_msg* localized_msg(uint32_t id_corr, char* nombre_pokemon, uint32_t cant_posiciones, uint32_t* pares);
 catch_pokemon_msg* catch_msg(char* nombre_pokemon, uint32_t x, uint32_t y);
