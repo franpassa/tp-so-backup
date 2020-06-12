@@ -35,6 +35,7 @@ typedef struct {
 } new_pokemon_msg;
 
 typedef struct {
+	uint32_t id_correlativo;
 	uint32_t tamanio_nombre;
 	char* nombre_pokemon;
 	uint32_t coordenada_X;
@@ -79,7 +80,7 @@ typedef struct {
 } t_paquete;
 
 new_pokemon_msg* new_msg(char* nombre_pokemon, uint32_t x, uint32_t y, uint32_t cantidad);
-appeared_pokemon_msg* appeared_msg(char* nombre_pokemon, uint32_t x, uint32_t y);
+appeared_pokemon_msg* appeared_msg(uint32_t id_correlativo, char* nombre_pokemon, uint32_t x, uint32_t y);
 get_pokemon_msg* get_msg(char* nombre_pokemon);
 localized_pokemon_msg* localized_msg(uint32_t id_corr, char* nombre_pokemon, uint32_t cant_posiciones, uint32_t* pares);
 catch_pokemon_msg* catch_msg(char* nombre_pokemon, uint32_t x, uint32_t y);
@@ -93,8 +94,9 @@ int iniciar_servidor(char* ip, char* puerto);
 // Pasa 'queue_name' = PRODUCTOR y no espera confirmación del Broker.
 int conectar_como_productor(char* ip, char* puerto);
 int suscribirse_a_cola(queue_name cola, char* ip, char* puerto);
-uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructura_mensaje, bool esperar_id);
-void* recibir_mensaje(int socket, uint32_t* id_mensaje);
+// Si no se le quiere pasar el ID del mensaje, se le pasa 0.
+uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructura_mensaje, uint32_t id_mensaje, bool esperar_id_rta);
+void* recibir_mensaje(int socket, uint32_t* id_mensaje, queue_name* tipo_msg);
 void confirmar_recepcion(queue_name cola, uint32_t id_mensaje, uint32_t socket_suscripcion, uint32_t socket_broker); // SE ENVÍA queue_name - size - id_mensaje - socket_suscripcion
 void* serializar_paquete(t_paquete* paquete, int bytes);
 void* deserializar_buffer(queue_name cola, void* buffer_ptr);

@@ -3,7 +3,7 @@
 *.settings
 */Default/
 *.log
-game_boy/game_boy
+game_boy/gameboy
 
 # Prerequisites
 *.d

@@ -46,14 +46,18 @@ typedef struct {
 	uint32_t auxiliar;
 }t_struct_secundaria;
 
+
 void* memoria;
+
 t_struct_secundaria* estructura;
 int flag;
 int entra;
 int tamanio_a_ocupar;
 
 int cont_orden;
+
 uint32_t tamanio_memoria;
+
 t_list* estructuras_secundarias;
 
 // VARIABLES GLOBALES

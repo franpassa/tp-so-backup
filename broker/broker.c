@@ -201,9 +201,11 @@ void print_mensaje_de_cola(t_info_mensaje* mensaje){
 	printf("ID: %d\n",id_mensaje);
 
 	uint32_t id_cola = de_id_mensaje_a_cola(id_mensaje);
+
 	void* msg = de_id_mensaje_a_mensaje(id_mensaje); // Problema aca y abajo
 
 	print_msg(id_cola, msg); // esta rompiendo aca, ver retorno de msg
+
 
 	list_iterate(mensaje->a_quienes_fue_enviado,print_list_sockets_de_un_mensaje);
 	list_iterate(mensaje->quienes_lo_recibieron,print_list_sockets_ACK_de_un_mensaje); // ACK

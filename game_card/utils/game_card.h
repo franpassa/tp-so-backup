@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <pthread.h>
 
 // -------- Commons --------
 
@@ -93,6 +94,11 @@ t_list* escribir_en_bloques(t_pokemon pokemon, int ultimo_bloque, uint32_t *byte
 int crear_pokemon(t_pokemon pokemon);
 char* get_pokemon_path(char* nombre);
 bool existe_pokemon(char* nombre_pokemon);
+
+// --- Comunicacion ---
+int escuchar_gameboy();
+void esperar_conexion(int socket_sv);
+void manejar_msg_gameboy(int* socket_gameboy);
 
 
 #endif

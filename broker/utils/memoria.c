@@ -1,20 +1,23 @@
 #include "broker.h"
 
 void inicializar_memoria() {
+
 	tamanio_memoria = config_get_int_value(config,"TAMANIO_MEMORIA");
 	memoria = calloc(1,tamanio_memoria);
+
 	estructura = malloc(sizeof(t_struct_secundaria));
 	estructuras_secundarias = list_create();
 	cont_orden = 0;
 
-
 	if (string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"PARTICIONES")) {
+
 
 		estructura->tipo_mensaje = 6;
 		estructura->tamanio = tamanio_memoria;
 		estructura->id = 0;
 		estructura->bit_inicio = 0;
 		list_add(estructuras_secundarias,estructura);
+
 
 	} else if (string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"), "BS")) {
 
@@ -23,13 +26,16 @@ void inicializar_memoria() {
 	}
 }
 
+
 void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t size){
 	t_struct_secundaria* est_a_utilizar;
+
 	entra = -1;
 
 	if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"PARTICIONES")){
 
 		paso_1();
+
 		est_a_utilizar = list_get(estructuras_secundarias,entra);
 
 		if (est_a_utilizar->tamanio > size){
@@ -37,6 +43,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 			est_a_utilizar->bit_inicio = est_a_utilizar->bit_inicio + size;
 			list_add_in_index(estructuras_secundarias,(entra + 1),est_a_utilizar);
 		}
+
 
 		if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_REEMPLAZO"),"FIFO")){
 			cont_orden ++;
@@ -55,7 +62,6 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
         // si usamos replace and destroy element: tira mas errores en valgrind
 
         memmove(memoria + est_a_utilizar->bit_inicio, mensaje, size); // EN EL DEBUG ROMPE ACA, llegan bien los parametros
-
 
 	} else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"BS")) {
 
@@ -219,7 +225,6 @@ void mover_memoria(int a_sacar){
 	t_struct_secundaria* estructura_a_mover_memoria;
 
 	estructura_a_mover_memoria = list_get(estructuras_secundarias,a_sacar);
-
 	int tamanio_a_mover = tamanio_memoria - (estructura_a_mover_memoria->bit_inicio + estructura_a_mover_memoria->tamanio); // valgrind
 	char* comienzo_a_sacar = memoria + estructura_a_mover_memoria-> bit_inicio;
 	// de donde voy a sacar la memoria a mover
@@ -231,9 +236,11 @@ void mover_memoria(int a_sacar){
 	list_add(estructuras_secundarias,estructura_a_mover_memoria);
 
 
+
 }
 
 void* de_id_mensaje_a_mensaje(uint32_t id_mensaje) { // retorna bien pero cuando lo comento en broker.c anda el programa
+
 	t_struct_secundaria* estructura3 = malloc(sizeof(t_struct_secundaria));
 	t_struct_secundaria* estructura_a_comparar_de_lista;
 
@@ -244,12 +251,14 @@ void* de_id_mensaje_a_mensaje(uint32_t id_mensaje) { // retorna bien pero cuando
 		}
 	}
 	void* mensaje = malloc(estructura3->tamanio);
+
 	memcpy(mensaje, memoria + estructura3->bit_inicio, estructura3->tamanio); // Esto no esta funcionando bien me parece
 	return mensaje; // cast en debug.(MSG_NEW_POKEMON*)->la posX : devuelve cualquiera, y el msg dice CAN NOT ACCESS MEMORY ADDRESS, los demas bien
 
 }
 
 uint32_t de_id_mensaje_a_cola(uint32_t id_mensaje) { // Perfecto
+
 	t_struct_secundaria* estructura3 = malloc(sizeof(t_struct_secundaria));
 	t_struct_secundaria* estructura_a_comparar_de_lista;
 
@@ -264,7 +273,9 @@ uint32_t de_id_mensaje_a_cola(uint32_t id_mensaje) { // Perfecto
 
 }
 
+
 uint32_t de_id_mensaje_a_size(uint32_t id_mensaje) { // Perfecto
+
 	t_struct_secundaria* estructura3 = malloc(sizeof(t_struct_secundaria));
 	t_struct_secundaria* estructura_a_comparar_de_lista;
 

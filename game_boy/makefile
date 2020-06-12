@@ -1,4 +1,4 @@
-TARGET = game_boy
+TARGET = gameboy
 LIBS = -lcuarenteam -lcommons -lpthread
 CC = gcc
 CFLAGS = -g -Wall
