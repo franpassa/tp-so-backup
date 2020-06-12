@@ -156,11 +156,11 @@ bool estaEnLaLista(char* unNombre, t_list* listadoDePokemons) // esta compara el
 	return list_any_satisfy(listadoDePokemons,(void*) comparar);
 }
 
-bool estaEnListaPokemon(t_list* lista, t_pokemon* pokemon){
-	for(int i = 0; i< list_size(lista); i++){
-		if(string_equals_ignore_case(pokemon->nombre,((t_pokemon*)list_get(lista,i))->nombre)){
-			return true;
-		}
+bool estaEnListaEspecie(char* pokemon, t_list* especies){
+
+	bool comparar(t_especie* unPokemon){
+		return string_equals_ignore_case(unPokemon->especie,pokemon);
 	}
-	return false;
+
+	return list_any_satisfy(especies,(void*) comparar);
 }

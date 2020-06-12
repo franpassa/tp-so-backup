@@ -84,17 +84,23 @@ void esperar_cliente(int* socket_servidor) {
 		int socket_cliente = accept(*socket_servidor, (void*) &dir_cliente,(socklen_t*) &tam_direccion);
 		printf("Nuevo cliente entrante: %d\n", socket_cliente);
 
-		queue_name cola;
+		queue_name colaProductor;
 
-		recv(socket_cliente,&cola,sizeof(queue_name),MSG_WAITALL);
+		recv(socket_cliente,&colaProductor,sizeof(queue_name),MSG_WAITALL); // RECIBO PRIMERO LA COLA DE PRODUCTOR.
 
-		queue_name otraCola = APPEARED_POKEMON;
+		queue_name colaMensaje;
 
-		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_cliente,&id,&otraCola);
+		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_cliente,&id,&colaMensaje);
+
+		list_iterate(objetivos_globales,mostrarEspecie);
+
+		printf("resultado: %d\n",estaEnListaEspecie((mensaje_recibido_appeared->nombre_pokemon),objetivos_globales));
+
+		printf("resultado: %d\n",!estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),pokemons_recibidos_historicos));
 
 		if (mensaje_recibido_appeared != NULL) {
 
-			if ((estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),objetivos_globales)) && (!(estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),pokemons_recibidos_historicos)))) {
+			if ((estaEnListaEspecie((mensaje_recibido_appeared->nombre_pokemon),objetivos_globales)) && (!(estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),pokemons_recibidos_historicos)))) {
 
 				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
 				agregarAppearedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_appeared);
@@ -188,7 +194,7 @@ void pasar_a_ready(){
 			t_entrenador* entrenadorTemporal = entrenadorAReady(listaAPlanificar,pokemons_recibidos);
 			pthread_mutex_unlock(&mutexPokemonsRecibidos);
 
-			//list_destroy(listaAPlanificar);
+			list_destroy(listaAPlanificar);
 
 			pthread_mutex_lock(&mutexLog);
 			log_info(logger,"el entrenador con id %d paso a la cola ready", entrenadorTemporal->idEntrenador);
@@ -219,15 +225,13 @@ void pasar_a_ready(){
 }
 
 void recibirAppeared() {
-	appeared_pokemon_msg* mensaje_recibido_appeared;
-	queue_name cola = APPEARED_POKEMON;
+	uint32_t idRecibido;
 
 	while(1){
 
-		uint32_t idRecibido;
-
 		sem_wait(&semAppeared);
-		mensaje_recibido_appeared = recibir_mensaje(socket_appeared,&idRecibido,&cola);
+		queue_name colaMensaje;
+		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_appeared,&idRecibido,&colaMensaje);
 		sem_post(&semAppeared);
 
 		if (mensaje_recibido_appeared != NULL) {
@@ -250,14 +254,13 @@ void recibirAppeared() {
 
 void recibirLocalized() { // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 
-	localized_pokemon_msg* mensaje_recibido_localized;
-	queue_name cola = LOCALIZED_POKEMON;
+	uint32_t id;
 
 	while (1) {
-		uint32_t id;
 
 		sem_wait(&semLocalized);
-		mensaje_recibido_localized = recibir_mensaje(socket_localized,&id,&cola); //Devuelve NULL si falla, falta manejar eso para que vuelva a reintentar la conexion.
+		queue_name colaMensaje;
+		localized_pokemon_msg* mensaje_recibido_localized = recibir_mensaje(socket_localized,&id,&colaMensaje); //Devuelve NULL si falla, falta manejar eso para que vuelva a reintentar la conexion.
 		sem_post(&semLocalized);
 
 		if (mensaje_recibido_localized != NULL) {
@@ -283,15 +286,13 @@ void recibirLocalized() { // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 
 void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 
-	caught_pokemon_msg* mensaje_recibido;
-	queue_name cola = CAUGHT_POKEMON;
+	uint32_t idRecibido;
 
 	while(1){
 
-		uint32_t idRecibido;
-
 		sem_wait(&semCaught);
-		mensaje_recibido = recibir_mensaje(socket_caught,&idRecibido,&cola);
+		queue_name colaMensaje;
+		caught_pokemon_msg* mensaje_recibido = recibir_mensaje(socket_caught,&idRecibido,&colaMensaje);
 		sem_post(&semCaught);
 
 		if(mensaje_recibido != NULL){ //Verifico si recibo el mensaje.
