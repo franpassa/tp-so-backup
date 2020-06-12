@@ -63,7 +63,6 @@ void enviar_gets(t_list* objetivos_globales) {
 			list_add(ids_enviados, id_respuesta);
 			pthread_mutex_unlock(&mutexIdsEnviados);
 		}
-		free(mensaje);
 		sleep(1);
 	}
 
@@ -91,12 +90,6 @@ void esperar_cliente(int* socket_servidor) {
 		queue_name colaMensaje;
 
 		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_cliente,&id,&colaMensaje);
-
-		list_iterate(objetivos_globales,mostrarEspecie);
-
-		printf("resultado: %d\n",estaEnListaEspecie((mensaje_recibido_appeared->nombre_pokemon),objetivos_globales));
-
-		printf("resultado: %d\n",!estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),pokemons_recibidos_historicos));
 
 		if (mensaje_recibido_appeared != NULL) {
 
@@ -194,7 +187,7 @@ void pasar_a_ready(){
 			t_entrenador* entrenadorTemporal = entrenadorAReady(listaAPlanificar,pokemons_recibidos);
 			pthread_mutex_unlock(&mutexPokemonsRecibidos);
 
-			list_destroy(listaAPlanificar);
+			//list_destroy(listaAPlanificar);
 
 			pthread_mutex_lock(&mutexLog);
 			log_info(logger,"el entrenador con id %d paso a la cola ready", entrenadorTemporal->idEntrenador);
@@ -421,7 +414,7 @@ void deadlock()
 	{
 		printf("Chequeando si hay deadlock. \n");
 
-		if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && !list_all_satisfy(estado_bloqueado,bloqueadoPorNada))
+		if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && list_all_satisfy(estado_bloqueado,bloqueadoPorDeadlock))
 		{
 			printf("Hay deadlock. \n");
 			t_entrenador* entrenador =	list_remove(estado_bloqueado,0);

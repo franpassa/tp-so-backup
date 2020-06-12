@@ -75,10 +75,10 @@ void mostrarPokemon(void* pokemon){
     printf("La pos en y es: %d\n",((t_pokemon*)pokemon)->posicionY);
 }
 
-void mostrarEspecie(void* especie)
+void mostrarEspecie(t_especie* especie)
 {
-	mostrarString(((t_especie*)especie)->especie);
-	printf(" cantidad = %d \n",((t_especie*)especie)->cantidad);
+	mostrarString(especie->especie);
+	printf(" cantidad = %d \n",especie->cantidad);
 }
 
 void liberarEspecie(void* especie){

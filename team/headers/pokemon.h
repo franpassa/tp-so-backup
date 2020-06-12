@@ -32,7 +32,7 @@ void agregarAppearedRecibidoALista(t_list* pokemonsRecibidos, appeared_pokemon_m
 void liberarEspecie(void* especie);
 void liberarPokemon(void* pokemon);
 void mostrarPokemon(void* pokemon);
-void mostrarEspecie(void* pokemon);
+void mostrarEspecie(t_especie* especie);
 void mostrarString(void*);
 
 
