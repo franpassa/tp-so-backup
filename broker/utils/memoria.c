@@ -1,78 +1,81 @@
 #include "broker.h"
 
-void inicializar_memoria(){
-	tamanio_memoria = atoi(config_get_string_value(config,"TAMANIO_MEMORIA"));
-	memoria = malloc(tamanio_memoria);
+void inicializar_memoria() {
+	tamanio_memoria = config_get_int_value(config,"TAMANIO_MEMORIA");
+	memoria = calloc(1,tamanio_memoria);
 	estructura = malloc(sizeof(t_struct_secundaria));
-	estructura_secundaria = list_create();
+	estructuras_secundarias = list_create();
 	cont_orden = 0;
 
-	if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"PARTICIONES")){
+
+	if (string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"PARTICIONES")) {
 
 		estructura->tipo_mensaje = 6;
 		estructura->tamanio = tamanio_memoria;
 		estructura->id = 0;
 		estructura->bit_inicio = 0;
+		list_add(estructuras_secundarias,estructura);
 
-		list_add(estructura_secundaria,estructura);
-	}else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"BS")){
+	} else if (string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"), "BS")) {
 
-	}else{
+	} else {
 		printf("Error en broker.config ALGORITMO_MEMORIA no valido");
 	}
 }
 
-void almacenar(void* mensaje,int id_cola,int id_mensaje,int size){
+void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t size){
+	t_struct_secundaria* est_a_utilizar;
 	entra = -1;
-	tamanio_a_ocupar = size;
 
 	if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"PARTICIONES")){
 
 		paso_1();
-		estructura = list_get(estructura_secundaria,entra);
+		est_a_utilizar = list_get(estructuras_secundarias,entra);
 
-		if (estructura->tamanio > size){
-			estructura->tamanio = estructura->tamanio - size;
-			estructura->bit_inicio = estructura->bit_inicio + size;
-			list_add_in_index(estructura_secundaria,(entra + 1),estructura);
+		if (est_a_utilizar->tamanio > size){
+			est_a_utilizar->tamanio = est_a_utilizar->tamanio - size;
+			est_a_utilizar->bit_inicio = est_a_utilizar->bit_inicio + size;
+			list_add_in_index(estructuras_secundarias,(entra + 1),est_a_utilizar);
 		}
-
-		estructura = list_get(estructura_secundaria,entra);
-
 
 		if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_REEMPLAZO"),"FIFO")){
 			cont_orden ++;
-			estructura->auxiliar = cont_orden;
+			est_a_utilizar->auxiliar = cont_orden;
 		} else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_REEMPLAZO"),"LRU")) {
-			estructura->auxiliar = 1;
+			est_a_utilizar->auxiliar = 1;
 		} else {
-		printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
+			printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 		}
 
-		estructura->id = id_mensaje;
-		estructura->tamanio = size;
-		estructura->tipo_mensaje = id_cola;
+		est_a_utilizar->id = id_mensaje;
+		est_a_utilizar->tamanio = size;
+		est_a_utilizar->tipo_mensaje = id_cola;
 
-		list_replace_and_destroy_element(estructura_secundaria, entra, estructura,free);
+        list_replace(estructuras_secundarias, entra, est_a_utilizar); // chequear esto: no estamos liberando el elemento que reemplazamos
+        // si usamos replace and destroy element: tira mas errores en valgrind
 
-		memcpy(memoria + estructura->bit_inicio, mensaje, size);
+        memmove(memoria + est_a_utilizar->bit_inicio, mensaje, size); // EN EL DEBUG ROMPE ACA, llegan bien los parametros
 
-	}else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"BS")){
+
+	} else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"BS")) {
 
 		}else{
 			printf("Error en broker.config ALGORITMO_MEMORIA no valido");
 		}
+
+
 }
 
 void paso_1(){
+	t_struct_secundaria* nueva_est;
 
 	flag = 0;
 	if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_PARTICION_LIBRE"),"FF")){
-		for (int i = 0; i < list_size(estructura_secundaria); i++ ){
-			estructura = list_get(estructura_secundaria,i);
-			if (estructura->tipo_mensaje == 6){
+		for (int i = 0; i < list_size(estructuras_secundarias); i++ ){
+			nueva_est = list_get(estructuras_secundarias,i);
+			if (nueva_est->tipo_mensaje == 6){
 				flag ++;
-				if(estructura->tamanio >= tamanio_a_ocupar ){
+				if(nueva_est->tamanio >= tamanio_a_ocupar ){
 					entra = i;
 				}
 			}
@@ -88,12 +91,12 @@ void paso_1(){
 	} else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_PARTICION_LIBRE"),"BF")) {
 		int sobra;
 		int sobra_menor = tamanio_memoria;
-		for (int i = 0; i< list_size(estructura_secundaria); i++ ){
-			estructura = list_get(estructura_secundaria,i);
-			if (estructura->tipo_mensaje == 6){
+		for (int i = 0; i< list_size(estructuras_secundarias); i++ ){
+			nueva_est = list_get(estructuras_secundarias,i);
+			if (nueva_est->tipo_mensaje == 6){
 				flag ++;
-				if(estructura->tamanio >= tamanio_a_ocupar ){
-					sobra = (estructura->tamanio - tamanio_a_ocupar);
+				if(nueva_est->tamanio >= tamanio_a_ocupar ){
+					sobra = (nueva_est->tamanio - tamanio_a_ocupar);
 					if (sobra<sobra_menor){
 						sobra_menor = sobra;
 						entra = i;
@@ -115,17 +118,17 @@ void paso_1(){
 }
 
 void paso_2(){
-	t_struct_secundaria* estructura2 = malloc(sizeof(t_struct_secundaria));
-	int tamanio_lista_actual = list_size(estructura_secundaria);
+	/*t_struct_secundaria* estructura2;
+	int tamanio_lista_actual = list_size(estructuras_secundarias);
 	for (int i = 0; i < tamanio_lista_actual; i++ ){
-		estructura = list_get(estructura_secundaria,i);
-		if (estructura->tipo_mensaje == 6 && i < list_size(estructura_secundaria)){ // ver esta duda
-			estructura2 = list_get(estructura_secundaria,(i+1));
+		estructura = list_get(estructuras_secundarias,i);
+		if (estructura->tipo_mensaje == 6 && i < list_size(estructuras_secundarias)){ // ver esta duda
+			estructura2 = list_get(estructuras_secundarias,(i+1));
 			if(estructura2->tipo_mensaje == 6){
 				estructura->tamanio += estructura2->tamanio;
 
-				list_remove_and_destroy_element(estructura_secundaria,(i+1),free);
-				list_replace_and_destroy_element(estructura_secundaria,i,estructura,free);
+				list_remove_and_destroy_element(estructuras_secundarias,(i+1),free);
+				list_replace_and_destroy_element(estructuras_secundarias,i,estructura,free);
 
 				tamanio_lista_actual -= 1;
 				i -= 1;
@@ -140,20 +143,20 @@ void paso_2(){
 				estructura2->tamanio = estructura->tamanio;
 				estructura2->tipo_mensaje = 6;
 
-				list_add(estructura_secundaria,estructura2);
+				list_add(estructuras_secundarias,estructura2);
 				i -= 1;
 			}
 		}
 	}
-	paso_1();
+	paso_1();*/
 }
 
 void paso_3(){
-	int orden , orden_menor;
+	/*int orden , orden_menor;
 	int a_sacar = 0;
 	if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_REEMPLAZO"),"FIFO")){
-		for(int i = 0; i< list_size(estructura_secundaria); i++ ){
-			estructura = list_get(estructura_secundaria,i);
+		for(int i = 0; i< list_size(estructuras_secundarias); i++ ){
+			estructura = list_get(estructuras_secundarias,i);
 			if(i == 0){
 				orden = estructura->auxiliar;
 				a_sacar = 0;
@@ -172,16 +175,16 @@ void paso_3(){
 		int contador = 0;
 		int flag_2 = 0;
 		do {
-			if (contador == list_size(estructura_secundaria)){
+			if (contador == list_size(estructuras_secundarias)){
 				contador = 0;
 			}
-			estructura = list_get(estructura_secundaria,contador);
+			estructura = list_get(estructuras_secundarias,contador);
 			if (estructura->auxiliar == 0 ){
 				a_sacar = contador;
 				flag_2 = 1;
 			} else {
 				estructura->auxiliar = 0;
-				list_replace_and_destroy_element(estructura_secundaria,contador,estructura,free);
+				list_replace_and_destroy_element(estructuras_secundarias,contador,estructura,free);
 			}
 			contador ++;
 		} while(flag_2 == 0);
@@ -193,7 +196,7 @@ void paso_3(){
 	} else {
 	printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 	}
-	paso_1();
+	paso_1();*/
 }
 
 int cont_orden_f(){
@@ -202,68 +205,76 @@ int cont_orden_f(){
 }
 
 void actualizar_bit_inicio(int a_sacar){
-	t_struct_secundaria* estructura2 = malloc(sizeof(t_struct_secundaria));
+	t_struct_secundaria* estructura_bit_inicio;
 
-	for (int f = a_sacar; f < list_size(estructura_secundaria); f++) {
-		estructura2 = list_get(estructura_secundaria, f);
-		estructura2->bit_inicio = estructura2->bit_inicio - estructura->tamanio;
-		list_replace_and_destroy_element(estructura_secundaria,f,estructura2,free);
+	for (int f = a_sacar + 1; f < list_size(estructuras_secundarias); f++) {
+		estructura_bit_inicio = list_get(estructuras_secundarias, f);
+		estructura_bit_inicio->bit_inicio = estructura_bit_inicio->bit_inicio - estructura->tamanio; // valgrind
+		list_replace_and_destroy_element(estructuras_secundarias,f,estructura_bit_inicio,free);
 
 	}
 
 }
 void mover_memoria(int a_sacar){
+	t_struct_secundaria* estructura_a_mover_memoria;
 
-	estructura =  list_get(estructura_secundaria,a_sacar);
+	estructura_a_mover_memoria = list_get(estructuras_secundarias,a_sacar);
 
-	int tamanio_a_mover = tamanio_memoria - (estructura->bit_inicio + estructura->tamanio);
-	char* comienzo_a_sacar = memoria + estructura-> bit_inicio;
+	int tamanio_a_mover = tamanio_memoria - (estructura_a_mover_memoria->bit_inicio + estructura_a_mover_memoria->tamanio); // valgrind
+	char* comienzo_a_sacar = memoria + estructura_a_mover_memoria-> bit_inicio;
 	// de donde voy a sacar la memoria a mover
-	char* de_donde = memoria + estructura->bit_inicio + estructura->tamanio;
+	char* de_donde = memoria + estructura_a_mover_memoria->bit_inicio + estructura_a_mover_memoria->tamanio;
 
-	memmove(comienzo_a_sacar,de_donde,tamanio_a_mover);
+	memmove(comienzo_a_sacar,de_donde,tamanio_a_mover); // valgrind
 
-	list_remove_and_destroy_element(estructura_secundaria,a_sacar,free);
-	list_add(estructura_secundaria,estructura);
- }
-
- void* de_id_mensaje_a_mensaje(int id_mensaje){
-	 t_struct_secundaria* estructura3 = malloc(sizeof(t_struct_secundaria));
+	list_remove_and_destroy_element(estructuras_secundarias,a_sacar,free); // valgrind
+	list_add(estructuras_secundarias,estructura_a_mover_memoria);
 
 
-		bool es_igual_a(void* estructura_aux) {
-			t_struct_secundaria* estructura_nueva = (t_struct_secundaria*) estructura_aux;
-			return estructura_nueva->id == id_mensaje;
-		}
-
-	 estructura3 = list_find(estructura_secundaria,es_igual_a);
-	 void* mensaje = malloc(estructura3->tamanio);
-	 memcpy(mensaje, memoria + estructura3->bit_inicio,estructura3->tamanio);
-	 return mensaje; // tira segmentation fault aca
-
- }
-
-int de_id_mensaje_a_cola(int id_mensaje){
-	 t_struct_secundaria* estructura3 = malloc(sizeof(t_struct_secundaria));
-
-
-		bool es_igual_a(void* estructura_aux) {
-			t_struct_secundaria* estructura_nueva = (t_struct_secundaria*) estructura_aux;
-			return estructura_nueva->id == id_mensaje;
-		}
-
-	 estructura3 = list_find(estructura_secundaria,es_igual_a);
- 	 return estructura3->tipo_mensaje;
- }
-int de_id_mensaje_a_size(int id_mensaje){
-	t_struct_secundaria* estructura3 = malloc(sizeof(t_struct_secundaria));
-
-
-			bool es_igual_a(void* estructura_aux) {
-				t_struct_secundaria* estructura_nueva = (t_struct_secundaria*) estructura_aux;
-				return estructura_nueva->id == id_mensaje;
-			}
-
-		 estructura3 = list_find(estructura_secundaria,es_igual_a);
-	 	 return estructura3->tamanio;
 }
+
+void* de_id_mensaje_a_mensaje(uint32_t id_mensaje) { // retorna bien pero cuando lo comento en broker.c anda el programa
+	t_struct_secundaria* estructura3 = malloc(sizeof(t_struct_secundaria));
+	t_struct_secundaria* estructura_a_comparar_de_lista;
+
+	for (int i = 0; i < list_size(estructuras_secundarias); i++) {
+		estructura_a_comparar_de_lista = list_get(estructuras_secundarias,i);
+		if (estructura_a_comparar_de_lista->id == id_mensaje) {
+			estructura3 = estructura_a_comparar_de_lista;
+		}
+	}
+	void* mensaje = malloc(estructura3->tamanio);
+	memcpy(mensaje, memoria + estructura3->bit_inicio, estructura3->tamanio); // Esto no esta funcionando bien me parece
+	return mensaje; // cast en debug.(MSG_NEW_POKEMON*)->la posX : devuelve cualquiera, y el msg dice CAN NOT ACCESS MEMORY ADDRESS, los demas bien
+
+}
+
+uint32_t de_id_mensaje_a_cola(uint32_t id_mensaje) { // Perfecto
+	t_struct_secundaria* estructura3 = malloc(sizeof(t_struct_secundaria));
+	t_struct_secundaria* estructura_a_comparar_de_lista;
+
+	for (int i = 0; i < list_size(estructuras_secundarias); i++) {
+		estructura_a_comparar_de_lista = list_get(estructuras_secundarias,i);
+		if (estructura_a_comparar_de_lista->id == id_mensaje) {
+			estructura3 = estructura_a_comparar_de_lista;
+		}
+	}
+
+	return estructura3->tipo_mensaje;
+
+}
+
+uint32_t de_id_mensaje_a_size(uint32_t id_mensaje) { // Perfecto
+	t_struct_secundaria* estructura3 = malloc(sizeof(t_struct_secundaria));
+	t_struct_secundaria* estructura_a_comparar_de_lista;
+
+	for (int i = 0; i < list_size(estructuras_secundarias); i++) {
+		estructura_a_comparar_de_lista = list_get(estructuras_secundarias, i);
+		if (estructura_a_comparar_de_lista->id == id_mensaje) {
+			estructura3->tamanio = estructura_a_comparar_de_lista->tamanio;
+		}
+	}
+
+	return estructura3->tamanio;
+}
+

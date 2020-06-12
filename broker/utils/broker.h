@@ -39,24 +39,22 @@ typedef struct {
 // MEMORIA
 
 typedef struct {
-	int tipo_mensaje;
-	int tamanio;
-	int id;
-	int bit_inicio;
-	int auxiliar;
+	uint32_t tipo_mensaje;
+	uint32_t tamanio;
+	uint32_t id;
+	uint32_t bit_inicio;
+	uint32_t auxiliar;
 }t_struct_secundaria;
 
-
-
-char* memoria;
+void* memoria;
 t_struct_secundaria* estructura;
 int flag;
 int entra;
 int tamanio_a_ocupar;
 
 int cont_orden;
-int tamanio_memoria;
-t_list* estructura_secundaria;
+uint32_t tamanio_memoria;
+t_list* estructuras_secundarias;
 
 // VARIABLES GLOBALES
 
@@ -126,7 +124,7 @@ void loop_productores();
 void recibir_mensajes_para_broker(int*);
 void confirmar_mensaje(queue_name, uint32_t,int);
 uint32_t crear_nuevo_id();
-void agregar_a_cola(uint32_t,uint32_t,void*,int);
+void agregar_a_cola(uint32_t,uint32_t,void*,uint32_t);
 bool es_el_mismo_mensaje(queue_name, void*,void*);
 int revisar_si_mensaje_no_estaba_en_cola(queue_name, void*);
 void free_msg_cola(t_info_mensaje*);
@@ -141,15 +139,15 @@ void recorrer_cola(t_cola_de_mensajes*);
 // MEMORIA
 
 void inicializar_memoria();
-void almacenar(void*, int, int , int);
+void almacenar(void*, uint32_t, uint32_t, uint32_t);
 void paso_1();
 void paso_2();
 void paso_3();
 int cont_orden_f();
 void actualizar_bit_inicio(int);
 void mover_memoria(int);
-void* de_id_mensaje_a_mensaje(int);
-int de_id_mensaje_a_cola(int);
-int de_id_mensaje_a_size(int);
+void* de_id_mensaje_a_mensaje(uint32_t);
+uint32_t de_id_mensaje_a_cola(uint32_t);
+uint32_t de_id_mensaje_a_size(uint32_t);
 
 #endif /* BROKER_H_ */

@@ -32,6 +32,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 	paquete->buffer = malloc(sizeof(t_buffer));
 	recv(*socket_escucha, &(paquete->buffer->size), sizeof(uint32_t), MSG_WAITALL);
 
+
 	if (paquete->buffer->size != 0){
 
 		paquete->buffer->stream = malloc(paquete->buffer->size);
@@ -49,8 +50,6 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 
 			printf("MENSAJE NUEVO -- ID: %d -- COLA: %s\n",id_mensaje,nombres_colas[id_cola]);
 			//log_info(logger, " MENSAJE NUEVO -- ID: %d -- COLA: %s ", id_mensaje, nombres_colas[id_cola]);
-
-			//almacenar(msg,id_cola,id_mensaje,paquete->buffer->size);
 
 			pthread_mutex_lock(&(sem_cola[id_cola]));
 			agregar_a_cola(id_cola,paquete->buffer->size,msg,id_mensaje);
@@ -74,10 +73,11 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 
 	}
 	list_remove_and_destroy_element(sockets_productores,0,free);
+	free_paquete(paquete);
 }
 
 
-void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, int socket_sub) { // falta probar
+void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, int socket_sub) {
 
 	t_cola_de_mensajes* queue = int_a_nombre_cola(id_cola);
 	t_info_mensaje* mensaje = queue_peek(queue->cola);
@@ -118,15 +118,17 @@ uint32_t crear_nuevo_id(){
 	return contador_id;
 }
 
-void agregar_a_cola(uint32_t id_cola,uint32_t size , void* mensaje, int id_mensaje){
+void agregar_a_cola(uint32_t id_cola, uint32_t size, void* mensaje, uint32_t id_mensaje){
 
-	t_info_mensaje* msg = malloc(sizeof(t_info_mensaje));
-
-	msg->quienes_lo_recibieron = list_create();
-	msg->a_quienes_fue_enviado = list_create();
+	t_info_mensaje* info_msg = malloc(sizeof(t_info_mensaje));
+	info_msg->id = id_mensaje;
+	info_msg->quienes_lo_recibieron = list_create();
+	info_msg->a_quienes_fue_enviado = list_create();
 
 	almacenar(mensaje,id_cola,id_mensaje,size);
-	queue_push(int_a_nombre_cola(id_cola)->cola, msg);
+
+	t_cola_de_mensajes* nombre_cola = int_a_nombre_cola(id_cola);
+	queue_push(nombre_cola->cola, info_msg);
 
 }
 

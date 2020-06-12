@@ -2,13 +2,14 @@
 
 void mandar_mensajes() {
 
-	int cola_actual = 0;
+	uint32_t cola_actual = 0;
 
 	while (1) {
 		if (cola_actual == 6) {
 			cola_actual = 0;
 		}
-		if (queue_size(int_a_nombre_cola(cola_actual)->cola) != 0) {
+		t_cola_de_mensajes* cola_a_revisar = int_a_nombre_cola(cola_actual);
+		if (!queue_is_empty(cola_a_revisar->cola)){
 			pthread_mutex_lock(&(sem_cola[cola_actual]));
 			recorrer_cola(int_a_nombre_cola(cola_actual));
 			pthread_mutex_unlock(&(sem_cola[cola_actual]));
@@ -62,7 +63,7 @@ void recorrer_cola(t_cola_de_mensajes* nombre) {
 			for (int i = 0; i < list_size(nombre->lista_suscriptores); i++) {
 				uint32_t* sub = (uint32_t*) list_get(nombre->lista_suscriptores,i);
 				if (!esta_en_lista(info_a_sacar->quienes_lo_recibieron, sub)) {
-					if (mandar(nombre->tipo_cola, de_id_mensaje_a_mensaje(info_a_sacar->id), info_a_sacar->id , *sub,de_id_mensaje_a_size(info_a_sacar->id)) == -1) {
+					if (mandar(nombre->tipo_cola, de_id_mensaje_a_mensaje(info_a_sacar->id), info_a_sacar->id, *sub, de_id_mensaje_a_size(info_a_sacar->id)) == -1) {
 
 						sub_suscrito = false;
 
