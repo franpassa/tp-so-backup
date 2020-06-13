@@ -20,7 +20,7 @@ t_log* crear_log(char* log_path){
 
 void terminar_aplicacion(char* mensaje){
 	printf("ERROR: %s\n", mensaje);
-	exit(-1);
+	abort();
 }
 
 
