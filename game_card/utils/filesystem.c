@@ -29,33 +29,28 @@ void free_fspaths(t_fspaths* paths){
 }
 
 /*
- * Esta función chequea si existe el archivo Bitmap.bin,
+ * Chequea si existe el archivo Bitmap.bin,
  * en caso que no se asume que se debe crear la estructura
  * del filesystem desde cero y retorna el bitarray correspondiente.
 */
 void init_fs(){
 
-	// TENGO QUE VERIFICAR QUE EXISTA LA CARPETA 'METADATA' O EL BITMAP.BIN?
-
-	/* char* metadata_path = string_new();
-	** string_append_with_format(&metadata_path, "%s/Metadata", punto_montaje);
-	 */
-
 	metadata_config = config_create(fspaths->metadata_file);
 	FILE* bitmap_file = fopen(fspaths->bitmap_file, "r");
 
 	if(bitmap_file){
-		// Caso metadata existente
+		// Caso bitmap existente
 		fclose(bitmap_file);
 		printf("Bitmap.bin existente\n");
 
 	} else {
-		// Caso metadata NO existente
+		// Caso bitmap NO existente
 		printf("Archivo Bitmap.bin no encontrado, creando...\n");
 
 		int cantidad_bloques = config_get_int_value(metadata_config, "BLOCKS");
 		if(create_bitmap(cantidad_bloques) == -1) terminar_aplicacion("Error creando bitmap");
 		if(create_blocks(cantidad_bloques) == -1) terminar_aplicacion("Error creando bloques");
+		eliminar_files();
 
 		printf("Se crearon %d bloques\n", cantidad_bloques);
 	}
@@ -296,4 +291,25 @@ t_list* escribir_en_bloques(t_pokemon pokemon, int ultimo_bloque, uint32_t *byte
 	free(linea_input);
 
 	return lista_bloques_escritos;
+}
+
+int unlink_cb(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf){
+    int rv = remove(fpath);
+    if (rv) perror(fpath);
+
+    return rv;
+}
+
+int rmrf(char *path){
+    return nftw(path, unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
+}
+
+void eliminar_files(){
+	struct dirent *dp;
+	DIR *dir = opendir(fspaths->files_folder);
+	if(!dir) return;
+
+	while((dp = readdir(dir)) != NULL){
+		printf("%s\n", dp->d_name);
+	}
 }
