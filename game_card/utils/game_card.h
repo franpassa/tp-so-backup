@@ -1,6 +1,7 @@
 #ifndef GAME_CARD_H_
 #define GAME_CARD_H_
 
+#define _XOPEN_SOURCE 500
 
 // -------- Librerias C estandar --------
 
@@ -10,6 +11,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <ftw.h>
+#include <dirent.h>
 
 // -------- Commons --------
 
@@ -59,6 +62,10 @@ t_config* metadata_config;
 t_log* logger;
 t_fspaths* fspaths;
 
+// --- Hilos ---
+
+pthread_t hilo_gameboy;
+
 // -------- Funciones --------
 
 // --- General ---
@@ -99,6 +106,7 @@ bool existe_pokemon(char* nombre_pokemon);
 int escuchar_gameboy();
 void esperar_conexion(int socket_sv);
 void manejar_msg_gameboy(int* socket_gameboy);
+void procesar_msg(queue_name tipo_msg, void* msg);
 
 
 #endif
