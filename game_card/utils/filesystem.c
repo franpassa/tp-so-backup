@@ -306,6 +306,8 @@ int rmrf(char *path){
 
 void eliminar_files(){
 	struct dirent *dp;
+	char* files_path = fspaths->files_folder;
+	printf("%s\n", files_path);
 	DIR *dir = opendir(fspaths->files_folder);
 	if(!dir) return;
 

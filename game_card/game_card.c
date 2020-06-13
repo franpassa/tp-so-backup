@@ -15,10 +15,6 @@ void terminar(){
 	free_fspaths(fspaths);
 }
 
-void print_ints(int* elem){
-	printf("%d\n", *elem);
-}
-
 int main(){
 
 	inicializar();
