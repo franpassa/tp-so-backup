@@ -80,6 +80,9 @@ uint32_t retornarIndice(t_list* lista, char* nombre);
 void realizarCambio(t_entrenador* entrenador1, t_entrenador* entrenador2);
 
 
+t_list* crearListaObjetivosPosta(t_list* pokesObjetivosGlobal, t_list* entrenadoresNew);
+void sacar1(char* nombre, t_list* listaDeEspecies);
+
 
 
 

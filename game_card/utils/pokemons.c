@@ -88,3 +88,25 @@ int crear_pokemon(t_pokemon pokemon){
 	return 0;
 
 }
+
+char* get_last(char** array){
+
+	char* elemento = NULL;
+	if(array[0] != NULL){
+		int index = 0;
+		while(array[index+1] != NULL){
+			elemento = array[index];
+		}
+	}
+
+	return elemento;
+}
+
+int obtener_ultimo_bloque(char* nombre_pokemon){
+	char* path_metadata_pok = get_metadata_path(nombre_pokemon);
+
+	t_config* pokemon_metadata = config_create(path_metadata_pok);
+	char** bloques = config_get_array_value(pokemon_metadata, "BLOCKS");
+
+
+}

@@ -23,7 +23,6 @@ int main(){
 
 	inicializar();
 
-	pthread_t hilo_gameboy;
 	pthread_create(&hilo_gameboy, NULL, (void*) escuchar_gameboy, NULL);
 	pthread_join(hilo_gameboy, NULL);
 

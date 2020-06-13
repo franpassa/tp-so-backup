@@ -23,18 +23,6 @@ void terminar_aplicacion(char* mensaje){
 	exit(-1);
 }
 
-char* list_to_string(t_list* list){
-	int tamanio_lista = list_size(list);
-	char* string_tmp = string_new();
-	for(int i = 0; i < tamanio_lista; i++){
-		int *elemento_ptr = list_get(list, i);
-		string_append_with_format(&string_tmp, "%d,", *elemento_ptr);
-	}
-	char* lista_stringueada = string_substring_until(string_tmp, string_length(string_tmp)-1);
-	free(string_tmp);
-
-	return lista_stringueada;
-}
 
 void agregar_a_lista(t_list* lista, int nuevo_elemento){
 	int* nuevo_ptr = malloc(sizeof(int));

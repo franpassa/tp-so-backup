@@ -10,6 +10,7 @@ int main()
 	printf("\n");
 	if (socket_escucha == -1) abort(); //FINALIZA EL PROGRAMA EN CASO DE QUE FALLE LA INICIALIZACION DEL SERVIDOR
 
+
 	enviar_gets(objetivos_globales); // ENVIO MENSAJES GET_POKEMON AL BROKER.
 
 	pthread_create(&hilo_pasar_a_ready,NULL,(void*) pasar_a_ready, NULL);
@@ -63,7 +64,6 @@ t_log* crear_log(){
 	}
 }
 
-
 void liberar_recursos(){
 	log_destroy(logger);
 	config_destroy(config);
@@ -115,6 +115,7 @@ void inicializarVariables(){
 	estado_new = crearListaDeEntrenadores(posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
 	pokemons_objetivos = crearListaPokesObjetivos(estado_new);
 	objetivos_globales = crearListaObjetivoGlobal(pokemons_objetivos);
+	objetivos_posta = crearListaObjetivosPosta(objetivos_globales, estado_new);
 	hayEntrenadorProcesando = false;
 }
 

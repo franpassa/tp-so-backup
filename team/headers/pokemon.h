@@ -32,7 +32,7 @@ void agregarAppearedRecibidoALista(t_list* pokemonsRecibidos, appeared_pokemon_m
 void liberarEspecie(void* especie);
 void liberarPokemon(void* pokemon);
 void mostrarPokemon(void* pokemon);
-void mostrarEspecie(void* pokemon);
+void mostrarEspecie(t_especie* especie);
 void mostrarString(void*);
 
 
@@ -44,6 +44,6 @@ bool sonIguales(t_list* pokemonsAtrapados,t_list* pokemonsObjetivos);
 bool todosLosElementosDeLaPrimerListaEstanEnLaSegunda(t_list* listaA,t_list* listaB);
 bool perteneceALaSegundaLista(char* unPokemon,t_list* listaDePokemons);
 bool estaEnLaLista(char* unNombre, t_list* listadoDePokemons);
-bool estaEnListaPokemon(t_list* lista, t_pokemon* pokemon);
+bool estaEnListaEspecie(char* pokemon, t_list* especies);
 
 #endif /* HEADERS_POKEMON_H_ */

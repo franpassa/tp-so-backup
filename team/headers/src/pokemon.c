@@ -42,6 +42,7 @@ t_list* crearListaObjetivoGlobal(t_list* pokesObjetivoGlobal){
 	return objetivoGlobal;
 }
 
+
 void agregarLocalizedRecibidoALista(t_list* pokemonsRecibidos, localized_pokemon_msg* pokemons){
 	int j = 1;
 	for(int i=0; i<(pokemons->cantidad_posiciones)*2; i+=2){
@@ -75,10 +76,10 @@ void mostrarPokemon(void* pokemon){
     printf("La pos en y es: %d\n",((t_pokemon*)pokemon)->posicionY);
 }
 
-void mostrarEspecie(void* especie)
+void mostrarEspecie(t_especie* especie)
 {
-	mostrarString(((t_especie*)especie)->especie);
-	printf(" cantidad = %d \n",((t_especie*)especie)->cantidad);
+	mostrarString(especie->especie);
+	printf(" cantidad = %d \n",especie->cantidad);
 }
 
 void liberarEspecie(void* especie){
@@ -156,11 +157,11 @@ bool estaEnLaLista(char* unNombre, t_list* listadoDePokemons) // esta compara el
 	return list_any_satisfy(listadoDePokemons,(void*) comparar);
 }
 
-bool estaEnListaPokemon(t_list* lista, t_pokemon* pokemon){
-	for(int i = 0; i< list_size(lista); i++){
-		if(string_equals_ignore_case(pokemon->nombre,((t_pokemon*)list_get(lista,i))->nombre)){
-			return true;
-		}
+bool estaEnListaEspecie(char* pokemon, t_list* especies){
+
+	bool comparar(t_especie* unPokemon){
+		return string_equals_ignore_case(unPokemon->especie,pokemon);
 	}
-	return false;
+
+	return list_any_satisfy(especies,(void*) comparar);
 }
