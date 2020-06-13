@@ -63,7 +63,6 @@ t_log* crear_log(){
 	}
 }
 
-
 void liberar_recursos(){
 	log_destroy(logger);
 	config_destroy(config);
