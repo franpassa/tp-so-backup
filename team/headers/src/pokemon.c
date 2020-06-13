@@ -42,6 +42,7 @@ t_list* crearListaObjetivoGlobal(t_list* pokesObjetivoGlobal){
 	return objetivoGlobal;
 }
 
+
 void agregarLocalizedRecibidoALista(t_list* pokemonsRecibidos, localized_pokemon_msg* pokemons){
 	int j = 1;
 	for(int i=0; i<(pokemons->cantidad_posiciones)*2; i+=2){

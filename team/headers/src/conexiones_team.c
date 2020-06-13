@@ -180,8 +180,19 @@ void algoritmoFifo()
 
 void pasar_a_ready(){
 	while(1){
-		if(list_size(pokemons_recibidos)>0 && list_size(todosLosEntrenadoresAPlanificar())>0){
+		if(list_size(pokemons_recibidos)>0 && list_size(todosLosEntrenadoresAPlanificar())>0)
+		{
 			t_list* listaAPlanificar = todosLosEntrenadoresAPlanificar();
+
+//			bool falopa1(t_especie* unaEspecie)
+//			{
+//				bool mismoNombreCantidadPositiva(t_pokemon* otraEspecie)
+//				{
+//					return string_equals_ignore_case(unaEspecie->especie,otraEspecie->especie) &&  otraEspecie->cantidad > 0;
+//				}
+//				return list_any_satisfy(objetivos_posta,mismoNombreCantidadPositiva);
+//			}
+//			t_list* listaNueva = list_filter(pokemons_recibidos,falopa1);
 
 			pthread_mutex_lock(&mutexPokemonsRecibidos);
 			t_entrenador* entrenadorTemporal = entrenadorAReady(listaAPlanificar,pokemons_recibidos);

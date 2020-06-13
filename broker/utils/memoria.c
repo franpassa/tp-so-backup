@@ -3,7 +3,7 @@
 void inicializar_memoria() {
 
 	tamanio_memoria = config_get_int_value(config,"TAMANIO_MEMORIA");
-	memoria = calloc(1,tamanio_memoria);
+	memoria = malloc(tamanio_memoria);
 
 	estructura = malloc(sizeof(t_struct_secundaria));
 	estructuras_secundarias = list_create();
@@ -17,7 +17,6 @@ void inicializar_memoria() {
 		estructura->id = 0;
 		estructura->bit_inicio = 0;
 		list_add(estructuras_secundarias,estructura);
-
 
 	} else if (string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"), "BS")) {
 
@@ -61,15 +60,13 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
         list_replace(estructuras_secundarias, entra, est_a_utilizar); // chequear esto: no estamos liberando el elemento que reemplazamos
         // si usamos replace and destroy element: tira mas errores en valgrind
 
-        memmove(memoria + est_a_utilizar->bit_inicio, mensaje, size); // EN EL DEBUG ROMPE ACA, llegan bien los parametros
+        memmove(memoria + est_a_utilizar->bit_inicio, mensaje, size); // revisar porque esta guardando cualquier cosa, no rompe mas!
 
 	} else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"BS")) {
 
 		}else{
 			printf("Error en broker.config ALGORITMO_MEMORIA no valido");
 		}
-
-
 }
 
 void paso_1(){
@@ -217,9 +214,7 @@ void actualizar_bit_inicio(int a_sacar){
 		estructura_bit_inicio = list_get(estructuras_secundarias, f);
 		estructura_bit_inicio->bit_inicio = estructura_bit_inicio->bit_inicio - estructura->tamanio; // valgrind
 		list_replace_and_destroy_element(estructuras_secundarias,f,estructura_bit_inicio,free);
-
 	}
-
 }
 void mover_memoria(int a_sacar){
 	t_struct_secundaria* estructura_a_mover_memoria;
@@ -234,12 +229,9 @@ void mover_memoria(int a_sacar){
 
 	list_remove_and_destroy_element(estructuras_secundarias,a_sacar,free); // valgrind
 	list_add(estructuras_secundarias,estructura_a_mover_memoria);
-
-
-
 }
 
-void* de_id_mensaje_a_mensaje(uint32_t id_mensaje) { // retorna bien pero cuando lo comento en broker.c anda el programa
+void* de_id_mensaje_a_mensaje(uint32_t id_mensaje) { // retorna mal, cuando lo comento en broker.c anda el programa
 
 	t_struct_secundaria* estructura3 = malloc(sizeof(t_struct_secundaria));
 	t_struct_secundaria* estructura_a_comparar_de_lista;
@@ -247,14 +239,12 @@ void* de_id_mensaje_a_mensaje(uint32_t id_mensaje) { // retorna bien pero cuando
 	for (int i = 0; i < list_size(estructuras_secundarias); i++) {
 		estructura_a_comparar_de_lista = list_get(estructuras_secundarias,i);
 		if (estructura_a_comparar_de_lista->id == id_mensaje) {
-			estructura3 = estructura_a_comparar_de_lista;
+			estructura3->tamanio = estructura_a_comparar_de_lista->tamanio;
 		}
 	}
 	void* mensaje = malloc(estructura3->tamanio);
-
-	memcpy(mensaje, memoria + estructura3->bit_inicio, estructura3->tamanio); // Esto no esta funcionando bien me parece
-	return mensaje; // cast en debug.(MSG_NEW_POKEMON*)->la posX : devuelve cualquiera, y el msg dice CAN NOT ACCESS MEMORY ADDRESS, los demas bien
-
+	memmove(mensaje, memoria + estructura3->bit_inicio, estructura3->tamanio); // revisar esto
+	return mensaje;
 }
 
 uint32_t de_id_mensaje_a_cola(uint32_t id_mensaje) { // Perfecto
@@ -265,12 +255,10 @@ uint32_t de_id_mensaje_a_cola(uint32_t id_mensaje) { // Perfecto
 	for (int i = 0; i < list_size(estructuras_secundarias); i++) {
 		estructura_a_comparar_de_lista = list_get(estructuras_secundarias,i);
 		if (estructura_a_comparar_de_lista->id == id_mensaje) {
-			estructura3 = estructura_a_comparar_de_lista;
+			estructura3->tipo_mensaje = estructura_a_comparar_de_lista->tipo_mensaje;
 		}
 	}
-
 	return estructura3->tipo_mensaje;
-
 }
 
 

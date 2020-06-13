@@ -164,23 +164,28 @@ t_entrenador* entrenadorAReady(t_list* listaEntrenadores, t_list* listaPokemons)
 {
 	t_entrenador* entrenadorFlag = malloc(sizeof(t_entrenador));
 	igualarEntrenador(entrenadorFlag,list_get(listaEntrenadores,0));
+
 	if(list_size(listaEntrenadores) < 2){
 		entrenadorFlag->pokemonAMoverse = pokemonMasCercano(entrenadorFlag,listaPokemons);
 	}else{
-		for(int i =  0; i < (list_size(listaEntrenadores)-1); i++){
+		for(int i =  0; i < (list_size(listaEntrenadores)-1); i++)
+		{
 			t_entrenador* entrenadorTemporal = list_get(listaEntrenadores,i+1);
 			t_pokemon* pokemonParcialFlag = pokemonMasCercano(entrenadorFlag,listaPokemons);
 			uint32_t distanciaFlag = distanciaEntrenadorPokemon(entrenadorFlag->posicionX,entrenadorFlag->posicionY,pokemonParcialFlag->posicionX,pokemonParcialFlag->posicionY);
 			t_pokemon* pokemonEntrenadorTemporal= pokemonMasCercano(entrenadorTemporal,listaPokemons);
 			uint32_t distanciaTemporal = distanciaEntrenadorPokemon(entrenadorTemporal->posicionX,entrenadorTemporal->posicionY,pokemonEntrenadorTemporal->posicionX,pokemonEntrenadorTemporal->posicionY);
 
-			if(distanciaFlag > distanciaTemporal){
+			if(distanciaFlag > distanciaTemporal)
+			{
 				igualarEntrenador(entrenadorFlag,entrenadorTemporal);
 				entrenadorFlag->pokemonAMoverse = pokemonParcialFlag;
-			}else{
+			}
+			else
+			{
 				igualarEntrenador(entrenadorFlag,entrenadorFlag);
 				entrenadorFlag->pokemonAMoverse = pokemonEntrenadorTemporal;
-				}
+			}
 		}
 	}
 
@@ -367,7 +372,45 @@ void realizarCambio(t_entrenador* entrenador1, t_entrenador* entrenador2)
 }
 
 
+t_list* crearListaObjetivosPosta(t_list* pokesObjetivosGlobal, t_list* entrenadoresNew)
+{
+	t_list* lista = list_duplicate(pokesObjetivosGlobal);
 
+	void actualizarEstado(t_entrenador* unEntrenador)
+	{
+		for(int i = 0; i < list_size(unEntrenador->pokesAtrapados); i++)
+		{
+			bool funcionFalopa(char* unaEspecie)
+			{
+				bool funcionFalopa2(t_especie* otraEspecie)
+				{
+					return string_equals_ignore_case(unaEspecie,otraEspecie->especie);
+				}
+				return list_any_satisfy(lista,funcionFalopa2);
+			}
+			if(funcionFalopa(list_get(unEntrenador->pokesAtrapados,i)))
+			{
+				sacar1(list_get(unEntrenador->pokesAtrapados,i),lista);
+			}
+		}
+	}
+	list_iterate(entrenadoresNew,actualizarEstado);
+	return lista;
+}
+
+void sacar1(char* nombre, t_list* listaDeEspecies)
+{
+	bool comparar(t_especie* unPokemon)
+	{
+		return string_equals_ignore_case(unPokemon->especie,nombre);
+	}
+
+	if(estaEnListaEspecie(nombre, listaDeEspecies))
+	{
+		t_especie* a =list_find(listaDeEspecies,comparar);
+		a->cantidad --;
+	}
+}
 
 
 
