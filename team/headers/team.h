@@ -52,6 +52,7 @@ int socket_appeared;
 
 t_list* estado_exit;
 t_list* objetivos_globales;
+t_list* objetivos_posta;
 t_list* ids_enviados;
 t_list* pokemons_recibidos;
 t_list* pokemons_recibidos_historicos;
