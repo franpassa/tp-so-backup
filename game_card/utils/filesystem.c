@@ -222,7 +222,7 @@ int write_block(char* string, int block, int max_bytes, bool sobreescribir){
 	if(line_jump) string_append(&string_a_escribir, "\n");
 
 
-	int bytes_escritos = fprintf(block_file, "%s\n", string_a_escribir) - 1; // Le resto uno que sería '\0'.
+	int bytes_escritos = fprintf(block_file, "%s\n", string_a_escribir);
 
 	fclose(block_file);
 	free(string_a_escribir);
@@ -306,15 +306,18 @@ int rmrf(char *path){
 
 void eliminar_files(){
 	struct dirent *dp;
-	char* files_path = fspaths->files_folder;
-	printf("%s\n", files_path);
 	DIR *dir = opendir(fspaths->files_folder);
 	if(!dir) return;
 
-	char* full_path = string_duplicate(fspaths->files_folder);
+	char* file_path;
 	while((dp = readdir(dir)) != NULL){
 		if(!string_starts_with(dp->d_name, ".")){
-			printf("%s\n", dp->d_name);
+			file_path = string_duplicate(fspaths->files_folder);
+			string_append_with_format(&file_path, "/%s", dp->d_name);
+			rmrf(file_path);
+			free(file_path);
 		}
 	}
+
+	closedir(dir);
 }

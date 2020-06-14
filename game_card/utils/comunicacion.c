@@ -43,12 +43,13 @@ void print_ints(int* elem){
 }
 
 void procesar_msg(queue_name tipo_msg, void* msg){
+	char* msg_string = msg_as_string(tipo_msg, msg);
+	if(msg_string) printf("msg recibido: %s\n", msg_string);
 
 	switch(tipo_msg){
 		case NEW_POKEMON:;
 			new_pokemon_msg* new_pok = (new_pokemon_msg*) msg;
 			t_pokemon pokemon = init_pokemon(new_pok->nombre_pokemon, new_pok->coordenada_X, new_pok->coordenada_Y, new_pok->cantidad_pokemon);
-
 			if(!existe_pokemon(pokemon.nombre)){
 				crear_pokemon(pokemon);
 			} else {

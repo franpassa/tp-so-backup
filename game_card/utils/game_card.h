@@ -76,6 +76,7 @@ void terminar_aplicacion(char* mensaje);
 long get_file_size(FILE* file_ptr);
 void agregar_a_lista(t_list* lista, int nuevo_elemento);
 char* list_to_string(t_list* list);
+char* get_last(char** array);
 
 // --- Filesystem ---
 
