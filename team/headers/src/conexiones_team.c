@@ -93,7 +93,7 @@ void esperar_cliente(int* socket_servidor) {
 
 		if (mensaje_recibido_appeared != NULL) {
 
-			if ((estaEnListaEspecie((mensaje_recibido_appeared->nombre_pokemon),objetivos_globales)) && (!(estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),pokemons_recibidos_historicos)))) {
+			if ((estaEnListaEspecie((mensaje_recibido_appeared->nombre_pokemon),objetivos_posta)) && (!(estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),pokemons_recibidos_historicos)))) {
 
 				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
 				agregarAppearedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_appeared);
@@ -178,24 +178,17 @@ void algoritmoFifo()
 	}
 }
 
+
+
 void pasar_a_ready(){
 	while(1){
 		if(list_size(pokemons_recibidos)>0 && list_size(todosLosEntrenadoresAPlanificar())>0)
 		{
 			t_list* listaAPlanificar = todosLosEntrenadoresAPlanificar();
-
-			bool falopa1(t_especie* unaEspecie)
-			{
-				bool mismoNombreCantidadPositiva(t_especie* otraEspecie)
-				{
-					return string_equals_ignore_case(unaEspecie->especie,otraEspecie->especie) &&  otraEspecie->cantidad > 0;
-				}
-				return list_any_satisfy(objetivos_posta,mismoNombreCantidadPositiva);
-			}
-			t_list* listaNueva = list_filter(pokemons_recibidos,falopa1);
-
+			//t_list* listaNueva = list_filter(pokemons_recibidos,falopa1);
+			//list_iterate(listaNueva,mostrarPokemon);
 			pthread_mutex_lock(&mutexPokemonsRecibidos);
-			t_entrenador* entrenadorTemporal = entrenadorAReady(listaAPlanificar,listaNueva);
+			t_entrenador* entrenadorTemporal = entrenadorAReady(listaAPlanificar,pokemons_recibidos/*es una lista de pokemon no de especies*/);
 			pthread_mutex_unlock(&mutexPokemonsRecibidos);
 
 			//list_destroy(listaAPlanificar);

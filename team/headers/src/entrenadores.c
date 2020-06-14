@@ -162,6 +162,7 @@ t_pokemon*  pokemonMasCercano (t_entrenador* unEntrenador, t_list* pokemons)
 
 t_entrenador* entrenadorAReady(t_list* listaEntrenadores, t_list* listaPokemons)
 {
+	list_iterate(listaPokemons, mostrarPokemon);
 	t_entrenador* entrenadorFlag = malloc(sizeof(t_entrenador));
 	igualarEntrenador(entrenadorFlag,list_get(listaEntrenadores,0));
 
