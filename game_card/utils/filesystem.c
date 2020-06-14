@@ -120,7 +120,7 @@ int create_bitmap(int cantidad_bloques){
 }
 
 // Esta función es una obra de arte
-void set_bit(int index, bool value){
+void set_bit(int index, bool value){ // Revisar mmap
 	FILE* bitmap_file = fopen(fspaths->bitmap_file, "rb+");
 
 	div_t division = div(index, 8); // Divido el indice del bit por la cantidad de bits en un byte para obtener el byte y la posición del bit dentro de ese (cociente y resto).
@@ -198,7 +198,7 @@ char* get_block_path(int block){
 }
 
 // Retorno un puntero al string que no se pudo escribir (NULL si se escribió entero)
-char* write_block(char* string, int block, int max_bytes, bool sobreescribir){
+int write_block(char* string, int block, int max_bytes, bool sobreescribir){
 	char* block_path = get_block_path(block);
 	FILE* block_file;
 	if(sobreescribir){
@@ -219,15 +219,15 @@ char* write_block(char* string, int block, int max_bytes, bool sobreescribir){
 		if(strlen(string_a_escribir) < max_bytes) line_jump = true; // Si queda espacio para escribir en el bloque, agrego un salto de linea.
 	}
 
-	if(line_jump){
-		fprintf(block_file, "%s\n", string_a_escribir);
-	} else {
-		fprintf(block_file, "%s", string_a_escribir);
-	}
+	if(line_jump) string_append(&string_a_escribir, "\n");
+
+
+	int bytes_escritos = fprintf(block_file, "%s\n", string_a_escribir) - 1; // Le resto uno que sería '\0'.
+
 	fclose(block_file);
 	free(string_a_escribir);
 
-	return string_exceso;
+	return bytes_escritos;
 }
 
 char* format_pokemon(t_pokemon pokemon, uint32_t* length){
@@ -275,15 +275,15 @@ t_list* escribir_en_bloques(t_pokemon pokemon, int ultimo_bloque, uint32_t *byte
 	t_list* lista_bloques_escritos = list_create();
 	int block_max_size = config_get_int_value(metadata_config, "BLOCK_SIZE");
 	*bytes_escritos = 0;
+	int bytes_x_operacion;
 	char* linea_a_agregar = linea_input;
 	while(1){
-		linea_a_agregar = write_block(linea_a_agregar, bloque_a_escribir, block_max_size, nuevo_bloque); // Devuelve el string que no se pudo escribir
+		bytes_x_operacion = write_block(linea_a_agregar, bloque_a_escribir, block_max_size, nuevo_bloque); // Devuelve los bytes que se escribieron.
+		*bytes_escritos += bytes_x_operacion;
 		set_bit(bloque_a_escribir, true); //  PUEDE SER QUE DE PROBLEMA DE SINCRONIZACION
 		agregar_a_lista(lista_bloques_escritos, bloque_a_escribir);
-		if(linea_a_agregar == NULL) {
-			*bytes_escritos = bytes_linea;
-			break;
-		}
+		if(*bytes_escritos >= string_length(linea_input)) break;
+
 		*bytes_escritos += bytes_linea - strlen(linea_a_agregar); // Los bytes que se escribieron son los totales menos lo que sobró
 		bloque_a_escribir = get_free_block();
 		nuevo_bloque = true;
@@ -306,10 +306,15 @@ int rmrf(char *path){
 
 void eliminar_files(){
 	struct dirent *dp;
+	char* files_path = fspaths->files_folder;
+	printf("%s\n", files_path);
 	DIR *dir = opendir(fspaths->files_folder);
 	if(!dir) return;
 
+	char* full_path = string_duplicate(fspaths->files_folder);
 	while((dp = readdir(dir)) != NULL){
-		printf("%s\n", dp->d_name);
+		if(!string_starts_with(dp->d_name, ".")){
+			printf("%s\n", dp->d_name);
+		}
 	}
 }

@@ -185,10 +185,26 @@ void pasar_a_ready(){
 		if(list_size(pokemons_recibidos)>0 && list_size(todosLosEntrenadoresAPlanificar())>0)
 		{
 			t_list* listaAPlanificar = todosLosEntrenadoresAPlanificar();
+<<<<<<< HEAD
 			//t_list* listaNueva = list_filter(pokemons_recibidos,falopa1);
 			//list_iterate(listaNueva,mostrarPokemon);
 			pthread_mutex_lock(&mutexPokemonsRecibidos);
 			t_entrenador* entrenadorTemporal = entrenadorAReady(listaAPlanificar,pokemons_recibidos/*es una lista de pokemon no de especies*/);
+=======
+
+//			bool falopa1(t_especie* unaEspecie)
+//			{
+//				bool mismoNombreCantidadPositiva(t_pokemon* otraEspecie)
+//				{
+//					return string_equals_ignore_case(unaEspecie->especie,otraEspecie->especie) &&  otraEspecie->cantidad > 0;
+//				}
+//				return list_any_satisfy(objetivos_posta,mismoNombreCantidadPositiva);
+//			}
+//			t_list* listaNueva = list_filter(pokemons_recibidos,falopa1);
+
+			pthread_mutex_lock(&mutexPokemonsRecibidos);
+			t_entrenador* entrenadorTemporal = entrenadorAReady(listaAPlanificar,pokemons_recibidos);
+>>>>>>> e4de79abf97bdfe5bd9b56152da9683f3f6050ac
 			pthread_mutex_unlock(&mutexPokemonsRecibidos);
 
 			//list_destroy(listaAPlanificar);

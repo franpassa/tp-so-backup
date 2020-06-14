@@ -20,7 +20,7 @@ t_log* crear_log(char* log_path){
 
 void terminar_aplicacion(char* mensaje){
 	printf("ERROR: %s\n", mensaje);
-	exit(-1);
+	abort();
 }
 
 
@@ -36,4 +36,16 @@ long get_file_size(FILE* file_ptr){
 	fseek(file_ptr, 0, SEEK_SET);
 
 	return file_size;
+}
+
+char* list_to_string(t_list* list){
+	char* string = string_new();
+
+	for(int i = 0; i < list_size(list); i++){
+		int* elemento = (int*) list_get(list, i);
+		string_append_with_format(&string, "%d,", *elemento);
+	}
+	char* string_trimmed = string_substring_until(string, string_length(string)-1);
+	free(string);
+	return string_trimmed;
 }

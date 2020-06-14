@@ -89,9 +89,10 @@ void set_bit(int index, bool value);
 int get_free_block();
 char* get_block_path(int block);
 void free_fspaths(t_fspaths* paths);
-char* write_block(char* linea, int block, int max_bytes, bool sobreescribir);
+int write_block(char* linea, int block, int max_bytes, bool sobreescribir);
 // En caso que sea un pokemon ya existente en el FS se le debe pasar el último bloque donde se guardó info, si es uno nuevo último bloque recibe un número negativo.
 int crear_metadata(char* folder_path, uint32_t file_size, t_list* blocks);
+void eliminar_files();
 
 // --- Pokemons ---
 t_pokemon init_pokemon(char* nombre, uint32_t x, uint32_t y, uint32_t cantidad);
