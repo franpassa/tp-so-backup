@@ -46,7 +46,8 @@ t_config* leer_config(){
 	t_config* config_team = config_create(PATH_CONFIG);
 	if(config_team == NULL){
 		printf("Error abriendo el archivo de configuración\n");
-		exit(-1);
+		abort();
+		return config_team;
 	} else {
 		printf("Archivo de configuracion leido.\n");
 		return config_team;

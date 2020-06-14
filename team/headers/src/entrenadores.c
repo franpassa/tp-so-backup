@@ -104,7 +104,7 @@ void mostrarEntrenador(void* entrenador)
 	printf("La posicion y del entrenador es: %d\n",((t_entrenador*)entrenador)->posicionY);
 	printf("\nLos pokemon atrapados del entrenador son: \n");
 	list_iterate((((t_entrenador*)entrenador)->pokesAtrapados),mostrarString);
-	printf("\nLos pokemon obtenidos del entrenador son: \n");
+	printf("\nLos pokemon objetivo del entrenador son: \n");
 	list_iterate((((t_entrenador*)entrenador)->pokesObjetivos),mostrarString);
 	printf("\nEl estado del entrenador es: %d\n",((t_entrenador*) entrenador)->motivoBloqueo);
 	if(((t_entrenador*)entrenador)->pokemonAMoverse != NULL){mostrarPokemon(((t_entrenador*)entrenador)->pokemonAMoverse);}
@@ -162,7 +162,6 @@ t_pokemon*  pokemonMasCercano (t_entrenador* unEntrenador, t_list* pokemons)
 
 t_entrenador* entrenadorAReady(t_list* listaEntrenadores, t_list* listaPokemons)
 {
-	list_iterate(listaPokemons, mostrarPokemon);
 	t_entrenador* entrenadorFlag = malloc(sizeof(t_entrenador));
 	igualarEntrenador(entrenadorFlag,list_get(listaEntrenadores,0));
 
@@ -387,7 +386,7 @@ t_list* crearListaObjetivosPosta(t_list* pokesObjetivosGlobal, t_list* entrenado
 				{
 					return string_equals_ignore_case(unaEspecie,otraEspecie->especie);
 				}
-				return list_any_satisfy(lista,funcionFalopa2);
+				return list_any_satisfy(lista,(void*) funcionFalopa2);
 			}
 			if(funcionFalopa(list_get(unEntrenador->pokesAtrapados,i)))
 			{
@@ -395,7 +394,7 @@ t_list* crearListaObjetivosPosta(t_list* pokesObjetivosGlobal, t_list* entrenado
 			}
 		}
 	}
-	list_iterate(entrenadoresNew,actualizarEstado);
+	list_iterate(entrenadoresNew,(void*) actualizarEstado);
 	return lista;
 }
 
@@ -408,7 +407,7 @@ void sacar1(char* nombre, t_list* listaDeEspecies)
 
 	if(estaEnListaEspecie(nombre, listaDeEspecies))
 	{
-		t_especie* a =list_find(listaDeEspecies,comparar);
+		t_especie* a =list_find(listaDeEspecies,(void*) comparar);
 		a->cantidad --;
 	}
 }
