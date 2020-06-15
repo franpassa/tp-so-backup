@@ -8,6 +8,7 @@ typedef enum{
 	ESPERA_CAUGHT,
 	MOTIVO_NADA,
 	ESPERA_DEADLOCK,
+	ESTADO_EXIT,
 }motivo;
 
 typedef struct Entrenador

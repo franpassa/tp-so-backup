@@ -99,14 +99,14 @@ t_list* crearListaPokesObjetivos(t_list* entrenadores){
 
 void mostrarEntrenador(void* entrenador)
 {
-	printf("\n\nLa identificacion del entrenador es: %d\n",((t_entrenador*)entrenador)->idEntrenador);
+	printf("\nLa identificacion del entrenador es: %d\n",((t_entrenador*)entrenador)->idEntrenador);
 	printf("La posicion x del entrenador es: %d\n" ,((t_entrenador*)entrenador)->posicionX);
 	printf("La posicion y del entrenador es: %d\n",((t_entrenador*)entrenador)->posicionY);
-	printf("\nLos pokemon atrapados del entrenador son: \n");
+	printf("Los pokemon atrapados del entrenador son: \n");
 	list_iterate((((t_entrenador*)entrenador)->pokesAtrapados),mostrarString);
-	printf("\nLos pokemon objetivo del entrenador son: \n");
+	printf("Los pokemon objetivo del entrenador son: \n");
 	list_iterate((((t_entrenador*)entrenador)->pokesObjetivos),mostrarString);
-	printf("\nEl estado del entrenador es: %d\n",((t_entrenador*) entrenador)->motivoBloqueo);
+	printf("El motivo de bloqueo del entrenador es: %d\n",((t_entrenador*) entrenador)->motivoBloqueo);
 	if(((t_entrenador*)entrenador)->pokemonAMoverse != NULL){mostrarPokemon(((t_entrenador*)entrenador)->pokemonAMoverse);}
 
 }
@@ -314,6 +314,9 @@ t_list* pokemonesQueLeFaltan(t_entrenador* unEntrenador)
 
 t_list* quienesTienenElPokeQueMeFalta(t_entrenador* unEntrenador, t_list* lista)
 {
+	t_list* pokemons_al_pedo;
+	t_list* pokemonsQueFaltan;
+
 	// nos dice si el segundo entrenador tiene algun pokemon de sobra que necesite el primero
 	bool tieneUnPokemonQueLeFalta( t_entrenador* otroEntrenador)
 	{
@@ -323,11 +326,23 @@ t_list* quienesTienenElPokeQueMeFalta(t_entrenador* unEntrenador, t_list* lista)
 			{
 				return string_equals_ignore_case(otroPokemon,pokemon);
 			}
-			return list_any_satisfy(pokemonesAlPedo(otroEntrenador),(void*)esIgual);
+
+			pokemons_al_pedo = pokemonesAlPedo(otroEntrenador);
+
+			return list_any_satisfy(pokemons_al_pedo,(void*)esIgual);
 		}
-		return list_any_satisfy(pokemonesQueLeFaltan(unEntrenador),(void*)estaEnLista);
+
+		pokemonsQueFaltan = pokemonesQueLeFaltan(unEntrenador);
+
+		return list_any_satisfy(pokemonsQueFaltan,(void*)estaEnLista);
 	}
-	return list_filter(lista,(void*)tieneUnPokemonQueLeFalta);
+
+	t_list* resultado = list_filter(lista,(void*)tieneUnPokemonQueLeFalta);
+
+//	list_destroy(pokemons_al_pedo);
+//	list_destroy(pokemonsQueFaltan);
+
+	return resultado;
 }
 
 uint32_t retornarIndice(t_list* lista, char* nombre)

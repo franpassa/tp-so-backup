@@ -92,11 +92,11 @@ void inicializarVariables(){
 	pthread_mutex_init(&mutexEstadoReady, NULL);
 	pthread_mutex_init(&mutexEstadoExit, NULL);
 	pthread_mutex_init(&mutexIdsEnviados, NULL);
+	pthread_mutex_init(&mutexHayEntrenadorProcesando, NULL);
 	pthread_mutex_init(&mutexPokemonsRecibidos, NULL);
 	pthread_mutex_init(&mutexPokemonsRecibidosHistoricos, NULL);
 	pthread_mutex_init(&mutexLog, NULL);
 	pthread_mutex_init(&mutexLogEntrenador, NULL);
-	pthread_mutex_init(&mutexHayEntrenadorProcesando, NULL);
 	sem_init(&semCaught, 0, 1);
 	sem_init(&semLocalized, 0, 1);
 	sem_init(&semAppeared, 0, 1);
@@ -131,6 +131,7 @@ void liberarVariables()
 	list_destroy(estado_new);
 	list_destroy_and_destroy_elements(estado_exit,liberarEntrenador);
 	list_destroy_and_destroy_elements(pokemons_recibidos_historicos,liberarPokemon);
+	list_destroy_and_destroy_elements(pokemons_recibidos,liberarPokemon);
 	list_destroy_and_destroy_elements(ids_enviados,free);
 	pthread_mutex_destroy(&mutexCiclosConsumidos);
 	pthread_mutex_destroy(&mutexEstadoBloqueado);

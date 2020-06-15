@@ -7,6 +7,8 @@ void cambiarEstado(t_entrenador* entrenador){
 		entrenador->pokemonAMoverse = NULL;
 
 		if(sonIguales(entrenador->pokesObjetivos,entrenador->pokesAtrapados)){
+			entrenador->pokemonAMoverse = NULL;
+			entrenador->motivoBloqueo = ESTADO_EXIT;
 			pthread_mutex_lock(&mutexEstadoExit);
 			list_add(estado_exit,entrenador);
 			pthread_mutex_unlock(&mutexEstadoExit);
@@ -26,6 +28,7 @@ void cambiarEstado(t_entrenador* entrenador){
 
 	} else if(sonIguales(entrenador->pokesObjetivos,entrenador->pokesAtrapados)){
 		entrenador->pokemonAMoverse = NULL;
+		entrenador->motivoBloqueo = ESTADO_EXIT;
 		pthread_mutex_lock(&mutexEstadoExit);
 		list_add(estado_exit,entrenador);
 		pthread_mutex_unlock(&mutexEstadoExit);
@@ -56,6 +59,7 @@ void enviar_gets(t_list* objetivos_globales) {
 		*id_respuesta = enviar_mensaje(ip_broker, puerto_broker,GET_POKEMON,a_enviar,0,true);
 		if (*id_respuesta == -1) {
 			printf("No existen locaciones disponibles para el pokemon: '%s'\n",a_enviar->nombre_pokemon);
+			free(id_respuesta);
 		} else {
 			/*AGREGO EL ID A LA LISTA DE IDS ENVIADOS*/
 			printf("Envio del mensaje GET_POKEMON '%s' exitoso. ID asignado: %d\n",a_enviar->nombre_pokemon,*id_respuesta);
@@ -106,7 +110,8 @@ void esperar_cliente(int* socket_servidor) {
 			}
 		}
 
-
+		free(mensaje_recibido_appeared->nombre_pokemon);
+		free(mensaje_recibido_appeared);
 	}
 }
 
@@ -116,7 +121,9 @@ void estado_exec()
 
 		if (!list_is_empty(estado_ready)){
 
+			pthread_mutex_lock(&mutexHayEntrenadorProcesando);
 			if(!hayEntrenadorProcesando){
+			pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
 
 				pthread_mutex_lock(&mutexHayEntrenadorProcesando);
 				hayEntrenadorProcesando = true;
@@ -164,6 +171,7 @@ void algoritmoFifo()
 		{
 			printf("Falló el envio del mensaje CATCH_POKEMON %s.\n",mensaje->nombre_pokemon);
 			cambiarEstado(entrenador);
+			free(idMensajeExec);
 		} else {
 			printf("Envio mensaje catch %s, posicion: (%d,%d), id: %d.\n",mensaje->nombre_pokemon,mensaje->coordenada_X,mensaje->coordenada_Y,*idMensajeExec);
 			entrenador->idRecibido = *idMensajeExec;
@@ -174,6 +182,9 @@ void algoritmoFifo()
 			list_add(estado_bloqueado, entrenador);
 			pthread_mutex_unlock(&mutexEstadoBloqueado);
 		}
+
+		//free(mensaje->nombre_pokemon);
+		free(mensaje);
 	}
 }
 
@@ -412,29 +423,34 @@ void conectarABroker(){
 
 void deadlock()
 {
+	t_list* losQueTienenElPokemonQueLeFalta;
 	while(1)
 	{
 		printf("Chequeando si hay deadlock. \n");
 
 		if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && list_all_satisfy(estado_bloqueado,(void*) bloqueadoPorDeadlock))
 		{
-			t_entrenador* entrenador;
 			printf("Hay deadlock. \n");
-			entrenador = list_remove(estado_bloqueado,0);
 
-			t_entrenador* entrenadorAMoverse = list_get(quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado),0);
+			t_entrenador* entrenador = list_remove(estado_bloqueado,0);
+
+			losQueTienenElPokemonQueLeFalta = quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado);
+
+			t_entrenador* entrenadorAMoverse = list_get(losQueTienenElPokemonQueLeFalta,0);
 
 			if(entrenadorAMoverse == NULL){
 				cambiarEstado(entrenador);
 				printf("Se resolvió el deadlock.\n");
 				break;
+			} else {
+				moverEntrenador(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY,retardoCpu,logger);
+				realizarCambio(entrenador,entrenadorAMoverse);
+				cambiarEstado(entrenador);
 			}
 
-			moverEntrenador(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY,retardoCpu,logger);
-			realizarCambio(entrenador,entrenadorAMoverse);
-			cambiarEstado(entrenador);
+		} else {
+			printf("No hay deadlock. \n");
 		}
-		printf("No hay deadlock. \n");
 		sleep(3); // con esto dejo el proceso corriendo y chequeo
 	}
 
@@ -442,7 +458,13 @@ void deadlock()
 
 	printf("Los entrenadores en estado exit son: \n");
 
+	list_destroy(losQueTienenElPokemonQueLeFalta);
+
 	list_iterate(estado_exit,mostrarEntrenador);
+
+	printf("Los entrenadores en estado bloqueados son: \n");
+
+	list_iterate(estado_bloqueado,mostrarEntrenador);
 
 }
 

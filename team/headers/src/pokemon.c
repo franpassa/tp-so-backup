@@ -126,7 +126,7 @@ bool sonIguales(t_list* pokemonsAtrapados,t_list* pokemonsObjetivos)
 	}
 	else
 	{
-		return todosLosElementosDeLaPrimerListaEstanEnLaSegunda(pokemonsAtrapados,pokemonsObjetivos);
+		return todosLosElementosDeLaPrimerListaEstanEnLaSegunda(pokemonsAtrapados,pokemonsObjetivos) && todosLosElementosDeLaPrimerListaEstanEnLaSegunda(pokemonsObjetivos,pokemonsAtrapados);
 	}
 }
 
