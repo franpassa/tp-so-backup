@@ -196,9 +196,10 @@ bool bloqueadoPorNada(void* unEntrenador)
 {
 	return ((t_entrenador*)unEntrenador)->motivoBloqueo == MOTIVO_NADA;
 }
-bool bloqueadoPorDeadlock(void* unEntrenador)
+
+bool bloqueadoPorDeadlock(t_entrenador* unEntrenador)
 {
-	return ((t_entrenador*)unEntrenador)->motivoBloqueo == ESPERA_DEADLOCK;
+	return unEntrenador->motivoBloqueo == ESPERA_DEADLOCK;
 }
 
 t_list* todosLosEntrenadoresAPlanificar()
@@ -316,7 +317,6 @@ t_list* quienesTienenElPokeQueMeFalta(t_entrenador* unEntrenador, t_list* lista)
 	// nos dice si el segundo entrenador tiene algun pokemon de sobra que necesite el primero
 	bool tieneUnPokemonQueLeFalta( t_entrenador* otroEntrenador)
 	{
-
 		bool estaEnLista(char* pokemon)
 		{
 			bool esIgual(char* otroPokemon)

@@ -137,13 +137,14 @@ void estado_exec()
 
 void algoritmoFifo()
 {
+	t_entrenador* entrenador = NULL;
 	pthread_mutex_lock(&mutexEstadoReady);
-	t_entrenador* entrenador = (t_entrenador*) list_remove(estado_ready,0);
+	entrenador = (t_entrenador*) list_remove(estado_ready,0);
 	pthread_mutex_unlock(&mutexEstadoReady);
 
 	t_pokemon* aMoverse = entrenador->pokemonAMoverse;
 
-	if (aMoverse!= NULL)
+	if (aMoverse!= NULL && entrenador != NULL)
 	{
 		uint32_t distancia = distanciaEntrenadorPokemon(entrenador->posicionX, entrenador->posicionY,aMoverse->posicionX,aMoverse->posicionY);
 		moverEntrenador(entrenador,aMoverse->posicionX,aMoverse->posicionY,retardoCpu, logger);
@@ -415,10 +416,12 @@ void deadlock()
 	{
 		printf("Chequeando si hay deadlock. \n");
 
-		if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && list_all_satisfy(estado_bloqueado,bloqueadoPorDeadlock))
+		if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && list_all_satisfy(estado_bloqueado,(void*) bloqueadoPorDeadlock))
 		{
+			t_entrenador* entrenador;
 			printf("Hay deadlock. \n");
-			t_entrenador* entrenador =	list_remove(estado_bloqueado,0);
+			entrenador = list_remove(estado_bloqueado,0);
+
 			t_entrenador* entrenadorAMoverse = list_get(quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado),0);
 
 			if(entrenadorAMoverse == NULL){
