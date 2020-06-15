@@ -360,15 +360,15 @@ void realizarCambio(t_entrenador* entrenador1, t_entrenador* entrenador2)
 		return list_find(entrenador2->pokesAtrapados,(void*)estaEnLista);
 	}
 
-	sleep(5); // son los 5 ciclos de cpu por el cambio
-
-	uint32_t a = retornarIndice(entrenador1->pokesAtrapados,list_get(pokemonesAlPedo(entrenador1),0));
+	t_list* pokemones = pokemonesAlPedo(entrenador1);
+	uint32_t a = retornarIndice(entrenador1->pokesAtrapados,list_get(pokemones,0));
 	uint32_t indiceDelPokemonDondeEstaEnElEntrenador2 = retornarIndice(entrenador2->pokesAtrapados,pokemon(entrenador1->pokesObjetivos));
 
 	char* flag = list_remove(entrenador2->pokesAtrapados,indiceDelPokemonDondeEstaEnElEntrenador2);
 	char* flag2 = list_replace(entrenador1->pokesAtrapados,a,flag);
-	sleep(5);
 	list_add(entrenador2->pokesAtrapados,flag2);
+
+	list_destroy(pokemones);
 }
 
 
@@ -380,15 +380,16 @@ t_list* crearListaObjetivosPosta(t_list* pokesObjetivosGlobal, t_list* entrenado
 	{
 		for(int i = 0; i < list_size(unEntrenador->pokesAtrapados); i++)
 		{
-			bool funcionFalopa(char* unaEspecie)
+			bool algunaEsLaMismaEspecie(char* unaEspecie)
 			{
-				bool funcionFalopa2(t_especie* otraEspecie)
+				bool esLaMismaEspecie(t_especie* otraEspecie)
 				{
 					return string_equals_ignore_case(unaEspecie,otraEspecie->especie);
 				}
-				return list_any_satisfy(lista,(void*) funcionFalopa2);
+				return list_any_satisfy(lista,(void*) esLaMismaEspecie);
 			}
-			if(funcionFalopa(list_get(unEntrenador->pokesAtrapados,i)))
+
+			if(algunaEsLaMismaEspecie(list_get(unEntrenador->pokesAtrapados,i)))
 			{
 				sacar1(list_get(unEntrenador->pokesAtrapados,i),lista);
 			}

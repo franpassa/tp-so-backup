@@ -63,7 +63,8 @@ void enviar_gets(t_list* objetivos_globales) {
 			list_add(ids_enviados, id_respuesta);
 			pthread_mutex_unlock(&mutexIdsEnviados);
 		}
-		sleep(1);
+
+		free(a_enviar);
 	}
 
 	list_iterate(objetivos_globales, enviar);
@@ -228,7 +229,7 @@ void recibirAppeared() {
 		sem_post(&semAppeared);
 
 		if (mensaje_recibido_appeared != NULL) {
-			if ((estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),objetivos_globales)) && (!(estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),pokemons_recibidos_historicos)))) {
+			if ((estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),objetivos_posta)) && (!(estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),pokemons_recibidos_historicos)))) {
 
 				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
 				agregarAppearedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_appeared);
@@ -258,7 +259,7 @@ void recibirLocalized() { // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 
 		if (mensaje_recibido_localized != NULL) {
 
-			if ((estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),objetivos_globales))&&
+			if ((estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),objetivos_posta))&&
 					(!(estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),pokemons_recibidos_historicos)))&&
 					necesitoElMensaje(mensaje_recibido_localized->id_correlativo)){
 
