@@ -434,27 +434,29 @@ void deadlock()
 		{
 			printf("Hay deadlock. \n");
 
-			entrenador = list_remove(estado_bloqueado,0);
+			if(!list_is_empty(estado_bloqueado)){
 
-			losQueTienenElPokemonQueLeFalta = quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado);
+				entrenador = list_remove(estado_bloqueado,0);
 
-			t_entrenador* entrenadorAMoverse = list_get(losQueTienenElPokemonQueLeFalta,0);
+				losQueTienenElPokemonQueLeFalta = quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado);
 
-			if(entrenadorAMoverse == NULL){
-				cambiarEstado(entrenador);
-				if(list_is_empty(estado_bloqueado)){break;}
+				t_entrenador* entrenadorAMoverse = list_get(losQueTienenElPokemonQueLeFalta,0);
+
+				if(entrenadorAMoverse == NULL){
+					cambiarEstado(entrenador);
+					if(list_is_empty(estado_bloqueado)){break;}
+				}
+				else
+				{
+					moverEntrenador(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY,retardoCpu,logger);
+					realizarCambio(entrenador,entrenadorAMoverse);
+					cambiarEstado(entrenador);
+				}
 			}
-			else
-			{
-				moverEntrenador(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY,retardoCpu,logger);
-				realizarCambio(entrenador,entrenadorAMoverse);
-				cambiarEstado(entrenador);
-			}
-		}
-		else
-		{
+		} else {
 			printf("No hay deadlock. \n");
 		}
+
 		sleep(3); // con esto dejo el proceso corriendo y chequeo
 	}
 
@@ -466,7 +468,7 @@ void deadlock()
 
 	list_iterate(estado_exit,mostrarEntrenador);
 
-	printf("Los entrenadores en estado bloqueados son: \n");
+	printf("Los entrenadores en estado bloqueado son: \n");
 
 	list_iterate(estado_bloqueado,mostrarEntrenador);
 
