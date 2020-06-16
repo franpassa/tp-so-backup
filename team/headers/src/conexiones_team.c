@@ -424,6 +424,8 @@ void conectarABroker(){
 void deadlock()
 {
 	t_list* losQueTienenElPokemonQueLeFalta;
+	t_entrenador* entrenador;
+
 	while(1)
 	{
 		printf("Chequeando si hay deadlock. \n");
@@ -432,7 +434,7 @@ void deadlock()
 		{
 			printf("Hay deadlock. \n");
 
-			t_entrenador* entrenador = list_remove(estado_bloqueado,0);
+			entrenador = list_remove(estado_bloqueado,0);
 
 			losQueTienenElPokemonQueLeFalta = quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado);
 
@@ -440,14 +442,12 @@ void deadlock()
 
 			if(entrenadorAMoverse == NULL){
 				cambiarEstado(entrenador);
-				printf("Se resolvió el deadlock.\n");
-				break;
-			} else {
+				if(list_is_empty(estado_bloqueado)){break;}
+			} else if (entrenadorAMoverse != NULL){
 				moverEntrenador(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY,retardoCpu,logger);
 				realizarCambio(entrenador,entrenadorAMoverse);
 				cambiarEstado(entrenador);
 			}
-
 		} else {
 			printf("No hay deadlock. \n");
 		}
