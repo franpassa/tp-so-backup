@@ -443,12 +443,16 @@ void deadlock()
 			if(entrenadorAMoverse == NULL){
 				cambiarEstado(entrenador);
 				if(list_is_empty(estado_bloqueado)){break;}
-			} else if (entrenadorAMoverse != NULL){
+			}
+			else
+			{
 				moverEntrenador(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY,retardoCpu,logger);
 				realizarCambio(entrenador,entrenadorAMoverse);
 				cambiarEstado(entrenador);
 			}
-		} else {
+		}
+		else
+		{
 			printf("No hay deadlock. \n");
 		}
 		sleep(3); // con esto dejo el proceso corriendo y chequeo
