@@ -8,6 +8,7 @@ typedef enum{
 	ESPERA_CAUGHT,
 	MOTIVO_NADA,
 	ESPERA_DEADLOCK,
+	ESTADO_EXIT,
 }motivo;
 
 typedef struct Entrenador
@@ -64,7 +65,7 @@ t_list* todosLosEntrenadoresAPlanificar();
 
 
 bool bloqueadoPorNada(void* unEntrenador);
-bool bloqueadoPorDeadlock(void* unEntrenador);
+bool bloqueadoPorDeadlock(t_entrenador* unEntrenador);
 bool estaEnLista(t_list* lista, t_entrenador* unEntrenador);
 t_list* listaALaQuePertenece(t_entrenador* unEntrenador);
 

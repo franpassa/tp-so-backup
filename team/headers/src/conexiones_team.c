@@ -6,7 +6,9 @@ void cambiarEstado(t_entrenador* entrenador){
 		list_add(entrenador->pokesAtrapados,(entrenador->pokemonAMoverse)->nombre);
 		entrenador->pokemonAMoverse = NULL;
 
-		if(sonIguales(entrenador->pokesAtrapados,entrenador->pokesObjetivos)){
+		if(sonIguales(entrenador->pokesObjetivos,entrenador->pokesAtrapados)){
+			entrenador->pokemonAMoverse = NULL;
+			entrenador->motivoBloqueo = ESTADO_EXIT;
 			pthread_mutex_lock(&mutexEstadoExit);
 			list_add(estado_exit,entrenador);
 			pthread_mutex_unlock(&mutexEstadoExit);
@@ -24,8 +26,9 @@ void cambiarEstado(t_entrenador* entrenador){
 			pthread_mutex_unlock(&mutexEstadoBloqueado);
 		}
 
-	} else if(sonIguales(entrenador->pokesAtrapados,entrenador->pokesObjetivos)){
+	} else if(sonIguales(entrenador->pokesObjetivos,entrenador->pokesAtrapados)){
 		entrenador->pokemonAMoverse = NULL;
+		entrenador->motivoBloqueo = ESTADO_EXIT;
 		pthread_mutex_lock(&mutexEstadoExit);
 		list_add(estado_exit,entrenador);
 		pthread_mutex_unlock(&mutexEstadoExit);
@@ -56,6 +59,7 @@ void enviar_gets(t_list* objetivos_globales) {
 		*id_respuesta = enviar_mensaje(ip_broker, puerto_broker,GET_POKEMON,a_enviar,0,true);
 		if (*id_respuesta == -1) {
 			printf("No existen locaciones disponibles para el pokemon: '%s'\n",a_enviar->nombre_pokemon);
+			free(id_respuesta);
 		} else {
 			/*AGREGO EL ID A LA LISTA DE IDS ENVIADOS*/
 			printf("Envio del mensaje GET_POKEMON '%s' exitoso. ID asignado: %d\n",a_enviar->nombre_pokemon,*id_respuesta);
@@ -63,7 +67,8 @@ void enviar_gets(t_list* objetivos_globales) {
 			list_add(ids_enviados, id_respuesta);
 			pthread_mutex_unlock(&mutexIdsEnviados);
 		}
-		sleep(1);
+
+		free(a_enviar);
 	}
 
 	list_iterate(objetivos_globales, enviar);
@@ -93,7 +98,7 @@ void esperar_cliente(int* socket_servidor) {
 
 		if (mensaje_recibido_appeared != NULL) {
 
-			if ((estaEnListaEspecie((mensaje_recibido_appeared->nombre_pokemon),objetivos_globales)) && (!(estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),pokemons_recibidos_historicos)))) {
+			if (estaEnListaEspecie(mensaje_recibido_appeared->nombre_pokemon,objetivos_posta) && noSuperaElMaximoQuePuedoRecibir(mensaje_recibido_appeared->nombre_pokemon)) {
 
 				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
 				agregarAppearedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_appeared);
@@ -105,7 +110,8 @@ void esperar_cliente(int* socket_servidor) {
 			}
 		}
 
-
+		free(mensaje_recibido_appeared->nombre_pokemon);
+		free(mensaje_recibido_appeared);
 	}
 }
 
@@ -115,7 +121,9 @@ void estado_exec()
 
 		if (!list_is_empty(estado_ready)){
 
+			pthread_mutex_lock(&mutexHayEntrenadorProcesando);
 			if(!hayEntrenadorProcesando){
+			pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
 
 				pthread_mutex_lock(&mutexHayEntrenadorProcesando);
 				hayEntrenadorProcesando = true;
@@ -136,16 +144,14 @@ void estado_exec()
 
 void algoritmoFifo()
 {
-	t_entrenador* entrenador = (t_entrenador*) list_get(estado_ready,0);
+	t_entrenador* entrenador = NULL;
+	pthread_mutex_lock(&mutexEstadoReady);
+	entrenador = (t_entrenador*) list_remove(estado_ready,0);
+	pthread_mutex_unlock(&mutexEstadoReady);
 
-	bool esElMismo(t_entrenador* unEntrenador){
-		return unEntrenador->idEntrenador == entrenador->idEntrenador;
-	}
-
-	list_remove_by_condition(listaALaQuePertenece(entrenador),(void*) esElMismo);
 	t_pokemon* aMoverse = entrenador->pokemonAMoverse;
 
-	if (aMoverse!= NULL)
+	if (aMoverse!= NULL && entrenador != NULL)
 	{
 		uint32_t distancia = distanciaEntrenadorPokemon(entrenador->posicionX, entrenador->posicionY,aMoverse->posicionX,aMoverse->posicionY);
 		moverEntrenador(entrenador,aMoverse->posicionX,aMoverse->posicionY,retardoCpu, logger);
@@ -165,6 +171,7 @@ void algoritmoFifo()
 		{
 			printf("Falló el envio del mensaje CATCH_POKEMON %s.\n",mensaje->nombre_pokemon);
 			cambiarEstado(entrenador);
+			free(idMensajeExec);
 		} else {
 			printf("Envio mensaje catch %s, posicion: (%d,%d), id: %d.\n",mensaje->nombre_pokemon,mensaje->coordenada_X,mensaje->coordenada_Y,*idMensajeExec);
 			entrenador->idRecibido = *idMensajeExec;
@@ -175,30 +182,23 @@ void algoritmoFifo()
 			list_add(estado_bloqueado, entrenador);
 			pthread_mutex_unlock(&mutexEstadoBloqueado);
 		}
+
+		//free(mensaje->nombre_pokemon);
+		free(mensaje);
 	}
 }
 
+
+
 void pasar_a_ready(){
 	while(1){
-		if(list_size(pokemons_recibidos)>0 && list_size(todosLosEntrenadoresAPlanificar())>0)
-		{
-			t_list* listaAPlanificar = todosLosEntrenadoresAPlanificar();
+		t_list* entrenadoresAPlanificar = todosLosEntrenadoresAPlanificar();
 
-//			bool falopa1(t_especie* unaEspecie)
-//			{
-//				bool mismoNombreCantidadPositiva(t_pokemon* otraEspecie)
-//				{
-//					return string_equals_ignore_case(unaEspecie->especie,otraEspecie->especie) &&  otraEspecie->cantidad > 0;
-//				}
-//				return list_any_satisfy(objetivos_posta,mismoNombreCantidadPositiva);
-//			}
-//			t_list* listaNueva = list_filter(pokemons_recibidos,falopa1);
+		if(list_size(pokemons_recibidos)>0 && list_size(entrenadoresAPlanificar)>0){
 
 			pthread_mutex_lock(&mutexPokemonsRecibidos);
-			t_entrenador* entrenadorTemporal = entrenadorAReady(listaAPlanificar,pokemons_recibidos);
+			t_entrenador* entrenadorTemporal = entrenadorAReady(entrenadoresAPlanificar,pokemons_recibidos);
 			pthread_mutex_unlock(&mutexPokemonsRecibidos);
-
-			//list_destroy(listaAPlanificar);
 
 			pthread_mutex_lock(&mutexLog);
 			log_info(logger,"el entrenador con id %d paso a la cola ready", entrenadorTemporal->idEntrenador);
@@ -211,7 +211,7 @@ void pasar_a_ready(){
 			//Aca tengo que poner mutex??
 			t_list* lista = listaALaQuePertenece(entrenadorTemporal);
 
-			list_remove_by_condition(lista,(void*) es_el_mismo_entrenador);
+			list_remove_and_destroy_by_condition(lista,(void*) es_el_mismo_entrenador,free);
 
 			pthread_mutex_lock(&mutexEstadoReady);
 			list_add(estado_ready,entrenadorTemporal);
@@ -225,6 +225,8 @@ void pasar_a_ready(){
 			list_remove_by_condition(pokemons_recibidos,(void*) es_el_mismo_pokemon);
 			pthread_mutex_unlock(&mutexPokemonsRecibidos);
 		}
+
+		list_destroy(entrenadoresAPlanificar);
 	}
 }
 
@@ -239,7 +241,7 @@ void recibirAppeared() {
 		sem_post(&semAppeared);
 
 		if (mensaje_recibido_appeared != NULL) {
-			if ((estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),objetivos_globales)) && (!(estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),pokemons_recibidos_historicos)))) {
+			if (estaEnLaLista(mensaje_recibido_appeared->nombre_pokemon,objetivos_posta) && noSuperaElMaximoQuePuedoRecibir(mensaje_recibido_appeared->nombre_pokemon)) {
 
 				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
 				agregarAppearedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_appeared);
@@ -269,7 +271,7 @@ void recibirLocalized() { // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 
 		if (mensaje_recibido_localized != NULL) {
 
-			if ((estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),objetivos_globales))&&
+			if ((estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),objetivos_posta))&&
 					(!(estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),pokemons_recibidos_historicos)))&&
 					necesitoElMensaje(mensaje_recibido_localized->id_correlativo)){
 
@@ -421,27 +423,40 @@ void conectarABroker(){
 
 void deadlock()
 {
+	t_list* losQueTienenElPokemonQueLeFalta;
+	t_entrenador* entrenador;
+
 	while(1)
 	{
 		printf("Chequeando si hay deadlock. \n");
 
-		if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && list_all_satisfy(estado_bloqueado,bloqueadoPorDeadlock))
+		if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && list_all_satisfy(estado_bloqueado,(void*) bloqueadoPorDeadlock))
 		{
 			printf("Hay deadlock. \n");
-			t_entrenador* entrenador =	list_remove(estado_bloqueado,0);
-			t_entrenador* entrenadorAMoverse = list_get(quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado),0);
 
-			if(entrenadorAMoverse == NULL){
-				cambiarEstado(entrenador);
-				printf("Se resolvió el deadlock.\n");
-				break;
+			if(!list_is_empty(estado_bloqueado)){
+
+				entrenador = list_remove(estado_bloqueado,0);
+
+				losQueTienenElPokemonQueLeFalta = quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado);
+
+				t_entrenador* entrenadorAMoverse = list_get(losQueTienenElPokemonQueLeFalta,0);
+
+				if(entrenadorAMoverse == NULL){
+					cambiarEstado(entrenador);
+					if(list_is_empty(estado_bloqueado)){break;}
+				}
+				else
+				{
+					moverEntrenador(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY,retardoCpu,logger);
+					realizarCambio(entrenador,entrenadorAMoverse);
+					cambiarEstado(entrenador);
+				}
 			}
-
-			moverEntrenador(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY,retardoCpu,logger);
-			realizarCambio(entrenador,entrenadorAMoverse);
-			cambiarEstado(entrenador);
+		} else {
+			printf("No hay deadlock. \n");
 		}
-		printf("No hay deadlock. \n");
+
 		sleep(3); // con esto dejo el proceso corriendo y chequeo
 	}
 
@@ -449,7 +464,13 @@ void deadlock()
 
 	printf("Los entrenadores en estado exit son: \n");
 
+	list_destroy(losQueTienenElPokemonQueLeFalta);
+
 	list_iterate(estado_exit,mostrarEntrenador);
+
+	printf("Los entrenadores en estado bloqueado son: \n");
+
+	list_iterate(estado_bloqueado,mostrarEntrenador);
 
 }
 

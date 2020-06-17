@@ -50,12 +50,10 @@ int socket_localized;
 int socket_appeared;
 
 
-t_list* estado_exit;
-t_list* objetivos_globales;
-t_list* objetivos_posta;
+t_list* estado_exit; /*lista de entrenadores*/
+t_list* objetivos_globales;/*es una lista de especies*/
 t_list* ids_enviados;
 t_list* pokemons_recibidos;
-t_list* pokemons_recibidos_historicos;
 t_list* pokemons_objetivos;
 
 pthread_mutex_t mutexCiclosConsumidos;

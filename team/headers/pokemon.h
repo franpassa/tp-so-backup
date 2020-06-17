@@ -19,6 +19,8 @@ typedef struct Pokemon{
 	uint32_t posicionY;
 }t_pokemon;
 
+t_list* pokemons_recibidos_historicos;
+t_list* objetivos_posta; /*es una lista de especies*/
 
 // cantidades
 uint32_t cantidadDePokemonsPorEspecie(char* especie, t_list* lista);
@@ -45,5 +47,6 @@ bool todosLosElementosDeLaPrimerListaEstanEnLaSegunda(t_list* listaA,t_list* lis
 bool perteneceALaSegundaLista(char* unPokemon,t_list* listaDePokemons);
 bool estaEnLaLista(char* unNombre, t_list* listadoDePokemons);
 bool estaEnListaEspecie(char* pokemon, t_list* especies);
+bool noSuperaElMaximoQuePuedoRecibir(char* pokemon);
 
 #endif /* HEADERS_POKEMON_H_ */

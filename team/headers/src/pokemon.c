@@ -126,7 +126,7 @@ bool sonIguales(t_list* pokemonsAtrapados,t_list* pokemonsObjetivos)
 	}
 	else
 	{
-		return todosLosElementosDeLaPrimerListaEstanEnLaSegunda(pokemonsAtrapados,pokemonsObjetivos);
+		return todosLosElementosDeLaPrimerListaEstanEnLaSegunda(pokemonsAtrapados,pokemonsObjetivos) && todosLosElementosDeLaPrimerListaEstanEnLaSegunda(pokemonsObjetivos,pokemonsAtrapados);
 	}
 }
 
@@ -157,11 +157,32 @@ bool estaEnLaLista(char* unNombre, t_list* listadoDePokemons) // esta compara el
 	return list_any_satisfy(listadoDePokemons,(void*) comparar);
 }
 
-bool estaEnListaEspecie(char* pokemon, t_list* especies){
+bool estaEnListaEspecie(char* pokemon, t_list* especies)
+{
 
 	bool comparar(t_especie* unPokemon){
-		return string_equals_ignore_case(unPokemon->especie,pokemon);
+		return string_equals_ignore_case(unPokemon->especie,pokemon)&& unPokemon->cantidad > 0;
 	}
 
 	return list_any_satisfy(especies,(void*) comparar);
+}
+
+bool noSuperaElMaximoQuePuedoRecibir(char* pokemon){
+
+	bool esIgualPokemon(t_pokemon* unPokemon){
+		return string_equals_ignore_case(unPokemon->nombre, pokemon);
+	}
+
+	uint32_t cantidadQueRecibi = list_count_satisfying(pokemons_recibidos_historicos,(void*) esIgualPokemon);
+
+	bool esIgualEspecie(t_especie* unPokemon){
+		return string_equals_ignore_case(unPokemon->especie, pokemon);
+	}
+
+	t_especie* elBuscado = list_find(objetivos_posta,(void*) esIgualEspecie);
+
+	uint32_t cantidadQueTengoComoObjetivo = elBuscado->cantidad;
+
+	return cantidadQueRecibi < cantidadQueTengoComoObjetivo;
+
 }

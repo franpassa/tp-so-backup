@@ -99,14 +99,14 @@ t_list* crearListaPokesObjetivos(t_list* entrenadores){
 
 void mostrarEntrenador(void* entrenador)
 {
-	printf("\n\nLa identificacion del entrenador es: %d\n",((t_entrenador*)entrenador)->idEntrenador);
+	printf("\nLa identificacion del entrenador es: %d\n",((t_entrenador*)entrenador)->idEntrenador);
 	printf("La posicion x del entrenador es: %d\n" ,((t_entrenador*)entrenador)->posicionX);
 	printf("La posicion y del entrenador es: %d\n",((t_entrenador*)entrenador)->posicionY);
-	printf("\nLos pokemon atrapados del entrenador son: \n");
+	printf("Los pokemon atrapados del entrenador son: \n");
 	list_iterate((((t_entrenador*)entrenador)->pokesAtrapados),mostrarString);
-	printf("\nLos pokemon obtenidos del entrenador son: \n");
+	printf("Los pokemon objetivo del entrenador son: \n");
 	list_iterate((((t_entrenador*)entrenador)->pokesObjetivos),mostrarString);
-	printf("\nEl estado del entrenador es: %d\n",((t_entrenador*) entrenador)->motivoBloqueo);
+	printf("El motivo de bloqueo del entrenador es: %d\n",((t_entrenador*) entrenador)->motivoBloqueo);
 	if(((t_entrenador*)entrenador)->pokemonAMoverse != NULL){mostrarPokemon(((t_entrenador*)entrenador)->pokemonAMoverse);}
 
 }
@@ -196,9 +196,10 @@ bool bloqueadoPorNada(void* unEntrenador)
 {
 	return ((t_entrenador*)unEntrenador)->motivoBloqueo == MOTIVO_NADA;
 }
-bool bloqueadoPorDeadlock(void* unEntrenador)
+
+bool bloqueadoPorDeadlock(t_entrenador* unEntrenador)
 {
-	return ((t_entrenador*)unEntrenador)->motivoBloqueo == ESPERA_DEADLOCK;
+	return unEntrenador->motivoBloqueo == ESPERA_DEADLOCK;
 }
 
 t_list* todosLosEntrenadoresAPlanificar()
@@ -313,21 +314,35 @@ t_list* pokemonesQueLeFaltan(t_entrenador* unEntrenador)
 
 t_list* quienesTienenElPokeQueMeFalta(t_entrenador* unEntrenador, t_list* lista)
 {
+	t_list* pokemons_al_pedo;
+	t_list* pokemonsQueFaltan;
+
 	// nos dice si el segundo entrenador tiene algun pokemon de sobra que necesite el primero
 	bool tieneUnPokemonQueLeFalta( t_entrenador* otroEntrenador)
 	{
-
 		bool estaEnLista(char* pokemon)
 		{
 			bool esIgual(char* otroPokemon)
 			{
 				return string_equals_ignore_case(otroPokemon,pokemon);
 			}
-			return list_any_satisfy(pokemonesAlPedo(otroEntrenador),(void*)esIgual);
+
+			pokemons_al_pedo = pokemonesAlPedo(otroEntrenador);
+
+			return list_any_satisfy(pokemons_al_pedo,(void*)esIgual);
 		}
-		return list_any_satisfy(pokemonesQueLeFaltan(unEntrenador),(void*)estaEnLista);
+
+		pokemonsQueFaltan = pokemonesQueLeFaltan(unEntrenador);
+
+		return list_any_satisfy(pokemonsQueFaltan,(void*)estaEnLista);
 	}
-	return list_filter(lista,(void*)tieneUnPokemonQueLeFalta);
+
+	t_list* resultado = list_filter(lista,(void*)tieneUnPokemonQueLeFalta);
+
+//	list_destroy(pokemons_al_pedo);
+//	list_destroy(pokemonsQueFaltan);
+
+	return resultado;
 }
 
 uint32_t retornarIndice(t_list* lista, char* nombre)
@@ -360,15 +375,15 @@ void realizarCambio(t_entrenador* entrenador1, t_entrenador* entrenador2)
 		return list_find(entrenador2->pokesAtrapados,(void*)estaEnLista);
 	}
 
-	sleep(5); // son los 5 ciclos de cpu por el cambio
-
-	uint32_t a = retornarIndice(entrenador1->pokesAtrapados,list_get(pokemonesAlPedo(entrenador1),0));
+	t_list* pokemones = pokemonesAlPedo(entrenador1);
+	uint32_t a = retornarIndice(entrenador1->pokesAtrapados,list_get(pokemones,0));
 	uint32_t indiceDelPokemonDondeEstaEnElEntrenador2 = retornarIndice(entrenador2->pokesAtrapados,pokemon(entrenador1->pokesObjetivos));
 
 	char* flag = list_remove(entrenador2->pokesAtrapados,indiceDelPokemonDondeEstaEnElEntrenador2);
 	char* flag2 = list_replace(entrenador1->pokesAtrapados,a,flag);
-	sleep(5);
 	list_add(entrenador2->pokesAtrapados,flag2);
+
+	list_destroy(pokemones);
 }
 
 
@@ -380,21 +395,22 @@ t_list* crearListaObjetivosPosta(t_list* pokesObjetivosGlobal, t_list* entrenado
 	{
 		for(int i = 0; i < list_size(unEntrenador->pokesAtrapados); i++)
 		{
-			bool funcionFalopa(char* unaEspecie)
+			bool algunaEsLaMismaEspecie(char* unaEspecie)
 			{
-				bool funcionFalopa2(t_especie* otraEspecie)
+				bool esLaMismaEspecie(t_especie* otraEspecie)
 				{
 					return string_equals_ignore_case(unaEspecie,otraEspecie->especie);
 				}
-				return list_any_satisfy(lista,funcionFalopa2);
+				return list_any_satisfy(lista,(void*) esLaMismaEspecie);
 			}
-			if(funcionFalopa(list_get(unEntrenador->pokesAtrapados,i)))
+
+			if(algunaEsLaMismaEspecie(list_get(unEntrenador->pokesAtrapados,i)))
 			{
 				sacar1(list_get(unEntrenador->pokesAtrapados,i),lista);
 			}
 		}
 	}
-	list_iterate(entrenadoresNew,actualizarEstado);
+	list_iterate(entrenadoresNew,(void*) actualizarEstado);
 	return lista;
 }
 
@@ -407,7 +423,7 @@ void sacar1(char* nombre, t_list* listaDeEspecies)
 
 	if(estaEnListaEspecie(nombre, listaDeEspecies))
 	{
-		t_especie* a =list_find(listaDeEspecies,comparar);
+		t_especie* a =list_find(listaDeEspecies,(void*) comparar);
 		a->cantidad --;
 	}
 }
