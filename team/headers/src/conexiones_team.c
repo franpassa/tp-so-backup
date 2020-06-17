@@ -98,7 +98,7 @@ void esperar_cliente(int* socket_servidor) {
 
 		if (mensaje_recibido_appeared != NULL) {
 
-			if ((estaEnListaEspecie((mensaje_recibido_appeared->nombre_pokemon),objetivos_posta)) && (!(estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),pokemons_recibidos_historicos)))) {
+			if (estaEnListaEspecie(mensaje_recibido_appeared->nombre_pokemon,objetivos_posta)) {
 
 				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
 				agregarAppearedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_appeared);

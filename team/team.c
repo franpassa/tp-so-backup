@@ -35,8 +35,6 @@ int main()
 	pthread_detach(hilo_recibir_caught);
 	pthread_join(hilo_deadlock, NULL);
 
-	//sem_wait(&entrenadoresSatisfechos);
-
 	liberar_recursos(); //Finalizo el programa
 
 	return 0;
