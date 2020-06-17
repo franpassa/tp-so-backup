@@ -10,7 +10,6 @@ int main()
 	printf("\n");
 	if (socket_escucha == -1) abort(); //FINALIZA EL PROGRAMA EN CASO DE QUE FALLE LA INICIALIZACION DEL SERVIDOR
 
-
 	enviar_gets(objetivos_globales); // ENVIO MENSAJES GET_POKEMON AL BROKER.
 
 	pthread_create(&hilo_pasar_a_ready,NULL,(void*) pasar_a_ready, NULL);

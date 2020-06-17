@@ -166,3 +166,23 @@ bool estaEnListaEspecie(char* pokemon, t_list* especies)
 
 	return list_any_satisfy(especies,(void*) comparar);
 }
+
+bool noSuperaElMaximoQuePuedoRecibir(char* pokemon){
+
+	bool esIgualPokemon(t_pokemon* unPokemon){
+		return string_equals_ignore_case(unPokemon->nombre, pokemon);
+	}
+
+	uint32_t cantidadQueRecibi = list_count_satisfying(pokemons_recibidos_historicos,(void*) esIgualPokemon);
+
+	bool esIgualEspecie(t_especie* unPokemon){
+		return string_equals_ignore_case(unPokemon->especie, pokemon);
+	}
+
+	t_especie* elBuscado = list_find(objetivos_posta,(void*) esIgualEspecie);
+
+	uint32_t cantidadQueTengoComoObjetivo = elBuscado->cantidad;
+
+	return cantidadQueRecibi < cantidadQueTengoComoObjetivo;
+
+}
