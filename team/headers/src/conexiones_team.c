@@ -241,7 +241,7 @@ void recibirAppeared() {
 		sem_post(&semAppeared);
 
 		if (mensaje_recibido_appeared != NULL) {
-			if ((estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),objetivos_posta)) && (!(estaEnLaLista((mensaje_recibido_appeared->nombre_pokemon),pokemons_recibidos_historicos)))) {
+			if (estaEnLaLista(mensaje_recibido_appeared->nombre_pokemon,objetivos_posta) && noSuperaElMaximoQuePuedoRecibir(mensaje_recibido_appeared->nombre_pokemon)) {
 
 				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
 				agregarAppearedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_appeared);
