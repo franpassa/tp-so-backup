@@ -1,4 +1,4 @@
-#include "game_boy.h"
+#include "gameboy.h"
 
 t_config* get_config(){
 	t_config* mi_config = config_create(PATH_CONFIG);

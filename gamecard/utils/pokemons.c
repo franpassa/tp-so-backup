@@ -1,11 +1,18 @@
-#include "game_card.h"
+#include "gamecard.h"
+
+t_coordenada init_coordenada(uint32_t x, uint32_t y, uint32_t cantidad){
+	t_coordenada coordenada;
+	coordenada.x = x;
+	coordenada.y = y;
+	coordenada.cantidad = cantidad;
+
+	return coordenada;
+}
 
 t_pokemon init_pokemon(char* nombre, uint32_t x, uint32_t y, uint32_t cantidad){
 	t_pokemon pokemon;
 	pokemon.nombre = nombre;
-	pokemon.x = x;
-	pokemon.y = y;
-	pokemon.cantidad = cantidad;
+	pokemon.posicion = init_coordenada(x, y, cantidad);
 
 	return pokemon;
 }
@@ -15,7 +22,6 @@ bool existe_pokemon(char* nombre_pokemon){
 
 	struct stat st = {0};
 	bool pokemon_existe = stat(path_pokemon, &st) != -1;
-
 	free(path_pokemon);
 
 	return pokemon_existe;
@@ -78,7 +84,7 @@ int crear_pokemon(t_pokemon pokemon){
 		perror("Error creando pokemon");
 	} else {
 		uint32_t bytes_escritos;
-		t_list* bloques = escribir_en_bloques(pokemon, -1, &bytes_escritos);
+		t_list* bloques = escribir_en_bloques(pokemon, -1, &bytes_escritos); // Se pasa ultimo_bloque como -1 para que se escriba uno nuevo.
 		if(bloques != NULL){
 			crear_metadata(path_pokemon, bytes_escritos, bloques);
 		}
@@ -86,15 +92,12 @@ int crear_pokemon(t_pokemon pokemon){
 
 	free(path_pokemon);
 	return 0;
-
 }
 
 char* get_last(char** array){
-
 	int index = 0;
-	while(array[index] != NULL){
-		index++;
-	}
+	while(array[index] != NULL) index++;
+
 	char* elemento = array[index-1];
 	return elemento;
 }

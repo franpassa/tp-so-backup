@@ -13,6 +13,8 @@
 #include <pthread.h>
 #include <ftw.h>
 #include <dirent.h>
+#include <sys/mman.h>
+#include <fcntl.h>
 
 // -------- Commons --------
 
@@ -41,10 +43,14 @@ typedef struct {
 } t_fspaths;
 
 typedef struct {
-	char* nombre;
 	uint32_t x;
 	uint32_t y;
 	uint32_t cantidad;
+} t_coordenada;
+
+typedef struct {
+	char* nombre;
+	t_coordenada posicion;
 } t_pokemon;
 
 typedef struct {
@@ -66,6 +72,10 @@ t_fspaths* fspaths;
 
 pthread_t hilo_gameboy;
 
+// --- Semáforos ---
+
+pthread_mutex_t mutex_bitmap;
+
 // -------- Funciones --------
 
 // --- General ---
@@ -77,6 +87,7 @@ long get_file_size(FILE* file_ptr);
 void agregar_a_lista(t_list* lista, int nuevo_elemento);
 char* list_to_string(t_list* list);
 char* get_last(char** array);
+char* get_file_as_text(char* file_path);
 
 // --- Filesystem ---
 
@@ -90,19 +101,30 @@ void set_bit(int index, bool value);
 int get_free_block();
 char* get_block_path(int block);
 void free_fspaths(t_fspaths* paths);
-int write_block(char* linea, int block, int max_bytes, bool sobreescribir);
+int write_blocks(char* contenido_bloques, t_list* blocks);
 // En caso que sea un pokemon ya existente en el FS se le debe pasar el último bloque donde se guardó info, si es uno nuevo último bloque recibe un número negativo.
 int crear_metadata(char* folder_path, uint32_t file_size, t_list* blocks);
 void eliminar_files();
+char* get_blocks_content(t_list* blocks);
+t_list* string_to_coordenadas(char* string_coordenadas);
+t_list* escribir_en_filesystem(t_pokemon pokemon, t_list* lista_bloques, uint32_t *bytes_escritos);
 
 // --- Pokemons ---
+t_coordenada init_coordenada(uint32_t x, uint32_t y, uint32_t cantidad);
 t_pokemon init_pokemon(char* nombre, uint32_t x, uint32_t y, uint32_t cantidad);
 // Devuelve un número de bloque si el pokemon existe, -1 si no
 int obtener_ultimo_bloque(char* nombre_pokemon);
-t_list* escribir_en_bloques(t_pokemon pokemon, int ultimo_bloque, uint32_t *bytes_escritos);
+t_list* escribir_en_bloques(t_pokemon pokemon, t_list* lista_bloques, uint32_t *bytes_escritos);
 int crear_pokemon(t_pokemon pokemon);
 char* get_pokemon_path(char* nombre);
 bool existe_pokemon(char* nombre_pokemon);
+
+// --- Coordenadas ---
+t_coordenada string_to_coordenada(char* string_coordenada);
+t_list* string_to_coordenadas(char* string_coordenadas);
+char* coordenadas_to_string(t_list* coordenadas);
+void add_coordenada(t_list* lista_coordenadas, t_coordenada coordenada);
+t_coordenada* find_coordenada(t_list* lista_coordenadas, t_coordenada coordenada);
 
 // --- Comunicacion ---
 int escuchar_gameboy();

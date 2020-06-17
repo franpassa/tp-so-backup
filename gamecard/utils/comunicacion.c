@@ -1,4 +1,4 @@
-#include "game_card.h"
+#include "gamecard.h"
 
 int escuchar_gameboy(){
 	char* ip = config_get_string_value(config, "IP_GAMECARD");

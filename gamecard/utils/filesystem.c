@@ -1,4 +1,4 @@
-#include "../utils/game_card.h"
+#include "gamecard.h"
 
 t_fspaths* init_fspaths(char* punto_montaje){
 	char* bitmap_path = string_new();
@@ -197,42 +197,17 @@ char* get_block_path(int block){
 	return block_path;
 }
 
-// Retorno un puntero al string que no se pudo escribir (NULL si se escribió entero)
-int write_block(char* string, int block, int max_bytes, bool sobreescribir){
-	char* block_path = get_block_path(block);
-	FILE* block_file;
-	if(sobreescribir){
-		block_file = fopen(block_path, "w");
-	} else {
-		block_file = fopen(block_path, "a");
+void write_blocks(char* string, t_list* blocks, int block_max_size){
+	int blocks_size = list_size(blocks);
+
+	for(int i = 0; i < blocks_size; i++){
+
 	}
-	free(block_path);
-
-	bool line_jump = false;
-	char* string_a_escribir;
-	char* string_exceso = NULL;
-	if(strlen(string) > max_bytes){
-		string_a_escribir = string_substring_until(string, max_bytes);
-		string_exceso = string_substring_from(string, max_bytes);
-	} else {
-		string_a_escribir = string_duplicate(string);
-		if(strlen(string_a_escribir) < max_bytes) line_jump = true; // Si queda espacio para escribir en el bloque, agrego un salto de linea.
-	}
-
-	if(line_jump) string_append(&string_a_escribir, "\n");
-
-
-	int bytes_escritos = fprintf(block_file, "%s\n", string_a_escribir);
-
-	fclose(block_file);
-	free(string_a_escribir);
-
-	return bytes_escritos;
 }
 
 char* format_pokemon(t_pokemon pokemon, uint32_t* length){
 	char* string_pokemon = string_new();
-	string_append_with_format(&string_pokemon, "%d-%d=%d", pokemon.x, pokemon.y, pokemon.cantidad);
+	string_append_with_format(&string_pokemon, "%d-%d=%d", pokemon.posicion.x, pokemon.posicion.y, pokemon.posicion.cantidad);
 	*length = string_length(string_pokemon);
 
 	return string_pokemon;
@@ -258,40 +233,36 @@ int crear_metadata(char* folder_path, uint32_t file_size, t_list* blocks){
 }
 
 // Devuelvo una lista con los bloques escritos.
-t_list* escribir_en_bloques(t_pokemon pokemon, int ultimo_bloque, uint32_t *bytes_escritos){
-	bool nuevo_bloque = ultimo_bloque < 0;
-
+t_list* escribir_en_filesystem(t_pokemon pokemon, t_list* lista_bloques, uint32_t *bytes_escritos){
 	uint32_t bytes_linea;
 	char* linea_input = format_pokemon(pokemon, &bytes_linea);
 	int bloque_a_escribir;
 
-	if(nuevo_bloque){
+	if(lista_bloques == NULL){
+		pthread_mutex_lock(&mutex_bitmap);
 		bloque_a_escribir = get_free_block();
-		if(bloque_a_escribir == -1) return NULL;
+		pthread_mutex_unlock(&mutex_bitmap);
+		if(bloque_a_escribir == -1) {
+			printf("NO HAY MAS BLOQUES DISPONIBLES");
+			return NULL;
+		}
 	} else {
-		bloque_a_escribir = ultimo_bloque;
+		char* contenido_bloques = get_blocks_content(lista_bloques);
+		t_list* lista_coordenadas = string_to_coordenadas(contenido_bloques);
+		add_coordenada(lista_coordenadas, pokemon.posicion);
 	}
 
-	t_list* lista_bloques_escritos = list_create();
-	int block_max_size = config_get_int_value(metadata_config, "BLOCK_SIZE");
-	*bytes_escritos = 0;
-	int bytes_x_operacion;
-	char* linea_a_agregar = linea_input;
-	while(1){
-		bytes_x_operacion = write_block(linea_a_agregar, bloque_a_escribir, block_max_size, nuevo_bloque); // Devuelve los bytes que se escribieron.
-		*bytes_escritos += bytes_x_operacion;
-		set_bit(bloque_a_escribir, true); //  PUEDE SER QUE DE PROBLEMA DE SINCRONIZACION
-		agregar_a_lista(lista_bloques_escritos, bloque_a_escribir);
-		if(*bytes_escritos >= string_length(linea_input)) break;
-
-		*bytes_escritos += bytes_linea - strlen(linea_a_agregar); // Los bytes que se escribieron son los totales menos lo que sobró
-		bloque_a_escribir = get_free_block();
-		nuevo_bloque = true;
-	}
-	free(linea_input);
-
-	return lista_bloques_escritos;
 }
+
+/*void set_bit2(){
+	*fd = open(path, O_RDONLY, S_IRUSR | S_IWUSR);
+	struct stat sb;
+	if(fstat(*fd, &sb) == -1) {
+		perror("No se pudo abrir el archivo");
+	} else {
+		return mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, *fd, 0);
+	}
+}*/
 
 int unlink_cb(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf){
     int rv = remove(fpath);
@@ -320,4 +291,21 @@ void eliminar_files(){
 	}
 
 	closedir(dir);
+}
+
+// Leer contenido de los bloques a un string.
+char* get_blocks_content(t_list* blocks){
+	char* blocks_content = string_new();
+	int blocks_qty = list_size(blocks);
+
+	for(int i = 0; i < blocks_qty; i++){
+		int block = *(int*) list_get(blocks, i); //Chequear si se puede desreferenciar así
+		char* block_path = get_block_path(block);
+		char* file_content = get_file_as_text(block_path);
+		string_append(&blocks_content, file_content);
+		free(file_content);
+		free(block_path);
+	}
+
+	return blocks_content;
 }
