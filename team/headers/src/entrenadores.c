@@ -58,13 +58,6 @@ t_list* insertarPokesEntrenador(uint32_t nroEntrenador, t_list* pokemons, char**
 
 	char** pokes = string_split(a_agregar,"|");
 
-//	if(a_agregar == NULL || string_is_empty(a_agregar)){
-//		a_agregar = "";
-//		pokes = string_split(a_agregar,"|");
-//	} else {
-//		pokes = string_split(a_agregar,"|");
-//	}
-
 	string_iterate_lines(pokes,_a_la_lista);
 	free(pokes);
 

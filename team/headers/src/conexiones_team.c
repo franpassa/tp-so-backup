@@ -13,7 +13,6 @@ void cambiarEstado(t_entrenador* entrenador){
 			list_add(estado_exit,entrenador);
 			pthread_mutex_unlock(&mutexEstadoExit);
 			log_info(logger,"Cambio del entrenador %d a la cola EXIT.",entrenador->idEntrenador);
-			log_info(logger," --------  Se cumplio el objetivo del entrenador %d. --------",entrenador->idEntrenador);
 		}
 		else if (list_size(entrenador->pokesObjetivos) != list_size(entrenador->pokesAtrapados)){
 			entrenador->motivoBloqueo = MOTIVO_NADA;
