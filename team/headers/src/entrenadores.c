@@ -40,9 +40,25 @@ t_list* insertarPokesEntrenador(uint32_t nroEntrenador, t_list* pokemons, char**
 	  }
 	}
 
-	char** pokesEntrenador = string_split(pokesEntrenadores[nroEntrenador],"|");
-	string_iterate_lines(pokesEntrenador,_a_la_lista);
-	free(pokesEntrenador);
+	uint32_t tamanio;
+	for(tamanio=0; pokesEntrenadores[tamanio]!=NULL;tamanio++){}
+
+	if(tamanio==1){
+		pokesEntrenadores[2] = "";
+	}
+
+	char* a_agregar = pokesEntrenadores[nroEntrenador];
+	char** pokes;
+
+	if(a_agregar == NULL || string_is_empty(a_agregar)){
+		a_agregar = "";
+		pokes = string_split(a_agregar,"|");
+	} else {
+		pokes = string_split(a_agregar,"|");
+	}
+
+	string_iterate_lines(pokes,_a_la_lista);
+	free(pokes);
 
 	return pokemons;
 }
@@ -292,7 +308,27 @@ t_list* pokemonesAlPedo(t_entrenador* unEntrenador)
 		}
 		return !list_any_satisfy(unEntrenador->pokesObjetivos,(void*)esIgual);
 	}
-	return list_filter(unEntrenador->pokesAtrapados,(void*)noEstaEnLista);
+
+	t_list* losDistintos = list_filter(unEntrenador->pokesAtrapados,(void*)noEstaEnLista);
+
+	bool estaEnLista(char* pokemon)
+	{
+		bool esIgual(char* otroPokemon)
+		{
+			return string_equals_ignore_case(otroPokemon,pokemon);
+		}
+
+		return list_any_satisfy(unEntrenador->pokesObjetivos,(void*)esIgual);
+	}
+
+	t_list* losQueSobranDeUnaEspecie = list_filter(unEntrenador->pokesAtrapados, (void*) estaEnLista);
+
+	list_add_all(losDistintos,losQueSobranDeUnaEspecie);
+
+	list_destroy(losQueSobranDeUnaEspecie);
+
+
+	return losDistintos;
 }
 
 t_list* pokemonesQueLeFaltan(t_entrenador* unEntrenador)

@@ -5,6 +5,8 @@ int main()
 	inicializarPrograma(); //Inicializo logger y config
 	inicializarVariables();
 
+	list_iterate(estado_new,mostrarEntrenador);
+
 	printf("\n");
 	int socket_escucha = iniciar_servidor(IP,PUERTO);
 	printf("\n");
@@ -34,6 +36,7 @@ int main()
 	pthread_detach(hilo_recibir_caught);
 	pthread_join(hilo_deadlock, NULL);
 
+	close(socket_escucha);
 	liberar_recursos(); //Finalizo el programa
 
 	return 0;
