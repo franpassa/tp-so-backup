@@ -31,7 +31,7 @@
 
 //VARIABLES GLOBALES
 
-t_log* logger;
+
 
 // variables globales sacadas del config
 t_config* config;

@@ -252,7 +252,7 @@ bool puedeAtrapar(t_entrenador* entrenador){
 }
 
 // funcion por si las dudas
-void moverEntrenadorX(t_entrenador* unEntrenador, uint32_t posX,uint32_t retardoCpu, t_log* logger)
+void moverEntrenadorX(t_entrenador* unEntrenador, uint32_t posX,uint32_t retardoCpu)
 {
     while(abs(unEntrenador->posicionX - posX) > 0)
     {
@@ -266,13 +266,13 @@ void moverEntrenadorX(t_entrenador* unEntrenador, uint32_t posX,uint32_t retardo
             unEntrenador->posicionX ++;
         }
         pthread_mutex_lock(&mutexLogEntrenador);
-        log_info(logger,"el entrenador %d se movio a la posicion (%d,%d)",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+        log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
         printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
         pthread_mutex_unlock(&mutexLogEntrenador);
     }
 }
 
-void moverEntrenadorY(t_entrenador* unEntrenador, uint32_t posY,uint32_t retardoCpu, t_log* logger)
+void moverEntrenadorY(t_entrenador* unEntrenador, uint32_t posY,uint32_t retardoCpu)
 {
     while(abs(unEntrenador->posicionY - posY) > 0)
     {
@@ -286,16 +286,16 @@ void moverEntrenadorY(t_entrenador* unEntrenador, uint32_t posY,uint32_t retardo
             unEntrenador->posicionY ++;
         }
         pthread_mutex_lock(&mutexLogEntrenador);
-        log_info(logger,"el entrenador %d se movio a la posicion (%d,%d)",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+        log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
         printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
         pthread_mutex_unlock(&mutexLogEntrenador);
     }
 }
 
-void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu, t_log* logger)
+void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu)
 {
-    moverEntrenadorX(unEntrenador,posX,retardoCpu,logger);
-    moverEntrenadorY(unEntrenador,posY,retardoCpu,logger);
+    moverEntrenadorX(unEntrenador,posX,retardoCpu);
+    moverEntrenadorY(unEntrenador,posY,retardoCpu);
 }
 
 t_list* pokemonesAlPedo(t_entrenador* unEntrenador)
@@ -343,7 +343,6 @@ t_list* pokemonesQueLeFaltan(t_entrenador* unEntrenador)
 	}
 	return list_filter(unEntrenador->pokesObjetivos,(void*)noEstaEnLista);
 }
-
 
 // devuelve una lista de los entrenadores que tienen el/los pokemon que me faltan
 // el t_list* lista es una lista con todos los blockeados menos el mismo
@@ -395,9 +394,9 @@ uint32_t retornarIndice(t_list* lista, char* nombre)
 	return -1;
 }
 
-
 void realizarCambio(t_entrenador* entrenador1, t_entrenador* entrenador2)
 {
+	log_info(logger,"INTERCAMBIO de pokemons entre los entrenadores %d y %d.",entrenador1->idEntrenador, entrenador2->idEntrenador);
 	char* pokemon(t_list* lista1)
 	{
 		bool estaEnLista(char* pokemon)
@@ -416,12 +415,13 @@ void realizarCambio(t_entrenador* entrenador1, t_entrenador* entrenador2)
 	uint32_t indiceDelPokemonDondeEstaEnElEntrenador2 = retornarIndice(entrenador2->pokesAtrapados,pokemon(entrenador1->pokesObjetivos));
 
 	char* flag = list_remove(entrenador2->pokesAtrapados,indiceDelPokemonDondeEstaEnElEntrenador2);
+	sleep(5);
 	char* flag2 = list_replace(entrenador1->pokesAtrapados,a,flag);
+	sleep(5);
 	list_add(entrenador2->pokesAtrapados,flag2);
 
 	list_destroy(pokemones);
 }
-
 
 t_list* crearListaObjetivosPosta(t_list* pokesObjetivosGlobal, t_list* entrenadoresNew)
 {
