@@ -94,7 +94,6 @@ t_config* leer_config();
 void inicializarPrograma();
 void liberar_recursos();
 void estado_exec();
-void mostrar_ids(void* id);
 void inicializarVariables();
 void liberarVariables();
 

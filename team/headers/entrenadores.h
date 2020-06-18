@@ -72,6 +72,7 @@ bool estaEnLista(t_list* lista, t_entrenador* unEntrenador);
 t_list* listaALaQuePertenece(t_entrenador* unEntrenador);
 
 bool puedeAtrapar(t_entrenador* entrenador);
+void mostrar_ids(void* id);
 void moverEntrenadorX(t_entrenador* unEntrenador, uint32_t posX,uint32_t retardoCpu);
 void moverEntrenadorY(t_entrenador* unEntrenador, uint32_t posY,uint32_t retardoCpu);
 void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu);

@@ -54,6 +54,10 @@ bool necesitoElMensaje(uint32_t id){
 	return list_any_satisfy(ids_enviados,(void*) esIgual);
 }
 
+void mostrar_ids(void* id){
+	printf("ID %d\n",*(int*)id);
+}
+
 void enviar_gets(t_list* objetivos_globales) {
 
 	void enviar(void* especie) {
@@ -165,20 +169,20 @@ void algoritmoFifo()
 		ciclosConsumidos += distancia; //ACUMULO LOS CICLOS DE CPU CONSUMIDOS
 		pthread_mutex_unlock(&mutexCiclosConsumidos);
 		pthread_mutex_lock(&mutexLog);
-		log_info(logger,"El entrenador %d TERMINO DE MOVERSE y esta en la posicion (%d,%d).",entrenador->idEntrenador,entrenador->posicionX,entrenador->posicionY);
+		log_info(logger,"El entrenador %d TERMINO DE MOVERSE y esta en la posición (%d,%d).",entrenador->idEntrenador,entrenador->posicionX,entrenador->posicionY);
 		pthread_mutex_unlock(&mutexLog);
 
 		//CONEXION AL BROKER Y ENVIO DE MENSAJE CATCH
 		catch_pokemon_msg* mensaje = catch_msg(aMoverse->nombre,aMoverse->posicionX,aMoverse->posicionY);
 		uint32_t* idMensajeExec = malloc(sizeof(int)); // no se libera aca porque se libera cuando liberamos  ids enviados
 		*idMensajeExec = enviar_mensaje(ip_broker,puerto_broker,CATCH_POKEMON,mensaje,0,true);
-		log_info(logger,"El entrenador %d envi el mensaje CATCH_POKEMON %s, en la posicion (%d,%d).",aMoverse->nombre,aMoverse->posicionX,aMoverse->posicionY);
+		log_info(logger,"El entrenador %d envió el mensaje CATCH_POKEMON %s, en la posición (%d,%d).",entrenador->idEntrenador,aMoverse->nombre,aMoverse->posicionX,aMoverse->posicionY);
 
 		if (*idMensajeExec == -1)
 		{
 			printf("Falló el envio del mensaje CATCH_POKEMON %s.\n",mensaje->nombre_pokemon);
 			log_error(logger,"ERROR al enviar el mensaje CATCH_POKEMON %s.",mensaje->nombre_pokemon);
-			log_info(logger,"OPERACION DEFAULT: El entrenador %d capturo al pokemon %s.",entrenador->idEntrenador,mensaje->nombre_pokemon);
+			log_info(logger,"OPERACION DEFAULT: El entrenador %d capturó al pokemon %s.",entrenador->idEntrenador,mensaje->nombre_pokemon);
 			cambiarEstado(entrenador);
 			free(idMensajeExec);
 		} else {
@@ -434,7 +438,6 @@ void conectarABroker(){
 
 void deadlock()
 {
-	t_list* losQueTienenElPokemonQueLeFalta;
 	t_entrenador* entrenador;
 	bool logueo = false;
 	while(1)
@@ -455,7 +458,7 @@ void deadlock()
 
 				entrenador = list_remove(estado_bloqueado,0);
 
-				losQueTienenElPokemonQueLeFalta = quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado);
+				t_list* losQueTienenElPokemonQueLeFalta = quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado);
 
 				t_entrenador* entrenadorAMoverse = list_get(losQueTienenElPokemonQueLeFalta,0);
 
@@ -469,6 +472,8 @@ void deadlock()
 					realizarCambio(entrenador,entrenadorAMoverse);
 					cambiarEstado(entrenador);
 				}
+
+				list_destroy(losQueTienenElPokemonQueLeFalta);
 			}
 		} else {
 			printf("No hay deadlock. \n");
@@ -483,8 +488,6 @@ void deadlock()
 	printf("Los entrenadores fueron planificados en su totalidad.\n");
 
 	printf("Los entrenadores en estado exit son: \n");
-
-	list_destroy(losQueTienenElPokemonQueLeFalta);
 
 	list_iterate(estado_exit,mostrarEntrenador);
 

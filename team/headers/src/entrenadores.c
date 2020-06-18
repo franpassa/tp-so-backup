@@ -34,28 +34,36 @@ void liberarArray(char** array){
 }
 
 t_list* insertarPokesEntrenador(uint32_t nroEntrenador, t_list* pokemons, char** pokesEntrenadores){
+
+	char* a_agregar;
+
 	void _a_la_lista(char* poke){
 	  if (poke != NULL) {
 	    list_add(pokemons, poke);
 	  }
 	}
 
-	uint32_t tamanio;
+	uint32_t tamanio = 0;
 	for(tamanio=0; pokesEntrenadores[tamanio]!=NULL;tamanio++){}
 
-	if(tamanio==1){
+	if(tamanio==1 && !string_is_empty(pokesEntrenadores[0])){
 		pokesEntrenadores[2] = "";
 	}
 
-	char* a_agregar = pokesEntrenadores[nroEntrenador];
-	char** pokes;
-
-	if(a_agregar == NULL || string_is_empty(a_agregar)){
-		a_agregar = "";
-		pokes = string_split(a_agregar,"|");
+	if(string_is_empty(pokesEntrenadores[0])){
+		a_agregar = string_new();
 	} else {
-		pokes = string_split(a_agregar,"|");
+		a_agregar = pokesEntrenadores[nroEntrenador];
 	}
+
+	char** pokes = string_split(a_agregar,"|");
+
+//	if(a_agregar == NULL || string_is_empty(a_agregar)){
+//		a_agregar = "";
+//		pokes = string_split(a_agregar,"|");
+//	} else {
+//		pokes = string_split(a_agregar,"|");
+//	}
 
 	string_iterate_lines(pokes,_a_la_lista);
 	free(pokes);
