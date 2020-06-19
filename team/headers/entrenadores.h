@@ -79,6 +79,10 @@ void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,ui
 
 t_list* pokemonesAlPedo(t_entrenador* unEntrenador);
 t_list* pokemonesQueLeFaltan(t_entrenador* unEntrenador);
+t_list* pokemonsQueLeSobranDistintos(t_entrenador* unEntrenador);
+t_list* pokemonsRepetidos(t_entrenador* unEntrenador);
+t_list* pokemonsQueLogroAtrapar(t_entrenador* unEntrenador);
+uint32_t cantidadAtrapadosDeMas(t_entrenador* entrenador,char* unaEspecie);
 t_list* quienesTienenElPokeQueMeFalta(t_entrenador* unEntrenador, t_list* lista);
 uint32_t retornarIndice(t_list* lista, char* nombre);
 void realizarCambio(t_entrenador* entrenador1, t_entrenador* entrenador2);

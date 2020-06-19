@@ -46,11 +46,11 @@ t_list* insertarPokesEntrenador(uint32_t nroEntrenador, t_list* pokemons, char**
 	uint32_t tamanio = 0;
 	for(tamanio=0; pokesEntrenadores[tamanio]!=NULL;tamanio++){}
 
-	if(tamanio==1 && !string_is_empty(pokesEntrenadores[0])){
+	if(tamanio==1 && pokesEntrenadores[0]!=NULL){
 		pokesEntrenadores[2] = "";
 	}
 
-	if(!string_is_empty(pokesEntrenadores[nroEntrenador])){
+	if(pokesEntrenadores[nroEntrenador]!=NULL){
 		a_agregar = pokesEntrenadores[nroEntrenador];
 	} else {
 		a_agregar = string_new();
@@ -301,16 +301,57 @@ void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,ui
 
 t_list* pokemonesAlPedo(t_entrenador* unEntrenador)
 {
-	bool noEstaEnLista(char* pokemon)
-	{
-		bool esIgual(char* otroPokemon)
-		{
-			return string_equals_ignore_case(otroPokemon,pokemon);
+	t_list* losQueSobranDistintos = pokemonsQueLeSobranDistintos(unEntrenador);
+
+	t_list* losQueSobranDeEspeciesCapturadas = pokemonsRepetidos(unEntrenador);
+
+	list_add_all(losQueSobranDistintos,losQueSobranDeEspeciesCapturadas);
+
+	list_destroy(losQueSobranDeEspeciesCapturadas);
+
+	return losQueSobranDistintos;
+}
+
+t_list* pokemonsRepetidos(t_entrenador* unEntrenador){
+
+	t_list* resultado = pokemonsQueLogroAtrapar(unEntrenador);
+
+	t_list* a_devolver = list_create();
+
+	void agregarSiCorresponde(char* elemento){
+
+		uint32_t cantidad = cantidadAtrapadosDeMas(unEntrenador,elemento);
+
+		if(cantidad>0){
+			for(uint32_t i = 0; i<cantidad;i++){
+				char* a_agregar = string_duplicate(elemento);
+				list_add(a_devolver,a_agregar);
+			}
 		}
-		return !list_any_satisfy(unEntrenador->pokesObjetivos,(void*)esIgual);
 	}
 
-	t_list* losDistintos = list_filter(unEntrenador->pokesAtrapados,(void*)noEstaEnLista);
+	list_iterate(resultado,(void*) agregarSiCorresponde);
+
+	list_destroy(resultado);
+
+	return a_devolver;
+
+}
+
+uint32_t cantidadAtrapadosDeMas(t_entrenador* entrenador,char* unaEspecie){
+
+	bool esIgual(char* otroPokemon)
+	{
+		return string_equals_ignore_case(otroPokemon,unaEspecie);
+	}
+
+	uint32_t atrapados = list_count_satisfying(entrenador->pokesAtrapados,(void*) esIgual);
+	uint32_t objetivo = list_count_satisfying(entrenador->pokesObjetivos,(void*) esIgual);
+
+	return atrapados-objetivo;
+}
+
+t_list* pokemonsQueLogroAtrapar(t_entrenador* unEntrenador){
 
 	bool estaEnLista(char* pokemon)
 	{
@@ -318,18 +359,10 @@ t_list* pokemonesAlPedo(t_entrenador* unEntrenador)
 		{
 			return string_equals_ignore_case(otroPokemon,pokemon);
 		}
-
 		return list_any_satisfy(unEntrenador->pokesObjetivos,(void*)esIgual);
 	}
 
-	t_list* losQueSobranDeUnaEspecie = list_filter(unEntrenador->pokesAtrapados, (void*) estaEnLista);
-
-	list_add_all(losDistintos,losQueSobranDeUnaEspecie);
-
-	list_destroy(losQueSobranDeUnaEspecie);
-
-
-	return losDistintos;
+	return list_filter(unEntrenador->pokesAtrapados,(void*) estaEnLista);
 }
 
 t_list* pokemonesQueLeFaltan(t_entrenador* unEntrenador)
@@ -343,6 +376,20 @@ t_list* pokemonesQueLeFaltan(t_entrenador* unEntrenador)
 		return !list_all_satisfy(unEntrenador->pokesAtrapados,(void*)esIgual);
 	}
 	return list_filter(unEntrenador->pokesObjetivos,(void*)noEstaEnLista);
+}
+
+t_list* pokemonsQueLeSobranDistintos(t_entrenador* unEntrenador){
+
+	bool noEstaEnLista(char* pokemon)
+	{
+		bool esIgual(char* otroPokemon)
+		{
+			return string_equals_ignore_case(otroPokemon,pokemon);
+		}
+		return !list_any_satisfy(unEntrenador->pokesObjetivos,(void*)esIgual);
+	}
+
+	return list_filter(unEntrenador->pokesAtrapados,(void*)noEstaEnLista);
 }
 
 // devuelve una lista de los entrenadores que tienen el/los pokemon que me faltan
