@@ -5,8 +5,6 @@ int main()
 	inicializarPrograma(); //Inicializo logger y config
 	inicializarVariables();
 
-	list_iterate(estado_new,mostrarEntrenador);
-
 	printf("\n");
 	int socket_escucha = iniciar_servidor(IP,PUERTO);
 	printf("\n");
