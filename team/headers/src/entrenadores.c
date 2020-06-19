@@ -46,14 +46,14 @@ t_list* insertarPokesEntrenador(uint32_t nroEntrenador, t_list* pokemons, char**
 	uint32_t tamanio = 0;
 	for(tamanio=0; pokesEntrenadores[tamanio]!=NULL;tamanio++){}
 
-	if(tamanio==1 && pokesEntrenadores[0]!=NULL){
-		pokesEntrenadores[2] = "";
+	if(pokesEntrenadores[nroEntrenador] == NULL || string_is_empty(pokesEntrenadores[nroEntrenador])){
+		a_agregar = string_new();
+	} else {
+		a_agregar = pokesEntrenadores[nroEntrenador];
 	}
 
-	if(pokesEntrenadores[nroEntrenador]!=NULL){
-		a_agregar = pokesEntrenadores[nroEntrenador];
-	} else {
-		a_agregar = string_new();
+	if(tamanio == 1 && pokesEntrenadores[0]!=NULL){
+		pokesEntrenadores[2] = string_new();
 	}
 
 	char** pokes = string_split(a_agregar,"|");
@@ -79,7 +79,6 @@ t_list* crearListaDeEntrenadores(char** posicionesEntrenadores, char** pokesEntr
 		t_entrenador* entrenador = malloc(sizeof(t_entrenador));
 		entrenador->pokesAtrapados = list_create();
 		entrenador->pokesObjetivos = list_create();
-
 		entrenador->posicionX = posicionXEntrenador(i,posicionesEntrenadores);
 		entrenador->posicionY = posicionYEntrenador(i,posicionesEntrenadores);
 		entrenador->pokesAtrapados = insertarPokesEntrenador(i,entrenador->pokesAtrapados,pokesEntrenadores);
