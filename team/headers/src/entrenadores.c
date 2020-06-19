@@ -50,10 +50,10 @@ t_list* insertarPokesEntrenador(uint32_t nroEntrenador, t_list* pokemons, char**
 		pokesEntrenadores[2] = "";
 	}
 
-	if(string_is_empty(pokesEntrenadores[0])){
-		a_agregar = string_new();
-	} else {
+	if(!string_is_empty(pokesEntrenadores[nroEntrenador])){
 		a_agregar = pokesEntrenadores[nroEntrenador];
+	} else {
+		a_agregar = string_new();
 	}
 
 	char** pokes = string_split(a_agregar,"|");
