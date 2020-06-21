@@ -20,7 +20,6 @@ int main(){
 	close(socket_servidor);
 	//terminar_programa(logger,config);
 
-
 	return 0;
 
 }

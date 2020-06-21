@@ -58,9 +58,9 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 		est_a_utilizar->tipo_mensaje = id_cola;
 
         list_replace(estructuras_secundarias, entra, est_a_utilizar); // chequear esto: no estamos liberando el elemento que reemplazamos
-        // si usamos replace and destroy element: tira mas errores en valgrind
+        // si usamos replace and destroy element: tira mas errores en valgrind y sig fault
 
-        memmove(memoria + est_a_utilizar->bit_inicio, mensaje, size); // revisar porque esta guardando cualquier cosa, no rompe mas!
+        memmove(memoria, mensaje, size); // revisar porque esta guardando cualquier cosa
 
 	} else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"BS")) {
 
@@ -243,7 +243,9 @@ void* de_id_mensaje_a_mensaje(uint32_t id_mensaje) { // retorna mal, cuando lo c
 		}
 	}
 	void* mensaje = malloc(estructura3->tamanio);
-	memmove(mensaje, memoria + estructura3->bit_inicio, estructura3->tamanio); // revisar esto
+	memcpy(mensaje, memoria, estructura3->tamanio); // revisar esto
+
+	free(estructura3);
 	return mensaje;
 }
 
@@ -275,5 +277,10 @@ uint32_t de_id_mensaje_a_size(uint32_t id_mensaje) { // Perfecto
 	}
 
 	return estructura3->tamanio;
+}
+
+void liberar_memoria_interna(){
+	free(memoria);
+	free(estructura);
 }
 
