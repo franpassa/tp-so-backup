@@ -34,9 +34,10 @@ int main()
 	pthread_detach(hilo_recibir_caught);
 	pthread_join(hilo_deadlock, NULL);
 
+	close(socket_escucha);
 	liberar_recursos(); //Finalizo el programa
 
-	return 0;
+	return(0);
 }
 
 t_config* leer_config(){
@@ -124,9 +125,8 @@ void liberarVariables()
 	list_destroy_and_destroy_elements(pokemons_objetivos, free);
 	list_destroy_and_destroy_elements(objetivos_globales,liberarEspecie);
 	list_destroy(estado_bloqueado);
-	list_destroy(estado_ready);
 	list_destroy(estado_new);
-	list_destroy_and_destroy_elements(estado_exit,liberarEntrenador);
+	list_destroy(estado_exit);
 	list_destroy_and_destroy_elements(pokemons_recibidos_historicos,liberarPokemon);
 	list_destroy_and_destroy_elements(pokemons_recibidos,liberarPokemon);
 	list_destroy_and_destroy_elements(ids_enviados,free);
@@ -145,8 +145,4 @@ void liberarVariables()
 	sem_destroy(&semAppeared);
 	sem_destroy(&semCaught);
 	sem_destroy(&semLocalized);
-}
-
-void mostrar_ids(void* id){
-	printf("ID %d\n",*(int*)id);
 }

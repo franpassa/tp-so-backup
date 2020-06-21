@@ -147,6 +147,7 @@ void almacenar(void*, uint32_t, uint32_t, uint32_t);
 void paso_1();
 void paso_2();
 void paso_3();
+void liberar_memoria_interna();
 int cont_orden_f();
 void actualizar_bit_inicio(int);
 void mover_memoria(int);
