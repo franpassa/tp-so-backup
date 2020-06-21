@@ -60,7 +60,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
         list_replace(estructuras_secundarias, entra, est_a_utilizar); // chequear esto: no estamos liberando el elemento que reemplazamos
         // si usamos replace and destroy element: tira mas errores en valgrind y sig fault
 
-        memmove(memoria, mensaje, size); // revisar porque esta guardando cualquier cosa
+        memmove(memoria + est_a_utilizar->bit_inicio, mensaje, size); // revisar porque esta guardando cualquier cosa
 
 	} else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"BS")) {
 
@@ -216,6 +216,7 @@ void actualizar_bit_inicio(int a_sacar){
 		list_replace_and_destroy_element(estructuras_secundarias,f,estructura_bit_inicio,free);
 	}
 }
+
 void mover_memoria(int a_sacar){
 	t_struct_secundaria* estructura_a_mover_memoria;
 
@@ -240,10 +241,11 @@ void* de_id_mensaje_a_mensaje(uint32_t id_mensaje) { // retorna mal, cuando lo c
 		estructura_a_comparar_de_lista = list_get(estructuras_secundarias,i);
 		if (estructura_a_comparar_de_lista->id == id_mensaje) {
 			estructura3->tamanio = estructura_a_comparar_de_lista->tamanio;
+			estructura3->bit_inicio = estructura_a_comparar_de_lista->bit_inicio;
 		}
 	}
 	void* mensaje = malloc(estructura3->tamanio);
-	memcpy(mensaje, memoria, estructura3->tamanio); // revisar esto
+	memcpy(mensaje, memoria + estructura3->bit_inicio, estructura3->tamanio); // revisar esto
 
 	free(estructura3);
 	return mensaje;
