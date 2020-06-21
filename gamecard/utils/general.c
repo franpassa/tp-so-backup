@@ -61,3 +61,26 @@ char* get_file_as_text(char* file_path){
 
 	return file_text;
 }
+
+int min(int a, int b){
+	return (a < b) ? a : b;
+}
+
+t_list* dividir_string_por_tamanio(char* string, int tamanio){
+	t_list* list_strings = list_create();
+	int largo_string = string_length(string);
+
+	if(largo_string < tamanio){
+		list_add(list_strings, string_duplicate(string));
+	} else {
+		int inicio_substring = 0;
+		int largo_substring = tamanio;
+		while(largo_string != inicio_substring){
+			char* substring = string_substring(string, inicio_substring, largo_substring);
+			list_add(list_strings, substring);
+			inicio_substring += largo_substring;
+			largo_substring = min(tamanio, largo_string - inicio_substring);
+		}
+	}
+	return list_strings;
+}

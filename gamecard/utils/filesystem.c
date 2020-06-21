@@ -119,29 +119,26 @@ int create_bitmap(int cantidad_bloques){
 	return 0;
 }
 
-// Esta función es una obra de arte
-void set_bit(int index, bool value){ // Revisar mmap
-	FILE* bitmap_file = fopen(fspaths->bitmap_file, "rb+");
+void set_bit(int index, bool value){
+	int bitmap_fd = open(fspaths->bitmap_file, O_RDWR, S_IRUSR | S_IWUSR);
+	struct stat sb;
 
-	div_t division = div(index, 8); // Divido el indice del bit por la cantidad de bits en un byte para obtener el byte y la posición del bit dentro de ese (cociente y resto).
-	char* byte = calloc(1, sizeof(char));
-	fseek(bitmap_file, division.quot, SEEK_SET); // Posiciono el puntero del bitmap a la posicion del byte que me interesa
-	fread(byte, sizeof(char), 1, bitmap_file); // Leo ese byte
-	t_bitarray* mini_bitarray = bitarray_create_with_mode(byte, sizeof(char), LSB_FIRST); // Creo un bitarray para poder modificar el bit
-	if(value){
-		bitarray_set_bit(mini_bitarray, division.rem); // Seteo o limpio el bit de interés
-	} else {
-		bitarray_clean_bit(mini_bitarray, division.rem);
+	if(fstat(bitmap_fd, &sb) != -1){
+		char* mapped_bitmap = mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, bitmap_fd, 0);
+
+		t_bitarray* bitarray = bitarray_create_with_mode(mapped_bitmap, sb.st_size, LSB_FIRST);
+		if(value){
+			bitarray_set_bit(bitarray, index); // Seteo o limpio el bit de interés
+		} else {
+			bitarray_clean_bit(bitarray, index);
+		}
+		bitarray_destroy(bitarray);
+		munmap(mapped_bitmap, sb.st_size);
+		close(bitmap_fd);
 	}
-	fseek(bitmap_file, -1, SEEK_CUR); // Vuelvo un byte atrás para escribir el archivo
-	fwrite(byte, sizeof(char), 1, bitmap_file); // Reescribo el byte con un bit modificado
-
-	fclose(bitmap_file);
-	free(byte);
-	bitarray_destroy(mini_bitarray);
 }
 
-int get_free_block(){
+int get_bitmap_free_block(){
 	long file_size;
 	t_bitarray* bitarray = read_bitmap(&file_size);
 	long bits_in_file = file_size * 8;
@@ -198,11 +195,19 @@ char* get_block_path(int block){
 }
 
 void write_blocks(char* string, t_list* blocks, int block_max_size){
-	int blocks_size = list_size(blocks);
+	int blocks_length = list_size(blocks);
+	char* local_string = string_duplicate(string);
+	char* string_inicial = local_string;
 
-	for(int i = 0; i < blocks_size; i++){
+	for(int i = 0; i < blocks_length; i++){
+		int block = *(int*) list_get(blocks, i);
+		int cant_bytes = min(string_length(local_string), block_max_size);
+		char* string_to_write = string_substring_until(local_string, cant_bytes);
+		local_string = local_string + cant_bytes;
+
 
 	}
+	free(string_inicial);
 }
 
 char* format_pokemon(t_pokemon pokemon, uint32_t* length){
@@ -240,7 +245,7 @@ t_list* escribir_en_filesystem(t_pokemon pokemon, t_list* lista_bloques, uint32_
 
 	if(lista_bloques == NULL){
 		pthread_mutex_lock(&mutex_bitmap);
-		bloque_a_escribir = get_free_block();
+		bloque_a_escribir = get_bitmap_free_block();
 		pthread_mutex_unlock(&mutex_bitmap);
 		if(bloque_a_escribir == -1) {
 			printf("NO HAY MAS BLOQUES DISPONIBLES");
