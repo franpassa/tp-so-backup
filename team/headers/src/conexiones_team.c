@@ -167,9 +167,8 @@ void algoritmoFifo()
 		pthread_mutex_lock(&mutexCiclosConsumidos);
 		ciclosConsumidos += distancia; //ACUMULO LOS CICLOS DE CPU CONSUMIDOS
 		pthread_mutex_unlock(&mutexCiclosConsumidos);
-		pthread_mutex_lock(&mutexLog);
+
 		log_info(logger,"El entrenador %d TERMINO DE MOVERSE y esta en la posición (%d,%d).",entrenador->idEntrenador,entrenador->posicionX,entrenador->posicionY);
-		pthread_mutex_unlock(&mutexLog);
 
 		//CONEXION AL BROKER Y ENVIO DE MENSAJE CATCH
 		catch_pokemon_msg* mensaje = catch_msg(aMoverse->nombre,aMoverse->posicionX,aMoverse->posicionY);
@@ -188,7 +187,7 @@ void algoritmoFifo()
 			printf("Envio mensaje catch %s, posicion: (%d,%d), id: %d.\n",mensaje->nombre_pokemon,mensaje->coordenada_X,mensaje->coordenada_Y,*idMensajeExec);
 			entrenador->idRecibido = *idMensajeExec;
 			entrenador->motivoBloqueo = ESPERA_CAUGHT;
-			list_add(ids_enviados, idMensajeExec);
+			list_add(ids_enviados, idMensajeExec); //ACA NO VA MUTEX PORQUE SOLAMENTE SE MODIFICA AL ENVIAR IDS.
 
 			pthread_mutex_lock(&mutexEstadoBloqueado);
 			list_add(estado_bloqueado, entrenador);
@@ -209,11 +208,11 @@ void pasar_a_ready(){
 
 			t_entrenador* entrenadorTemporal = entrenadorAReady(entrenadoresAPlanificar,pokemons_recibidos);
 
-			pthread_mutex_lock(&mutexPokemonsRecibidos);
 			bool es_el_mismo_pokemon(t_pokemon* pokemon){
 				return string_equals_ignore_case(pokemon->nombre, (entrenadorTemporal->pokemonAMoverse)->nombre);
 			}
 
+			pthread_mutex_lock(&mutexPokemonsRecibidos);
 			list_remove_by_condition(pokemons_recibidos,(void*) es_el_mismo_pokemon);
 			pthread_mutex_unlock(&mutexPokemonsRecibidos);
 
