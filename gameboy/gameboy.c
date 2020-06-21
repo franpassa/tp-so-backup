@@ -1,4 +1,4 @@
-#include "game_boy.h"
+#include "gameboy.h"
 
 void inicializar(){
 	config = get_config();

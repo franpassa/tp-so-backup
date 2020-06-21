@@ -31,7 +31,7 @@
 
 //VARIABLES GLOBALES
 
-t_log* logger;
+
 
 // variables globales sacadas del config
 t_config* config;
@@ -52,10 +52,8 @@ int socket_appeared;
 
 t_list* estado_exit; /*lista de entrenadores*/
 t_list* objetivos_globales;/*es una lista de especies*/
-t_list* objetivos_posta; /*es una lista de especies*/
 t_list* ids_enviados;
 t_list* pokemons_recibidos;
-t_list* pokemons_recibidos_historicos;
 t_list* pokemons_objetivos;
 
 pthread_mutex_t mutexCiclosConsumidos;
@@ -96,7 +94,6 @@ t_config* leer_config();
 void inicializarPrograma();
 void liberar_recursos();
 void estado_exec();
-void mostrar_ids(void* id);
 void inicializarVariables();
 void liberarVariables();
 
