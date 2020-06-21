@@ -111,8 +111,6 @@ void inicializarVariables(){
 	PUERTO = config_get_string_value(config, "PUERTO_TEAM");
 
 	estado_new = crearListaDeEntrenadores(posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
-
-	list_iterate(estado_new,mostrarEntrenador);
 	pokemons_objetivos = crearListaPokesObjetivos(estado_new);
 	objetivos_globales = crearListaObjetivoGlobal(pokemons_objetivos);
 	objetivos_posta = crearListaObjetivosPosta(objetivos_globales, estado_new);

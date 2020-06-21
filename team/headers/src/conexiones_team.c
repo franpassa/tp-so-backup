@@ -87,6 +87,7 @@ void enviar_gets(t_list* objetivos_globales) {
 void esperar_cliente(int* socket_servidor) {
 
 	uint32_t id;
+	appeared_pokemon_msg* mensaje_recibido_appeared;
 
 	while (1) {
 
@@ -103,10 +104,11 @@ void esperar_cliente(int* socket_servidor) {
 
 		queue_name colaMensaje;
 
-		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_cliente,&id,&colaMensaje);
+		mensaje_recibido_appeared = recibir_mensaje(socket_cliente,&id,&colaMensaje);
 
 		if (mensaje_recibido_appeared != NULL) {
 			log_info(logger,"Nuevo mensaje APPEARED_POKEMON %s, en la posicion (%d,%d).",mensaje_recibido_appeared->nombre_pokemon,mensaje_recibido_appeared->coordenada_X,mensaje_recibido_appeared->coordenada_Y);
+
 			if (estaEnListaEspecie(mensaje_recibido_appeared->nombre_pokemon,objetivos_posta) && noSuperaElMaximoQuePuedoRecibir(mensaje_recibido_appeared->nombre_pokemon)) {
 
 				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
@@ -117,10 +119,10 @@ void esperar_cliente(int* socket_servidor) {
 				agregarAppearedRecibidoALista(pokemons_recibidos,mensaje_recibido_appeared);
 				pthread_mutex_unlock(&mutexPokemonsRecibidos);
 			}
-		}
 
-		free(mensaje_recibido_appeared->nombre_pokemon);
-		free(mensaje_recibido_appeared);
+			free(mensaje_recibido_appeared->nombre_pokemon);
+			free(mensaje_recibido_appeared);
+		}
 	}
 }
 
@@ -130,9 +132,7 @@ void estado_exec()
 
 		if (!list_is_empty(estado_ready)){
 
-			pthread_mutex_lock(&mutexHayEntrenadorProcesando);
 			if(!hayEntrenadorProcesando){
-			pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
 
 				pthread_mutex_lock(&mutexHayEntrenadorProcesando);
 				hayEntrenadorProcesando = true;
@@ -207,13 +207,17 @@ void pasar_a_ready(){
 
 		if(list_size(pokemons_recibidos)>0 && list_size(entrenadoresAPlanificar)>0){
 
-			pthread_mutex_lock(&mutexPokemonsRecibidos);
 			t_entrenador* entrenadorTemporal = entrenadorAReady(entrenadoresAPlanificar,pokemons_recibidos);
+
+			pthread_mutex_lock(&mutexPokemonsRecibidos);
+			bool es_el_mismo_pokemon(t_pokemon* pokemon){
+				return string_equals_ignore_case(pokemon->nombre, (entrenadorTemporal->pokemonAMoverse)->nombre);
+			}
+
+			list_remove_by_condition(pokemons_recibidos,(void*) es_el_mismo_pokemon);
 			pthread_mutex_unlock(&mutexPokemonsRecibidos);
 
-			pthread_mutex_lock(&mutexLog);
 			log_info(logger,"El entrenador con id %d paso a la cola READY.", entrenadorTemporal->idEntrenador);
-			pthread_mutex_unlock(&mutexLog);
 
 			bool es_el_mismo_entrenador(t_entrenador* unEntrenador){
 				return unEntrenador->idEntrenador == entrenadorTemporal->idEntrenador;
@@ -227,14 +231,6 @@ void pasar_a_ready(){
 			pthread_mutex_lock(&mutexEstadoReady);
 			list_add(estado_ready,entrenadorTemporal);
 			pthread_mutex_unlock(&mutexEstadoReady);
-
-			bool es_el_mismo_pokemon(t_pokemon* pokemon){
-				return string_equals_ignore_case(pokemon->nombre, (entrenadorTemporal->pokemonAMoverse)->nombre);
-			}
-
-			pthread_mutex_lock(&mutexPokemonsRecibidos);
-			list_remove_by_condition(pokemons_recibidos,(void*) es_el_mismo_pokemon);
-			pthread_mutex_unlock(&mutexPokemonsRecibidos);
 		}
 
 		list_destroy(entrenadoresAPlanificar);
