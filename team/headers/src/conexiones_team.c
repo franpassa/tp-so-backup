@@ -87,7 +87,6 @@ void enviar_gets(t_list* objetivos_globales) {
 void esperar_cliente(int* socket_servidor) {
 
 	uint32_t id;
-	appeared_pokemon_msg* mensaje_recibido_appeared;
 
 	while (1) {
 
@@ -104,14 +103,10 @@ void esperar_cliente(int* socket_servidor) {
 
 		queue_name colaMensaje;
 
-		mensaje_recibido_appeared = recibir_mensaje(socket_cliente,&id,&colaMensaje);
+		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_cliente,&id,&colaMensaje);
 
 		if (mensaje_recibido_appeared != NULL) {
 			log_info(logger,"Nuevo mensaje APPEARED_POKEMON %s, en la posicion (%d,%d).",mensaje_recibido_appeared->nombre_pokemon,mensaje_recibido_appeared->coordenada_X,mensaje_recibido_appeared->coordenada_Y);
-<<<<<<< HEAD
-=======
-
->>>>>>> 7a3b519ce534f7b5e92b4860df42e87b899b2ff0
 			if (estaEnListaEspecie(mensaje_recibido_appeared->nombre_pokemon,objetivos_posta) && noSuperaElMaximoQuePuedoRecibir(mensaje_recibido_appeared->nombre_pokemon)) {
 
 				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
@@ -122,17 +117,10 @@ void esperar_cliente(int* socket_servidor) {
 				agregarAppearedRecibidoALista(pokemons_recibidos,mensaje_recibido_appeared);
 				pthread_mutex_unlock(&mutexPokemonsRecibidos);
 			}
-<<<<<<< HEAD
 		}
 
 		free(mensaje_recibido_appeared->nombre_pokemon);
 		free(mensaje_recibido_appeared);
-=======
-
-			free(mensaje_recibido_appeared->nombre_pokemon);
-			free(mensaje_recibido_appeared);
-		}
->>>>>>> 7a3b519ce534f7b5e92b4860df42e87b899b2ff0
 	}
 }
 
@@ -179,14 +167,9 @@ void algoritmoFifo()
 		pthread_mutex_lock(&mutexCiclosConsumidos);
 		ciclosConsumidos += distancia; //ACUMULO LOS CICLOS DE CPU CONSUMIDOS
 		pthread_mutex_unlock(&mutexCiclosConsumidos);
-<<<<<<< HEAD
 		pthread_mutex_lock(&mutexLog);
 		log_info(logger,"El entrenador %d TERMINO DE MOVERSE y esta en la posición (%d,%d).",entrenador->idEntrenador,entrenador->posicionX,entrenador->posicionY);
 		pthread_mutex_unlock(&mutexLog);
-=======
-
-		log_info(logger,"El entrenador %d TERMINO DE MOVERSE y esta en la posición (%d,%d).",entrenador->idEntrenador,entrenador->posicionX,entrenador->posicionY);
->>>>>>> 7a3b519ce534f7b5e92b4860df42e87b899b2ff0
 
 		//CONEXION AL BROKER Y ENVIO DE MENSAJE CATCH
 		catch_pokemon_msg* mensaje = catch_msg(aMoverse->nombre,aMoverse->posicionX,aMoverse->posicionY);
@@ -205,7 +188,7 @@ void algoritmoFifo()
 			printf("Envio mensaje catch %s, posicion: (%d,%d), id: %d.\n",mensaje->nombre_pokemon,mensaje->coordenada_X,mensaje->coordenada_Y,*idMensajeExec);
 			entrenador->idRecibido = *idMensajeExec;
 			entrenador->motivoBloqueo = ESPERA_CAUGHT;
-			list_add(ids_enviados, idMensajeExec); //ACA NO VA MUTEX PORQUE SOLAMENTE SE MODIFICA AL ENVIAR IDS.
+			list_add(ids_enviados, idMensajeExec);
 
 			pthread_mutex_lock(&mutexEstadoBloqueado);
 			list_add(estado_bloqueado, entrenador);
@@ -223,7 +206,6 @@ void pasar_a_ready(){
 		t_list* entrenadoresAPlanificar = todosLosEntrenadoresAPlanificar();
 
 		if(list_size(pokemons_recibidos)>0 && list_size(entrenadoresAPlanificar)>0){
-<<<<<<< HEAD
 
 			pthread_mutex_lock(&mutexPokemonsRecibidos);
 			t_entrenador* entrenadorTemporal = entrenadorAReady(entrenadoresAPlanificar,pokemons_recibidos);
@@ -232,20 +214,6 @@ void pasar_a_ready(){
 			pthread_mutex_lock(&mutexLog);
 			log_info(logger,"El entrenador con id %d paso a la cola READY.", entrenadorTemporal->idEntrenador);
 			pthread_mutex_unlock(&mutexLog);
-=======
-
-			t_entrenador* entrenadorTemporal = entrenadorAReady(entrenadoresAPlanificar,pokemons_recibidos);
-
-			bool es_el_mismo_pokemon(t_pokemon* pokemon){
-				return string_equals_ignore_case(pokemon->nombre, (entrenadorTemporal->pokemonAMoverse)->nombre);
-			}
-
-			pthread_mutex_lock(&mutexPokemonsRecibidos);
-			list_remove_by_condition(pokemons_recibidos,(void*) es_el_mismo_pokemon);
-			pthread_mutex_unlock(&mutexPokemonsRecibidos);
-
-			log_info(logger,"El entrenador con id %d paso a la cola READY.", entrenadorTemporal->idEntrenador);
->>>>>>> 7a3b519ce534f7b5e92b4860df42e87b899b2ff0
 
 			bool es_el_mismo_entrenador(t_entrenador* unEntrenador){
 				return unEntrenador->idEntrenador == entrenadorTemporal->idEntrenador;
@@ -259,6 +227,14 @@ void pasar_a_ready(){
 			pthread_mutex_lock(&mutexEstadoReady);
 			list_add(estado_ready,entrenadorTemporal);
 			pthread_mutex_unlock(&mutexEstadoReady);
+
+			bool es_el_mismo_pokemon(t_pokemon* pokemon){
+				return string_equals_ignore_case(pokemon->nombre, (entrenadorTemporal->pokemonAMoverse)->nombre);
+			}
+
+			pthread_mutex_lock(&mutexPokemonsRecibidos);
+			list_remove_by_condition(pokemons_recibidos,(void*) es_el_mismo_pokemon);
+			pthread_mutex_unlock(&mutexPokemonsRecibidos);
 		}
 
 		list_destroy(entrenadoresAPlanificar);

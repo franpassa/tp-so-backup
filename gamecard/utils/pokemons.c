@@ -84,15 +84,9 @@ int crear_pokemon(t_pokemon pokemon){
 		perror("Error creando pokemon");
 	} else {
 		uint32_t bytes_escritos;
-<<<<<<< HEAD:gamecard/utils/pokemons.c
 		t_list* bloques = escribir_en_bloques(pokemon, -1, &bytes_escritos); // Se pasa ultimo_bloque como -1 para que se escriba uno nuevo.
-=======
-		t_list* bloques = escribir_en_filesystem(pokemon, NULL, &bytes_escritos); // Se pasa ultimo_bloque como -1 para que se escriba uno nuevo.
->>>>>>> 7a3b519ce534f7b5e92b4860df42e87b899b2ff0:gamecard/utils/pokemons.c
 		if(bloques != NULL){
 			crear_metadata(path_pokemon, bytes_escritos, bloques);
-		} else {
-			printf("Error en 'crear_pokemon'");
 		}
 	}
 
@@ -100,7 +94,6 @@ int crear_pokemon(t_pokemon pokemon){
 	return 0;
 }
 
-<<<<<<< HEAD:gamecard/utils/pokemons.c
 char* get_last(char** array){
 	int index = 0;
 	while(array[index] != NULL) index++;
@@ -121,35 +114,4 @@ int obtener_ultimo_bloque(char* nombre_pokemon){
 	config_destroy(pokemon_metadata);
 
 	return last_block;
-=======
-void toggle_open_flag(char* nombre_pokemon){
-	char* path_metadata = get_pokemon_path(nombre_pokemon);
-	string_append(&path_metadata, "/Metadata.bin");
-	t_config* metadata_config = config_create(path_metadata);
-	if(metadata_config != NULL){
-		char* open_status = config_get_string_value(metadata_config, "OPEN");
-
-		if(open_status[0] == 'N'){
-			config_set_value(metadata_config, "OPEN", "Y");
-		} else {
-			config_set_value(metadata_config, "OPEN", "N");
-		}
-		config_save(metadata_config);
-		config_destroy(metadata_config);
-	}
-	free(path_metadata);
-}
-
-bool is_file_open(char* nombre_pokemon){
-	char* path_metadata = get_pokemon_path(nombre_pokemon);
-	string_append(&path_metadata, "/Metadata.bin");
-	t_config* metadata_config = config_create(path_metadata);
-	if(metadata_config != NULL){
-		char* open_status = config_get_string_value(metadata_config, "OPEN");
-
-		return open_status[0] == 'Y';
-	} else {
-		return false;
-	}
->>>>>>> 7a3b519ce534f7b5e92b4860df42e87b899b2ff0:gamecard/utils/pokemons.c
 }

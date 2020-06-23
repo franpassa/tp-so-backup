@@ -15,10 +15,6 @@
 #include <dirent.h>
 #include <sys/mman.h>
 #include <fcntl.h>
-<<<<<<< HEAD:gamecard/utils/gamecard.h
-=======
-#include <math.h>
->>>>>>> 7a3b519ce534f7b5e92b4860df42e87b899b2ff0:gamecard/utils/gamecard.h
 
 // -------- Commons --------
 
@@ -34,8 +30,8 @@
 
 // -------- Constantes --------
 
-#define CONFIG_PATH "gamecard.config"
-#define LOG_PATH "gamecard.log"
+#define CONFIG_PATH "game_card.config"
+#define LOG_PATH "game_card.log"
 
 // -------- Structs --------
 
@@ -92,11 +88,6 @@ void agregar_a_lista(t_list* lista, int nuevo_elemento);
 char* list_to_string(t_list* list);
 char* get_last(char** array);
 char* get_file_as_text(char* file_path);
-<<<<<<< HEAD:gamecard/utils/gamecard.h
-=======
-int min(int a, int b);
-t_list* dividir_string_por_tamanio(char* string, int tamanio);
->>>>>>> 7a3b519ce534f7b5e92b4860df42e87b899b2ff0:gamecard/utils/gamecard.h
 
 // --- Filesystem ---
 
@@ -107,24 +98,16 @@ int create_blocks(int cantidad);
 t_bitarray* read_bitmap(long* size_in_bytes);
 void print_bitarray(t_bitarray* bitarray);
 void set_bit(int index, bool value);
-int get_bitmap_free_block();
+int get_free_block();
 char* get_block_path(int block);
 void free_fspaths(t_fspaths* paths);
-<<<<<<< HEAD:gamecard/utils/gamecard.h
 int write_blocks(char* contenido_bloques, t_list* blocks);
-=======
-void write_blocks(char* string, t_list* blocks, int block_max_size);
->>>>>>> 7a3b519ce534f7b5e92b4860df42e87b899b2ff0:gamecard/utils/gamecard.h
 // En caso que sea un pokemon ya existente en el FS se le debe pasar el último bloque donde se guardó info, si es uno nuevo último bloque recibe un número negativo.
 int crear_metadata(char* folder_path, uint32_t file_size, t_list* blocks);
 void eliminar_files();
 char* get_blocks_content(t_list* blocks);
 t_list* string_to_coordenadas(char* string_coordenadas);
 t_list* escribir_en_filesystem(t_pokemon pokemon, t_list* lista_bloques, uint32_t *bytes_escritos);
-<<<<<<< HEAD:gamecard/utils/gamecard.h
-=======
-//t_list* get_pokemon_blocks(char* nombre_pokemon);
->>>>>>> 7a3b519ce534f7b5e92b4860df42e87b899b2ff0:gamecard/utils/gamecard.h
 
 // --- Pokemons ---
 t_coordenada init_coordenada(uint32_t x, uint32_t y, uint32_t cantidad);
@@ -135,15 +118,6 @@ t_list* escribir_en_bloques(t_pokemon pokemon, t_list* lista_bloques, uint32_t *
 int crear_pokemon(t_pokemon pokemon);
 char* get_pokemon_path(char* nombre);
 bool existe_pokemon(char* nombre_pokemon);
-void toggle_open_flag(char* nombre_pokemon);
-bool is_file_open(char* nombre_pokemon);
-
-// --- Coordenadas ---
-t_coordenada string_to_coordenada(char* string_coordenada);
-t_list* string_to_coordenadas(char* string_coordenadas);
-char* coordenadas_to_string(t_list* coordenadas);
-void add_coordenada(t_list* lista_coordenadas, t_coordenada coordenada);
-t_coordenada* find_coordenada(t_list* lista_coordenadas, t_coordenada coordenada);
 
 // --- Coordenadas ---
 t_coordenada string_to_coordenada(char* string_coordenada);
