@@ -59,6 +59,10 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
         list_replace(estructuras_secundarias, entra, est_a_utilizar);
         memmove(memoria + est_a_utilizar->bit_inicio, mensaje, size); // esto tambien (nunca empezas desde la posicion 0 de la memoria)
 
+<<<<<<< HEAD
+=======
+        memmove(memoria + est_a_utilizar->bit_inicio, mensaje, size); // revisar porque esta guardando cualquier cosa
+>>>>>>> 7a3b519ce534f7b5e92b4860df42e87b899b2ff0
 
 	} /*else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"BS")) {
 
@@ -254,7 +258,11 @@ void* de_id_mensaje_a_mensaje(uint32_t id_mensaje) {
 		}
 	}
 	void* mensaje = malloc(estructura3->tamanio);
+<<<<<<< HEAD
 	memcpy(mensaje, memoria + estructura3->bit_inicio, estructura3->tamanio); // el bit de inicio nunca se asigna por eso daba cualquier cosa
+=======
+	memcpy(mensaje, memoria + estructura3->bit_inicio, estructura3->tamanio); // revisar esto
+>>>>>>> 7a3b519ce534f7b5e92b4860df42e87b899b2ff0
 
 	free(estructura3);
 	return mensaje;

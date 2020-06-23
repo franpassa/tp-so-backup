@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <commons/collections/list.h>
 #include <commons/string.h>
+#include <pthread.h>
 
 
 typedef struct Especie{
@@ -21,6 +22,11 @@ typedef struct Pokemon{
 
 t_list* pokemons_recibidos_historicos;
 t_list* objetivos_posta; /*es una lista de especies*/
+<<<<<<< HEAD
+=======
+
+pthread_mutex_t mutexPokemonsRecibidosHistoricos;
+>>>>>>> 7a3b519ce534f7b5e92b4860df42e87b899b2ff0
 
 // cantidades
 uint32_t cantidadDePokemonsPorEspecie(char* especie, t_list* lista);

@@ -32,6 +32,9 @@ t_list* estado_bloqueado;
 t_list* estado_ready;
 
 pthread_mutex_t mutexLogEntrenador;
+pthread_mutex_t mutexEstadoBloqueado;
+pthread_mutex_t mutexEstadoNew;
+pthread_mutex_t mutexPokemonsRecibidos;
 
 // posiciones
 uint32_t posicionXEntrenador(int nroEntrenador, char** posicionesEntrenadores);

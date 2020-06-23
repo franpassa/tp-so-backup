@@ -53,10 +53,10 @@ void procesar_msg(queue_name tipo_msg, void* msg){
 			if(!existe_pokemon(pokemon.nombre)){
 				crear_pokemon(pokemon);
 			} else {
-				int ult_bloque = obtener_ultimo_bloque(pokemon.nombre);
+				/*int ult_bloque = obtener_ultimo_bloque(pokemon.nombre);
 				uint32_t bytes_escritos;
-				t_list* nuevos_bloques = escribir_en_bloques(pokemon, ult_bloque, &bytes_escritos);
-				list_iterate(nuevos_bloques, (void*) print_ints);
+				t_list* nuevos_bloques = escribir_en_filesystem(pokemon, ult_bloque, &bytes_escritos);
+				list_iterate(nuevos_bloques, (void*) print_ints);*/
 			}
 
 			break;
