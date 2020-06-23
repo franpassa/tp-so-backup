@@ -20,8 +20,8 @@
 #include <inttypes.h>
 
 #define PROGRAM_NAME "Game Boy"
-#define PATH_CONFIG "game_boy.config"
-#define PATH_LOG "game_boy.log"
+#define PATH_CONFIG "gameboy.config"
+#define PATH_LOG "gameboy.log"
 
 t_log* logger;
 t_config* config;

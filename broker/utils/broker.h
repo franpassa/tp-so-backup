@@ -41,7 +41,7 @@ typedef struct {
 typedef struct {
 	uint32_t tipo_mensaje;
 	uint32_t tamanio;
-	uint32_t id;
+	uint32_t id_mensaje;
 	uint32_t bit_inicio;
 	uint32_t auxiliar;
 }t_struct_secundaria;
@@ -144,6 +144,8 @@ void recorrer_cola(t_cola_de_mensajes*);
 
 void inicializar_memoria();
 void almacenar(void*, uint32_t, uint32_t, uint32_t);
+t_struct_secundaria* duplicar_estructura(t_struct_secundaria*);
+void llenar_estructura(t_struct_secundaria*, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
 void paso_1();
 void paso_2();
 void paso_3();

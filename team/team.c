@@ -10,7 +10,6 @@ int main()
 	printf("\n");
 	if (socket_escucha == -1) abort(); //FINALIZA EL PROGRAMA EN CASO DE QUE FALLE LA INICIALIZACION DEL SERVIDOR
 
-
 	enviar_gets(objetivos_globales); // ENVIO MENSAJES GET_POKEMON AL BROKER.
 
 	pthread_create(&hilo_pasar_a_ready,NULL,(void*) pasar_a_ready, NULL);
@@ -35,18 +34,17 @@ int main()
 	pthread_detach(hilo_recibir_caught);
 	pthread_join(hilo_deadlock, NULL);
 
-	//sem_wait(&entrenadoresSatisfechos);
-
+	close(socket_escucha);
 	liberar_recursos(); //Finalizo el programa
 
-	return 0;
+	return(0);
 }
 
 t_config* leer_config(){
 	t_config* config_team = config_create(PATH_CONFIG);
 	if(config_team == NULL){
 		printf("Error abriendo el archivo de configuración\n");
-		exit(-1);
+		return config_team;
 	} else {
 		printf("Archivo de configuracion leido.\n");
 		return config_team;
@@ -92,11 +90,11 @@ void inicializarVariables(){
 	pthread_mutex_init(&mutexEstadoReady, NULL);
 	pthread_mutex_init(&mutexEstadoExit, NULL);
 	pthread_mutex_init(&mutexIdsEnviados, NULL);
+	pthread_mutex_init(&mutexHayEntrenadorProcesando, NULL);
 	pthread_mutex_init(&mutexPokemonsRecibidos, NULL);
 	pthread_mutex_init(&mutexPokemonsRecibidosHistoricos, NULL);
 	pthread_mutex_init(&mutexLog, NULL);
 	pthread_mutex_init(&mutexLogEntrenador, NULL);
-	pthread_mutex_init(&mutexHayEntrenadorProcesando, NULL);
 	sem_init(&semCaught, 0, 1);
 	sem_init(&semLocalized, 0, 1);
 	sem_init(&semAppeared, 0, 1);
@@ -113,6 +111,8 @@ void inicializarVariables(){
 	PUERTO = config_get_string_value(config, "PUERTO_TEAM");
 
 	estado_new = crearListaDeEntrenadores(posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
+
+	list_iterate(estado_new,mostrarEntrenador);
 	pokemons_objetivos = crearListaPokesObjetivos(estado_new);
 	objetivos_globales = crearListaObjetivoGlobal(pokemons_objetivos);
 	objetivos_posta = crearListaObjetivosPosta(objetivos_globales, estado_new);
@@ -127,10 +127,10 @@ void liberarVariables()
 	list_destroy_and_destroy_elements(pokemons_objetivos, free);
 	list_destroy_and_destroy_elements(objetivos_globales,liberarEspecie);
 	list_destroy(estado_bloqueado);
-	list_destroy(estado_ready);
 	list_destroy(estado_new);
-	list_destroy_and_destroy_elements(estado_exit,liberarEntrenador);
+	list_destroy(estado_exit);
 	list_destroy_and_destroy_elements(pokemons_recibidos_historicos,liberarPokemon);
+	list_destroy_and_destroy_elements(pokemons_recibidos,liberarPokemon);
 	list_destroy_and_destroy_elements(ids_enviados,free);
 	pthread_mutex_destroy(&mutexCiclosConsumidos);
 	pthread_mutex_destroy(&mutexEstadoBloqueado);
@@ -147,8 +147,4 @@ void liberarVariables()
 	sem_destroy(&semAppeared);
 	sem_destroy(&semCaught);
 	sem_destroy(&semLocalized);
-}
-
-void mostrar_ids(void* id){
-	printf("ID %d\n",*(int*)id);
 }

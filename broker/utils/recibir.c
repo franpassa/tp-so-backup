@@ -37,8 +37,8 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 
 		paquete->buffer->stream = malloc(paquete->buffer->size);
 		recv(*socket_escucha, paquete->buffer->stream, paquete->buffer->size, MSG_WAITALL);
-		void* msg = paquete->buffer->stream;
 
+		void* msg = deserializar_buffer(id_cola,paquete->buffer);
 		int id_mens_en_cola = revisar_si_mensaje_no_estaba_en_cola(id_cola, msg);
 		if (id_mens_en_cola == 0){ // Si es 0 no esta en la cola el msg
 
@@ -74,7 +74,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 
 	}
 	list_remove_and_destroy_element(sockets_productores,0,free);
-	free_paquete(paquete);
+	//free_paquete(paquete);
 }
 
 
@@ -121,16 +121,14 @@ uint32_t crear_nuevo_id(){
 
 void agregar_a_cola(uint32_t id_cola, uint32_t size, void* mensaje, uint32_t id_mensaje){
 
-
 	t_info_mensaje* info_msg = malloc(sizeof(t_info_mensaje));
 	info_msg->id = id_mensaje;
 	info_msg->quienes_lo_recibieron = list_create();
 	info_msg->a_quienes_fue_enviado = list_create();
 
-	almacenar(mensaje,id_cola,id_mensaje,size);
+    almacenar(mensaje,id_cola,id_mensaje,size);
 
-	t_cola_de_mensajes* nombre_cola = int_a_nombre_cola(id_cola);
-	queue_push(nombre_cola->cola, info_msg);
+	queue_push(int_a_nombre_cola(id_cola)->cola, info_msg);
 
 }
 

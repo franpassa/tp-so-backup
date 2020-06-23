@@ -1,4 +1,4 @@
-#include "../utils/game_card.h"
+#include "gamecard.h"
 
 t_config* get_config(char* config_path){
 	t_config* mi_config = config_create(config_path);
@@ -48,4 +48,16 @@ char* list_to_string(t_list* list){
 	char* string_trimmed = string_substring_until(string, string_length(string)-1);
 	free(string);
 	return string_trimmed;
+}
+
+char* get_file_as_text(char* file_path){
+	FILE* f = fopen(file_path, "r");
+
+	int file_size = get_file_size(f);
+	char* file_text = malloc(file_size + 1);
+	fread(file_text, file_size, 1, f);
+	fclose(f);
+	file_text[file_size] = '\0';
+
+	return file_text;
 }
