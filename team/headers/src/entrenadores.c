@@ -299,6 +299,54 @@ void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,ui
     moverEntrenadorX(unEntrenador,posX,retardoCpu);
     moverEntrenadorY(unEntrenador,posY,retardoCpu);
 }
+void moverEntrenadorQuantum(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu, uint32_t quantum)
+{
+	if(quantum == -1)
+	{
+		moverEntrenador(unEntrenador,posX,posY,retardoCpu);
+	}
+	else
+	{
+		while(quantum > 0)
+			{
+				if(posX != unEntrenador->posicionX)
+				{
+					uint32_t posParcial ;
+					if(posX > unEntrenador->posicionX)
+					{
+						posParcial = unEntrenador->posicionX +1;
+					}
+					else
+					{
+						posParcial = unEntrenador->posicionX -1;
+					}
+					moverEntrenadorX(unEntrenador,posParcial,retardoCpu);
+					quantum --;
+
+				}
+				else
+				{
+					if(posY != unEntrenador->posicionY)
+					{
+						uint32_t posParcial2;
+						if(posY > unEntrenador->posicionY)
+						{
+							posParcial2 = unEntrenador->posicionY +1;
+						}
+						else
+						{
+							posParcial2 = unEntrenador->posicionY -1;
+						}
+
+						moverEntrenadorY(unEntrenador,posParcial2,retardoCpu);
+						quantum --;
+					}
+					break;
+
+				}
+			}
+	}
+}
 
 t_list* pokemonesAlPedo(t_entrenador* unEntrenador)
 {

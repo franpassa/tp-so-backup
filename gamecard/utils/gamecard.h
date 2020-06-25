@@ -97,8 +97,9 @@ int create_bitmap(int cantidad_bloques);
 int create_blocks(int cantidad);
 t_bitarray* read_bitmap(long* size_in_bytes);
 void print_bitarray(t_bitarray* bitarray);
-void set_bit(int index, bool value);
-int get_free_block();
+int reservar_bloque();
+void liberar_bloque();
+int get_bitmap_free_block();
 char* get_block_path(int block);
 void free_fspaths(t_fspaths* paths);
 int write_blocks(char* contenido_bloques, t_list* blocks);
@@ -108,6 +109,9 @@ void eliminar_files();
 char* get_blocks_content(t_list* blocks);
 t_list* string_to_coordenadas(char* string_coordenadas);
 t_list* escribir_en_filesystem(t_pokemon pokemon, t_list* lista_bloques, uint32_t *bytes_escritos);
+t_list* get_pokemon_blocks(char* nombre_pokemon);
+int agregar_posicion_pokemon(t_pokemon pokemon);
+void obtener_bloques_necesarios(t_list* bloques_actuales, t_list* coordenadas);
 
 // --- Pokemons ---
 t_coordenada init_coordenada(uint32_t x, uint32_t y, uint32_t cantidad);
@@ -118,6 +122,12 @@ t_list* escribir_en_bloques(t_pokemon pokemon, t_list* lista_bloques, uint32_t *
 int crear_pokemon(t_pokemon pokemon);
 char* get_pokemon_path(char* nombre);
 bool existe_pokemon(char* nombre_pokemon);
+<<<<<<< HEAD
+void toggle_open_flag(char* nombre_pokemon);
+bool is_file_open(char* nombre_pokemon);
+char* get_metadata_path(char* nombre_pokemon);
+=======
+>>>>>>> 3359a0a753f58b7c9f663f025c406e2eacf80a80
 
 // --- Coordenadas ---
 t_coordenada string_to_coordenada(char* string_coordenada);

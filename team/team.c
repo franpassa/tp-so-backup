@@ -109,6 +109,7 @@ void inicializarVariables(){
 	tiempo_reconexion = config_get_int_value(config, "TIEMPO_RECONEXION");
 	IP = config_get_string_value(config, "IP_TEAM");
 	PUERTO = config_get_string_value(config, "PUERTO_TEAM");
+	QUANTUM = config_get_int_value(config,"QUANTUM");
 
 	estado_new = crearListaDeEntrenadores(posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
 

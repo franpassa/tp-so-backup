@@ -2,7 +2,6 @@
 
 t_coordenada string_to_coordenada(char* string_coordenada){
 	uint32_t x, y, cantidad;
-	int largo_string = string_length(string_coordenada);
 	char* template_scan = string_duplicate("%d-%d=%d");
 
 	sscanf(string_coordenada, template_scan, &x, &y, &cantidad);
@@ -27,13 +26,20 @@ t_list* string_to_coordenadas(char* string_coordenadas){
 	return coordenadas;
 }
 
+char* coordenada_to_string(t_coordenada coordenada){
+	char* string_coordenada = string_new();
+	string_append_with_format(&string_coordenada, "%d-%d=%d", coordenada.x, coordenada.y, coordenada.cantidad);
+
+	return string_coordenada;
+}
+
 char* coordenadas_to_string(t_list* coordenadas){
 	char* coordenadas_string = string_new();
 	int coordenadas_size = list_size(coordenadas);
 
 	for(int i = 0; i < coordenadas_size; i++){
 		t_coordenada* coordenada = list_get(coordenadas, i);
-		string_append_with_format(&coordenadas_string, "%d-%d=%d\n", coordenada->x, coordenada->y, coordenada->cantidad);
+		string_append_with_format(&coordenadas_string, "%s\n", coordenada_to_string(*coordenada));
 	}
 	int largo_string = string_length(coordenadas_string);
 	coordenadas_string[largo_string-1] = '\0'; // Saco el último \n
@@ -41,7 +47,7 @@ char* coordenadas_to_string(t_list* coordenadas){
 	return coordenadas_string;
 }
 
-// Si ya existe en la lista le suma 1 a cantidad, si no lo agrega.
+// Si ya existe en la lista le suma la cantidad, si no lo crea y lo agrega.
 void add_coordenada(t_list* lista_coordenadas, t_coordenada coordenada){
 
 	bool es_la_misma(t_coordenada* coordenada_en_lista){
@@ -50,10 +56,10 @@ void add_coordenada(t_list* lista_coordenadas, t_coordenada coordenada){
 		return mismaX && mismaY;
 	}
 
-	t_coordenada* misma_coordenada = (t_coordenada*) list_find(lista_coordenadas, es_la_misma);
+	t_coordenada* misma_coordenada = (t_coordenada*) list_find(lista_coordenadas, (void*) es_la_misma);
 
 	if(misma_coordenada != NULL){
-		misma_coordenada->cantidad++;
+		misma_coordenada->cantidad += coordenada.cantidad;
 	} else {
 		t_coordenada* nueva_coordenada = malloc(sizeof(t_coordenada));
 		*nueva_coordenada = coordenada;
@@ -69,5 +75,5 @@ t_coordenada* find_coordenada(t_list* lista_coordenadas, t_coordenada coordenada
 		return mismaX && mismaY;
 	}
 
-	return (t_coordenada*) list_find(lista_coordenadas, es_la_misma);
+	return (t_coordenada*) list_find(lista_coordenadas, (void*) es_la_misma);
 }

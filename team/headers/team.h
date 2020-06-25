@@ -44,6 +44,7 @@ char** pokesEntrenadores;
 char** pokesObjetivos;
 char* ALGORITMO;
 int retardoCpu;
+int QUANTUM;
 int tiempo_reconexion;
 int socket_caught;
 int socket_localized;
