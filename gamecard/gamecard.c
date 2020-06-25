@@ -22,22 +22,20 @@ void terminar(){
 	free_fspaths(fspaths);
 }
 
-void print_string(char* string){
-	printf("%s\n", string);
+void print_int(int* string){
+	printf("%d\n", *string);
 }
 
 int main(){
 
 	inicializar();
+	t_pokemon pikachu = init_pokemon("pikachu", 10, 56, 10000); // REVISAR ESPACIO EN BLANCO EN BLOQUE 3
 
-	/*pthread_create(&hilo_gameboy, NULL, (void*) escuchar_gameboy, NULL);
-	pthread_join(hilo_gameboy, NULL);*/
-//	t_list* bloques = list_create();
-//	agregar_a_lista(bloques, 0);
-//	agregar_a_lista(bloques, 1);
-//	agregar_a_lista(bloques, 2);
-//	char* contenido = get_blocks_content(bloques);
-//	t_list* lista_coordenadas = string_to_coordenadas(contenido);
+	if(existe_pokemon(pikachu.nombre)){
+		int bytes_escritos = agregar_posicion_pokemon(pikachu);
+	} else {
+		crear_pokemon(pikachu);
+	}
 
 	terminar();
 	return EXIT_SUCCESS;
