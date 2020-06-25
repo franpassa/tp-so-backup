@@ -28,6 +28,7 @@ void inicializar_memoria() {
 void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t size){
 
 	entra = -1;
+	tamanio_a_ocupar = size;
 
 	if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"PARTICIONES")){
 
@@ -62,6 +63,9 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 
 	} else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"BS")) {
 
+		buscar_particion_en_bs();
+		// Idem que en particiones pero quiero verificarlo que hay cosas que no me cierran  :)
+
 		}else{
 			printf("Error en broker.config ALGORITMO_MEMORIA no valido");
 		}
@@ -78,6 +82,89 @@ t_struct_secundaria* duplicar_estructura(t_struct_secundaria* estructura){
 }
 
 
+void buscar_particion_en_bs() {
+	t_struct_secundaria* particion;
+	flag = 0;
+	int encontro_particion = 1;
+	if (string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_PARTICION_LIBRE"),"FF")) {
+		for (int i = 0; i < list_size(estructuras_secundarias); i++) {
+			particion = list_get(estructuras_secundarias, i);
+			if (particion->tipo_mensaje == 6) {
+				flag++;
+				while (particion->tamanio >= tamanio_a_ocupar && encontro_particion != 0) {
+					if (particion->tamanio / 2 > tamanio_a_ocupar) {
+						t_struct_secundaria* particion_nueva = duplicar_estructura(particion);
+						particion->tamanio = particion->tamanio / 2;
+						particion_nueva->tamanio = particion->tamanio / 2;
+						list_add_in_index(estructuras_secundarias, i + 1, particion_nueva);
+					} else {
+						encontro_particion = 0;
+						entra = i;
+						break; // para que no siga recorriendo el for.
+					}
+				}
+			}
+		}
+		if (entra == -1) {
+			if (flag > 1) {
+				consolidar_particiones_en_bs();
+			} else {
+				paso_3();
+			}
+		}
+
+	} else if(string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_PARTICION_LIBRE"),"BF")){
+		int sobra;
+		int sobra_menor = tamanio_memoria;
+		for (int i = 0; i < list_size(estructuras_secundarias); i++) {
+			particion = list_get(estructuras_secundarias, i);
+			if (particion->tipo_mensaje == 6) {
+				flag++;
+				if (particion->tamanio >= tamanio_a_ocupar) {
+					sobra = (particion->tamanio - tamanio_a_ocupar);
+					if (sobra < sobra_menor) {
+						sobra_menor = sobra;
+						entra = i;
+					}
+				}
+			}
+		}
+		// termina de recorrer la lista, encuentra la particion mediante "BF" y luego hace bs para asignarle el tamanio justo a "entra"
+		particion = list_get(estructuras_secundarias, entra);
+		while (particion->tamanio >= tamanio_a_ocupar && encontro_particion != 0) {
+			if (particion->tamanio / 2 > tamanio_a_ocupar) {
+				t_struct_secundaria* particion_nueva = duplicar_estructura(particion);
+				particion->tamanio = particion->tamanio / 2;
+				particion_nueva->tamanio = particion->tamanio / 2;
+				list_add_in_index(estructuras_secundarias, entra + 1, particion_nueva);
+			} else {
+				encontro_particion = 0;
+			}
+		}
+
+		if (entra == -1) {
+			if (flag > 1) {
+				consolidar_particiones_en_bs();
+			} else {
+				paso_3();
+			}
+		}
+	}
+}
+
+void consolidar_particiones_en_bs(){
+	t_struct_secundaria* particion;
+	t_struct_secundaria* particion_siguiente;
+	for (int i = 0; i < list_size(estructuras_secundarias); i+=2) { // recorre cada 2 elementos ya que son buddys
+		particion = list_get(estructuras_secundarias, i);
+		particion_siguiente = list_get(estructuras_secundarias, i+1);
+		if(particion->tipo_mensaje == 6 && particion_siguiente->tipo_mensaje == 6 && particion->tamanio == particion_siguiente->tamanio){
+			particion->tamanio += particion_siguiente->tamanio;
+			list_remove_and_destroy_element(estructuras_secundarias,(i+1),free); // elimino la siguiente particion y le sumo a la anterior el tamanio de la primera
+		}
+	}
+}
+
 void paso_1(){
 	t_struct_secundaria* nueva_est;
 
@@ -88,7 +175,7 @@ void paso_1(){
 			if (nueva_est->tipo_mensaje == 6){
 				flag ++;
 				if(nueva_est->tamanio >= tamanio_a_ocupar ){
-					entra = i;
+					entra = i; // Si encuentra mas de un lugar, 0, 2, 3, entonces entra = 3, no deberia ser entra= 0?
 				}
 			}
 		}
@@ -109,7 +196,7 @@ void paso_1(){
 				flag ++;
 				if(nueva_est->tamanio >= tamanio_a_ocupar ){
 					sobra = (nueva_est->tamanio - tamanio_a_ocupar);
-					if (sobra<sobra_menor){
+					if (sobra < sobra_menor){
 						sobra_menor = sobra;
 						entra = i;
 					}
@@ -134,7 +221,7 @@ void paso_2(){
 	int tamanio_lista_actual = list_size(estructuras_secundarias);
 	for (int i = 0; i < tamanio_lista_actual; i++ ){
 		estructura = list_get(estructuras_secundarias,i);
-		if (estructura->tipo_mensaje == 6 && i < list_size(estructuras_secundarias)){ // ver esta duda
+		if (estructura->tipo_mensaje == 6 && i < list_size(estructuras_secundarias)){
 			estructura2 = list_get(estructuras_secundarias,(i+1));
 			if(estructura2->tipo_mensaje == 6){
 				estructura->tamanio += estructura2->tamanio;
@@ -208,7 +295,14 @@ void paso_3(){
 	} else {
 	printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 	}
-	paso_1();
+
+	if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"PARTCIONES")){
+		paso_1();
+	} else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"BS")){
+		buscar_particion_en_bs();
+	} else{
+		printf("Error en broker.config ALGORITMO_MEMORIA no valido");
+	}
 }
 
 int cont_orden_f(){
