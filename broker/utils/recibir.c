@@ -40,6 +40,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 
 		void* msg = deserializar_buffer(id_cola,paquete->buffer);
 		int id_mens_en_cola = revisar_si_mensaje_no_estaba_en_cola(id_cola, msg);
+
 		if (id_mens_en_cola == 0){ // Si es 0 no esta en la cola el msg
 
 			pthread_mutex_lock(&semaforo_id);

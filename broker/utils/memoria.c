@@ -60,11 +60,11 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
         memmove(memoria + est_a_utilizar->bit_inicio, mensaje, size); // esto tambien (nunca empezas desde la posicion 0 de la memoria)
 
 
-	} /*else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"BS")) {
+	} else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"BS")) {
 
 		}else{
 			printf("Error en broker.config ALGORITMO_MEMORIA no valido");
-		}*/
+		}
 }
 
 t_struct_secundaria* duplicar_estructura(t_struct_secundaria* estructura){
