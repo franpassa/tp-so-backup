@@ -201,9 +201,9 @@ void print_mensaje_de_cola(t_info_mensaje* mensaje){
 
 	uint32_t id_cola = de_id_mensaje_a_cola(id_mensaje);
 
-	void* msg = de_id_mensaje_a_mensaje(id_mensaje); // Problema aca y abajo
+	void* msg = de_id_mensaje_a_mensaje(id_mensaje);
 
-	print_msg(id_cola, msg); // esta rompiendo aca, ver retorno de msg
+	print_msg(id_cola, msg);
 
 
 	list_iterate(mensaje->a_quienes_fue_enviado,print_list_sockets_de_un_mensaje);

@@ -43,11 +43,16 @@ t_list* insertarPokesEntrenador(uint32_t nroEntrenador, t_list* pokemons, char**
 	  }
 	}
 
+	uint32_t tamanio = 0;
+	for(tamanio=0; pokesEntrenadores[tamanio]!=NULL;tamanio++){}
+
 	if(pokesEntrenadores[nroEntrenador] == NULL || string_is_empty(pokesEntrenadores[nroEntrenador])){
 		a_agregar = string_new();
 	} else {
 		a_agregar = pokesEntrenadores[nroEntrenador];
 	}
+
+
 
 	char** pokes = string_split(a_agregar,"|");
 
@@ -154,26 +159,22 @@ void setearEnCeroEntrenador (t_entrenador* unEntrenador)
 t_pokemon*  pokemonMasCercano (t_entrenador* unEntrenador, t_list* pokemons)
 {
 	t_pokemon* pokemonFlag = malloc(sizeof(t_pokemon));
-	pthread_mutex_lock(&mutexPokemonsRecibidos);
 	igualarPokemons(pokemonFlag,list_get(pokemons,0));
-	pthread_mutex_unlock(&mutexPokemonsRecibidos);
 
-	uint32_t distanciaDelPrimero = distanciaEntrenadorPokemon(unEntrenador->posicionX,unEntrenador->posicionY,pokemonFlag->posicionX,pokemonFlag->posicionY);
-
-	void elMasCercano(t_pokemon* pokemon){
-
-		uint32_t distanciaTemporal = distanciaEntrenadorPokemon(unEntrenador->posicionX,unEntrenador->posicionY,pokemon->posicionX,pokemon->posicionY);
-
-		if(distanciaTemporal<distanciaDelPrimero){
-			pthread_mutex_lock(&mutexPokemonsRecibidos);
-			igualarPokemons(pokemonFlag,pokemon);
-			pthread_mutex_unlock(&mutexPokemonsRecibidos);
-			distanciaDelPrimero = distanciaTemporal;
+	for(int i = 0; i < (list_size(pokemons)-1); i++)
+	{
+		t_pokemon* pokemonTemporal = list_get(pokemons,i+1);
+		uint32_t distanciaA = distanciaEntrenadorPokemon(unEntrenador->posicionX,unEntrenador->posicionY,pokemonFlag->posicionX,pokemonFlag->posicionY);
+		uint32_t distanciaB = distanciaEntrenadorPokemon(unEntrenador->posicionX,unEntrenador->posicionY,pokemonTemporal->posicionX,pokemonFlag->posicionY);
+		if(distanciaA < distanciaB)
+		{
+			igualarPokemons(pokemonFlag,pokemonFlag);
+		}
+		else
+		{
+			igualarPokemons(pokemonFlag,pokemonTemporal);
 		}
 	}
-
-	list_iterate(pokemons,(void*) elMasCercano);
-
 	return pokemonFlag;
 }
 
@@ -181,25 +182,30 @@ t_entrenador* entrenadorAReady(t_list* listaEntrenadores, t_list* listaPokemons)
 {
 	t_entrenador* entrenadorFlag = malloc(sizeof(t_entrenador));
 	igualarEntrenador(entrenadorFlag,list_get(listaEntrenadores,0));
-	t_pokemon* pokemonFlag = pokemonMasCercano(entrenadorFlag,listaPokemons);
-	entrenadorFlag->pokemonAMoverse = pokemonFlag;
 
-	uint32_t distanciaFlag = distanciaEntrenadorPokemon(entrenadorFlag->posicionX,entrenadorFlag->posicionY,pokemonFlag->posicionX,pokemonFlag->posicionY);
+	if(list_size(listaEntrenadores) < 2){
+		entrenadorFlag->pokemonAMoverse = pokemonMasCercano(entrenadorFlag,listaPokemons);
+	}else{
+		for(int i =  0; i < (list_size(listaEntrenadores)-1); i++)
+		{
+			t_entrenador* entrenadorTemporal = list_get(listaEntrenadores,i+1);
+			t_pokemon* pokemonParcialFlag = pokemonMasCercano(entrenadorFlag,listaPokemons);
+			uint32_t distanciaFlag = distanciaEntrenadorPokemon(entrenadorFlag->posicionX,entrenadorFlag->posicionY,pokemonParcialFlag->posicionX,pokemonParcialFlag->posicionY);
+			t_pokemon* pokemonEntrenadorTemporal= pokemonMasCercano(entrenadorTemporal,listaPokemons);
+			uint32_t distanciaTemporal = distanciaEntrenadorPokemon(entrenadorTemporal->posicionX,entrenadorTemporal->posicionY,pokemonEntrenadorTemporal->posicionX,pokemonEntrenadorTemporal->posicionY);
 
-	void procesarEntrenador(t_entrenador* unEntrenador){
-
-		t_pokemon* pokemonTemporal = pokemonMasCercano(unEntrenador,listaPokemons);
-		unEntrenador->pokemonAMoverse = pokemonTemporal;
-		uint32_t distanciaTemporal = distanciaEntrenadorPokemon(unEntrenador->posicionX,unEntrenador->posicionY,pokemonTemporal->posicionX,pokemonTemporal->posicionY);
-
-		if(distanciaTemporal<distanciaFlag){
-			igualarEntrenador(entrenadorFlag,unEntrenador);
-			distanciaFlag = distanciaTemporal;
+			if(distanciaFlag > distanciaTemporal)
+			{
+				igualarEntrenador(entrenadorFlag,entrenadorTemporal);
+				entrenadorFlag->pokemonAMoverse = pokemonParcialFlag;
+			}
+			else
+			{
+				igualarEntrenador(entrenadorFlag,entrenadorFlag);
+				entrenadorFlag->pokemonAMoverse = pokemonEntrenadorTemporal;
+			}
 		}
 	}
-
-	list_iterate(listaEntrenadores,(void*) procesarEntrenador);
-
 
 	return entrenadorFlag;
 }
@@ -216,12 +222,8 @@ bool bloqueadoPorDeadlock(t_entrenador* unEntrenador)
 
 t_list* todosLosEntrenadoresAPlanificar()
 {
-	pthread_mutex_lock(&mutexEstadoBloqueado);
 	t_list* temporal = list_filter(estado_bloqueado,bloqueadoPorNada);
-	pthread_mutex_unlock(&mutexEstadoBloqueado);
-	pthread_mutex_lock(&mutexEstadoNew);
 	list_add_all(temporal,estado_new);
-	pthread_mutex_unlock(&mutexEstadoNew);
 
 	return temporal;
 }

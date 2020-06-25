@@ -1,20 +1,18 @@
 #include "utils/gamecard.h"
 
-void asignar_globales(){
-	config = get_config(CONFIG_PATH);
-	logger = crear_log(LOG_PATH);
-	pthread_mutex_init(&mutex_bitmap, NULL);
-}
-
 void inicializar(){
 
-	asignar_globales();
+
 	char* punto_montaje = config_get_string_value(config, "PUNTO_MONTAJE_TALLGRASS");
 	fspaths = init_fspaths(punto_montaje);
 	init_fs();
 }
 
-
+void asignar_globales(){
+	config = get_config(CONFIG_PATH);
+	logger = crear_log(LOG_PATH);
+	pthread_mutex_init(&mutex_bitmap, NULL);
+}
 
 void terminar(){
 	log_destroy(logger);

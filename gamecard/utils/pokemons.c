@@ -103,22 +103,12 @@ int crear_pokemon(t_pokemon pokemon){
 	return 0;
 }
 
-void toggle_open_flag(char* nombre_pokemon){
-	char* path_metadata = get_pokemon_path(nombre_pokemon);
-	string_append(&path_metadata, "/Metadata.bin");
-	t_config* metadata_config = config_create(path_metadata);
-	if(metadata_config != NULL){
-		char* open_status = config_get_string_value(metadata_config, "OPEN");
+char* get_last(char** array){
+	int index = 0;
+	while(array[index] != NULL) index++;
 
-		if(open_status[0] == 'N'){
-			config_set_value(metadata_config, "OPEN", "Y");
-		} else {
-			config_set_value(metadata_config, "OPEN", "N");
-		}
-		config_save(metadata_config);
-		config_destroy(metadata_config);
-	}
-	free(path_metadata);
+	char* elemento = array[index-1];
+	return elemento;
 }
 
 bool is_file_open(char* nombre_pokemon){

@@ -119,6 +119,7 @@ int create_bitmap(int cantidad_bloques){
 	return 0;
 }
 
+<<<<<<< HEAD
 int reservar_bloque(){
 	pthread_mutex_lock(&mutex_bitmap);
 	int bitmap_fd = open(fspaths->bitmap_file, O_RDWR, S_IRUSR | S_IWUSR);
@@ -150,6 +151,34 @@ void liberar_bloque(int bit_index){
 	pthread_mutex_lock(&mutex_bitmap);
 	int bitmap_fd = open(fspaths->bitmap_file, O_RDWR, S_IRUSR | S_IWUSR);
 	struct stat sb;
+=======
+// Esta función es una obra de arte
+void set_bit(int index, bool value){ // Revisar mmap
+	FILE* bitmap_file = fopen(fspaths->bitmap_file, "rb+");
+
+	div_t division = div(index, 8); // Divido el indice del bit por la cantidad de bits en un byte para obtener el byte y la posición del bit dentro de ese (cociente y resto).
+	char* byte = calloc(1, sizeof(char));
+	fseek(bitmap_file, division.quot, SEEK_SET); // Posiciono el puntero del bitmap a la posicion del byte que me interesa
+	fread(byte, sizeof(char), 1, bitmap_file); // Leo ese byte
+	t_bitarray* mini_bitarray = bitarray_create_with_mode(byte, sizeof(char), LSB_FIRST); // Creo un bitarray para poder modificar el bit
+	if(value){
+		bitarray_set_bit(mini_bitarray, division.rem); // Seteo o limpio el bit de interés
+	} else {
+		bitarray_clean_bit(mini_bitarray, division.rem);
+	}
+	fseek(bitmap_file, -1, SEEK_CUR); // Vuelvo un byte atrás para escribir el archivo
+	fwrite(byte, sizeof(char), 1, bitmap_file); // Reescribo el byte con un bit modificado
+
+	fclose(bitmap_file);
+	free(byte);
+	bitarray_destroy(mini_bitarray);
+}
+
+int get_free_block(){
+	long file_size;
+	t_bitarray* bitarray = read_bitmap(&file_size);
+	long bits_in_file = file_size * 8;
+>>>>>>> 3359a0a753f58b7c9f663f025c406e2eacf80a80
 
 	if(fstat(bitmap_fd, &sb) != -1){
 		char* mapped_bitmap = mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, bitmap_fd, 0);
