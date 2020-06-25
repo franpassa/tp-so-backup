@@ -294,57 +294,56 @@ void moverEntrenadorY(t_entrenador* unEntrenador, uint32_t posY,uint32_t retardo
     }
 }
 
-void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu)
+void moverSinDesalojar(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu)
 {
     moverEntrenadorX(unEntrenador,posX,retardoCpu);
     moverEntrenadorY(unEntrenador,posY,retardoCpu);
 }
-void moverEntrenadorQuantum(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu, uint32_t quantum)
-{
-	if(quantum == -1)
-	{
-		moverEntrenador(unEntrenador,posX,posY,retardoCpu);
-	}
-	else
-	{
-		while(quantum > 0)
-			{
-				if(posX != unEntrenador->posicionX)
-				{
-					uint32_t posParcial ;
-					if(posX > unEntrenador->posicionX)
-					{
-						posParcial = unEntrenador->posicionX +1;
-					}
-					else
-					{
-						posParcial = unEntrenador->posicionX -1;
-					}
-					moverEntrenadorX(unEntrenador,posParcial,retardoCpu);
-					quantum --;
 
-				}
-				else
-				{
-					if(posY != unEntrenador->posicionY)
-					{
-						uint32_t posParcial2;
-						if(posY > unEntrenador->posicionY)
-						{
-							posParcial2 = unEntrenador->posicionY +1;
-						}
-						else
-						{
-							posParcial2 = unEntrenador->posicionY -1;
-						}
+void moverConDesalojoPorRR(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu,uint32_t quantum){
 
-						moverEntrenadorY(unEntrenador,posParcial2,retardoCpu);
-						quantum --;
-					}
-					break;
+	while(quantum > 0){
+		if(posX != unEntrenador->posicionX){
 
-				}
+			uint32_t posParcial ;
+
+			if(posX > unEntrenador->posicionX){
+				posParcial = unEntrenador->posicionX +1;
+			} else {
+				posParcial = unEntrenador->posicionX -1;
 			}
+			moverEntrenadorX(unEntrenador,posParcial,retardoCpu);
+			quantum --;
+		} else {
+			if(posY != unEntrenador->posicionY){
+
+				uint32_t posParcial2;
+
+				if(posY > unEntrenador->posicionY){
+					posParcial2 = unEntrenador->posicionY +1;
+				} else {
+					posParcial2 = unEntrenador->posicionY -1;
+				}
+
+				moverEntrenadorY(unEntrenador,posParcial2,retardoCpu);
+				quantum --;
+			}
+
+			break;
+		}
+	}
+}
+
+void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu)
+{
+	if(string_equals_ignore_case(ALGORITMO,"FIFO"))
+	{
+		moverSinDesalojar(unEntrenador,posX,posY,retardoCpu);
+	}
+
+	if(string_equals_ignore_case(ALGORITMO,"RR")){
+
+		moverConDesalojoPorRR(unEntrenador,posX,posY,retardoCpu,QUANTUM);
 	}
 }
 
