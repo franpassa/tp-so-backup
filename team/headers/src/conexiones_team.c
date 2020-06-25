@@ -1,46 +1,58 @@
 #include "../conexiones_team.h"
 
+void cambiarAExit(t_entrenador* entrenador)
+{
+	entrenador->pokemonAMoverse = NULL;
+	entrenador->motivoBloqueo = ESTADO_EXIT;
+	pthread_mutex_lock(&mutexEstadoExit);
+	list_add(estado_exit,entrenador);
+	pthread_mutex_unlock(&mutexEstadoExit);
+	log_info(logger,"Cambio del entrenador %d a la cola EXIT.",entrenador->idEntrenador);
+}
+void cambiarABlockNada(t_entrenador* entrenador)
+{
+	entrenador->motivoBloqueo = MOTIVO_NADA;
+	pthread_mutex_lock(&mutexEstadoBloqueado);
+	list_add(estado_bloqueado,entrenador);
+	pthread_mutex_unlock(&mutexEstadoBloqueado);
+	log_info(logger,"Cambio del entrenador %d a la cola BLOQUEADO, no tiene NADA que hacer.",entrenador->idEntrenador);
+}
+void cambiarABlockDeadlock(t_entrenador* entrenador)
+{
+	entrenador->motivoBloqueo = ESPERA_DEADLOCK;
+	pthread_mutex_lock(&mutexEstadoBloqueado);
+	list_add(estado_bloqueado,entrenador);
+	pthread_mutex_unlock(&mutexEstadoBloqueado);
+	log_info(logger,"Cambio del entrenador %d a la cola BLOQUEADO, esperando DEADLOCK.",entrenador->idEntrenador);
+}
+
 void cambiarEstado(t_entrenador* entrenador){
 	//CAMBIA EL ENTRENADOR A EXIT O BLOQUEADO
-	if(puedeAtrapar(entrenador)){
+	if(puedeAtrapar(entrenador))
+	{
 		list_add(entrenador->pokesAtrapados,(entrenador->pokemonAMoverse)->nombre);
 		entrenador->pokemonAMoverse = NULL;
 
-		if(sonIguales(entrenador->pokesObjetivos,entrenador->pokesAtrapados)){
-			entrenador->pokemonAMoverse = NULL;
-			entrenador->motivoBloqueo = ESTADO_EXIT;
-			pthread_mutex_lock(&mutexEstadoExit);
-			list_add(estado_exit,entrenador);
-			pthread_mutex_unlock(&mutexEstadoExit);
-			log_info(logger,"Cambio del entrenador %d a la cola EXIT.",entrenador->idEntrenador);
+		if(sonIguales(entrenador->pokesObjetivos,entrenador->pokesAtrapados))
+		{
+			cambiarAExit(entrenador);
 		}
-		else if (list_size(entrenador->pokesObjetivos) != list_size(entrenador->pokesAtrapados)){
-			entrenador->motivoBloqueo = MOTIVO_NADA;
-			pthread_mutex_lock(&mutexEstadoBloqueado);
-			list_add(estado_bloqueado,entrenador);
-			pthread_mutex_unlock(&mutexEstadoBloqueado);
-			log_info(logger,"Cambio del entrenador %d a la cola BLOQUEADO, no tiene NADA que hacer.",entrenador->idEntrenador);
+		else if (list_size(entrenador->pokesObjetivos) != list_size(entrenador->pokesAtrapados))
+		{
+			cambiarABlockNada(entrenador);
 		}
-		else {
-			entrenador->motivoBloqueo = ESPERA_DEADLOCK;
-			pthread_mutex_lock(&mutexEstadoBloqueado);
-			list_add(estado_bloqueado,entrenador);
-			pthread_mutex_unlock(&mutexEstadoBloqueado);
-			log_info(logger,"Cambio del entrenador %d a la cola BLOQUEADO, esperando DEADLOCK.",entrenador->idEntrenador);
+		else
+		{
+			cambiarABlockDeadlock(entrenador);
 		}
-
-	} else if(sonIguales(entrenador->pokesObjetivos,entrenador->pokesAtrapados)){
-		entrenador->pokemonAMoverse = NULL;
-		entrenador->motivoBloqueo = ESTADO_EXIT;
-		pthread_mutex_lock(&mutexEstadoExit);
-		list_add(estado_exit,entrenador);
-		pthread_mutex_unlock(&mutexEstadoExit);
-		log_info(logger,"Cambio del entrenador %d a la cola EXIT.",entrenador->idEntrenador);
-	} else {
-		entrenador->motivoBloqueo = ESPERA_DEADLOCK;
-		pthread_mutex_lock(&mutexEstadoBloqueado);
-		list_add(estado_bloqueado,entrenador);
-		log_info(logger,"Cambio del entrenador %d a la cola BLOQUEADO, esperando DEADLOCK.",entrenador->idEntrenador);
+	}
+	else if(sonIguales(entrenador->pokesObjetivos,entrenador->pokesAtrapados))
+	{
+		cambiarAExit(entrenador);
+	}
+	else
+	{
+		cambiarABlockDeadlock(entrenador);
 	}
 }
 
@@ -139,8 +151,16 @@ void estado_exec()
 				pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
 
 				if (string_equals_ignore_case(ALGORITMO, "FIFO")){
-
-						algoritmoFifo();
+						planificacion(FIFO);
+				}
+				else if (string_equals_ignore_case(ALGORITMO,"RR")){
+					planificacion(RR);
+				}
+				else if (string_equals_ignore_case(ALGORITMO,"SJFSD")){
+					planificacion(SJFSD);
+				}
+				else{
+					planificacion(SJFCD);
 				}
 
 				pthread_mutex_lock(&mutexHayEntrenadorProcesando);
@@ -151,7 +171,7 @@ void estado_exec()
 	}
 }
 
-void algoritmoFifo()
+void planificacion(algoritmo algoritmo)
 {
 	t_entrenador* entrenador = NULL;
 	pthread_mutex_lock(&mutexEstadoReady);
@@ -162,42 +182,57 @@ void algoritmoFifo()
 
 	if (aMoverse!= NULL && entrenador != NULL)
 	{
-		uint32_t distancia = distanciaEntrenadorPokemon(entrenador->posicionX, entrenador->posicionY,aMoverse->posicionX,aMoverse->posicionY);
-		moverEntrenador(entrenador,aMoverse->posicionX,aMoverse->posicionY,retardoCpu);
-		pthread_mutex_lock(&mutexCiclosConsumidos);
-		ciclosConsumidos += distancia; //ACUMULO LOS CICLOS DE CPU CONSUMIDOS
-		pthread_mutex_unlock(&mutexCiclosConsumidos);
-		pthread_mutex_lock(&mutexLog);
-		log_info(logger,"El entrenador %d TERMINO DE MOVERSE y esta en la posición (%d,%d).",entrenador->idEntrenador,entrenador->posicionX,entrenador->posicionY);
-		pthread_mutex_unlock(&mutexLog);
-
-		//CONEXION AL BROKER Y ENVIO DE MENSAJE CATCH
-		catch_pokemon_msg* mensaje = catch_msg(aMoverse->nombre,aMoverse->posicionX,aMoverse->posicionY);
-		uint32_t* idMensajeExec = malloc(sizeof(int)); // no se libera aca porque se libera cuando liberamos  ids enviados
-		*idMensajeExec = enviar_mensaje(ip_broker,puerto_broker,CATCH_POKEMON,mensaje,0,true);
-		log_info(logger,"El entrenador %d envió el mensaje CATCH_POKEMON %s, en la posición (%d,%d).",entrenador->idEntrenador,aMoverse->nombre,aMoverse->posicionX,aMoverse->posicionY);
-
-		if (*idMensajeExec == -1)
+		//uint32_t distancia = distanciaEntrenadorPokemon(entrenador->posicionX, entrenador->posicionY,aMoverse->posicionX,aMoverse->posicionY);
+		switch(algoritmo)
 		{
-			printf("Falló el envio del mensaje CATCH_POKEMON %s.\n",mensaje->nombre_pokemon);
-			log_error(logger,"ERROR al enviar el mensaje CATCH_POKEMON %s.",mensaje->nombre_pokemon);
-			log_info(logger,"OPERACION DEFAULT: El entrenador %d capturó al pokemon %s.",entrenador->idEntrenador,mensaje->nombre_pokemon);
-			cambiarEstado(entrenador);
-			free(idMensajeExec);
-		} else {
-			printf("Envio mensaje catch %s, posicion: (%d,%d), id: %d.\n",mensaje->nombre_pokemon,mensaje->coordenada_X,mensaje->coordenada_Y,*idMensajeExec);
-			entrenador->idRecibido = *idMensajeExec;
-			entrenador->motivoBloqueo = ESPERA_CAUGHT;
-			list_add(ids_enviados, idMensajeExec);
+			case FIFO:
+			{
+				moverEntrenador(entrenador,aMoverse->posicionX,aMoverse->posicionY,retardoCpu);
+				break;
+			}
+			case RR:
+			{
+				moverEntrenadorQuantum(entrenador,aMoverse->posicionX,aMoverse->posicionY,retardoCpu,QUANTUM);
+				break;
+			}
+			default:
+			{
+				printf("no esta contemplado aun");
+				break;
+			}
 
-			pthread_mutex_lock(&mutexEstadoBloqueado);
-			list_add(estado_bloqueado, entrenador);
-			pthread_mutex_unlock(&mutexEstadoBloqueado);
-			log_info(logger,"Cambio del entrenador %d a la cola BLOQUEADO, esperando respueta del mensaje CATCH.",entrenador->idEntrenador);
 		}
-
+		if(distanciaEntrenadorPokemon(entrenador->posicionX,entrenador->posicionY,entrenador->pokemonAMoverse->posicionX,entrenador->pokemonAMoverse->posicionY) != 0)
+		{
+			list_add(estado_ready,entrenador);
+		}
+		else
+		{
+			//CONEXION AL BROKER Y ENVIO DE MENSAJE CATCH
+			catch_pokemon_msg* mensaje = catch_msg(aMoverse->nombre,aMoverse->posicionX,aMoverse->posicionY);
+			uint32_t* idMensajeExec = malloc(sizeof(int)); // no se libera aca porque se libera cuando liberamos  ids enviados
+			*idMensajeExec = enviar_mensaje(ip_broker,puerto_broker,CATCH_POKEMON,mensaje,0,true);
+			log_info(logger,"El entrenador %d envió el mensaje CATCH_POKEMON %s, en la posición (%d,%d).",entrenador->idEntrenador,aMoverse->nombre,aMoverse->posicionX,aMoverse->posicionY);
+			if (*idMensajeExec == -1)
+			{
+				printf("Falló el envio del mensaje CATCH_POKEMON %s.\n",mensaje->nombre_pokemon);
+				log_error(logger,"ERROR al enviar el mensaje CATCH_POKEMON %s.",mensaje->nombre_pokemon);
+				log_info(logger,"OPERACION DEFAULT: El entrenador %d capturó al pokemon %s.",entrenador->idEntrenador,mensaje->nombre_pokemon);
+				cambiarEstado(entrenador);
+				free(idMensajeExec);
+			} else {
+				printf("Envio mensaje catch %s, posicion: (%d,%d), id: %d.\n",mensaje->nombre_pokemon,mensaje->coordenada_X,mensaje->coordenada_Y,*idMensajeExec);
+				entrenador->idRecibido = *idMensajeExec;
+				entrenador->motivoBloqueo = ESPERA_CAUGHT;
+				list_add(ids_enviados, idMensajeExec);
+				pthread_mutex_lock(&mutexEstadoBloqueado);
+				list_add(estado_bloqueado, entrenador);
+				pthread_mutex_unlock(&mutexEstadoBloqueado);
+				log_info(logger,"Cambio del entrenador %d a la cola BLOQUEADO, esperando respueta del mensaje CATCH.",entrenador->idEntrenador);
+			}
+			free(mensaje);
+		}
 		//free(mensaje->nombre_pokemon);
-		free(mensaje);
 	}
 }
 
