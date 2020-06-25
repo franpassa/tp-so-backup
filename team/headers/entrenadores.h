@@ -33,6 +33,9 @@ t_list* estado_ready;
 
 pthread_mutex_t mutexLogEntrenador;
 
+char* ALGORITMO;
+uint32_t QUANTUM;
+
 // posiciones
 uint32_t posicionXEntrenador(int nroEntrenador, char** posicionesEntrenadores);
 uint32_t posicionYEntrenador(int nroEntrenador, char** posicionesEntrenadores);
@@ -76,7 +79,9 @@ void mostrar_ids(void* id);
 void moverEntrenadorX(t_entrenador* unEntrenador, uint32_t posX,uint32_t retardoCpu);
 void moverEntrenadorY(t_entrenador* unEntrenador, uint32_t posY,uint32_t retardoCpu);
 void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu);
-void moverEntrenadorQuantum(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu, uint32_t quantum);
+void moverSinDesalojar(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu);
+void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu);
+void moverConDesalojoPorRR(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu,uint32_t quantum);
 
 t_list* pokemonesAlPedo(t_entrenador* unEntrenador);
 t_list* pokemonesQueLeFaltan(t_entrenador* unEntrenador);

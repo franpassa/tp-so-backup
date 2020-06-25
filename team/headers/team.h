@@ -42,13 +42,11 @@ char* PUERTO;
 char** posicionesEntrenadores;
 char** pokesEntrenadores;
 char** pokesObjetivos;
-char* ALGORITMO;
-int retardoCpu;
-int QUANTUM;
-int tiempo_reconexion;
-int socket_caught;
-int socket_localized;
-int socket_appeared;
+uint32_t retardoCpu;
+uint32_t tiempo_reconexion;
+uint32_t socket_caught;
+uint32_t socket_localized;
+uint32_t socket_appeared;
 
 
 t_list* estado_exit; /*lista de entrenadores*/
@@ -82,7 +80,7 @@ sem_t semCaught;
 sem_t semLocalized;
 sem_t semAppeared;
 
-int ciclosConsumidos;
+uint32_t ciclosConsumidos;
 
 bool hayEntrenadorProcesando; 	// funcion a futuro, chequear en otro proceso si hay un entrenador
 bool envioGets;								//corriendo porque cuando sale del bloqueo porque ya le

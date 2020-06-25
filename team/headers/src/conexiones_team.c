@@ -150,18 +150,7 @@ void estado_exec()
 				hayEntrenadorProcesando = true;
 				pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
 
-				if (string_equals_ignore_case(ALGORITMO, "FIFO")){
-						planificacion(FIFO);
-				}
-				else if (string_equals_ignore_case(ALGORITMO,"RR")){
-					planificacion(RR);
-				}
-				else if (string_equals_ignore_case(ALGORITMO,"SJFSD")){
-					planificacion(SJFSD);
-				}
-				else{
-					planificacion(SJFCD);
-				}
+				planificacion();
 
 				pthread_mutex_lock(&mutexHayEntrenadorProcesando);
 				hayEntrenadorProcesando = false;
@@ -171,7 +160,7 @@ void estado_exec()
 	}
 }
 
-void planificacion(algoritmo algoritmo)
+void planificacion()
 {
 	t_entrenador* entrenador = NULL;
 	pthread_mutex_lock(&mutexEstadoReady);
@@ -180,60 +169,40 @@ void planificacion(algoritmo algoritmo)
 
 	t_pokemon* aMoverse = entrenador->pokemonAMoverse;
 
-	if (aMoverse!= NULL && entrenador != NULL)
-	{
+	if (aMoverse!= NULL && entrenador != NULL){
 		//uint32_t distancia = distanciaEntrenadorPokemon(entrenador->posicionX, entrenador->posicionY,aMoverse->posicionX,aMoverse->posicionY);
-		switch(algoritmo)
-		{
-			case FIFO:
-			{
-				moverEntrenador(entrenador,aMoverse->posicionX,aMoverse->posicionY,retardoCpu);
-				break;
-			}
-			case RR:
-			{
-				moverEntrenadorQuantum(entrenador,aMoverse->posicionX,aMoverse->posicionY,retardoCpu,QUANTUM);
-				break;
-			}
-			default:
-			{
-				printf("no esta contemplado aun");
-				break;
-			}
-
-		}
-		if(distanciaEntrenadorPokemon(entrenador->posicionX,entrenador->posicionY,entrenador->pokemonAMoverse->posicionX,entrenador->pokemonAMoverse->posicionY) != 0)
-		{
-			list_add(estado_ready,entrenador);
-		}
-		else
-		{
-			//CONEXION AL BROKER Y ENVIO DE MENSAJE CATCH
-			catch_pokemon_msg* mensaje = catch_msg(aMoverse->nombre,aMoverse->posicionX,aMoverse->posicionY);
-			uint32_t* idMensajeExec = malloc(sizeof(int)); // no se libera aca porque se libera cuando liberamos  ids enviados
-			*idMensajeExec = enviar_mensaje(ip_broker,puerto_broker,CATCH_POKEMON,mensaje,0,true);
-			log_info(logger,"El entrenador %d envió el mensaje CATCH_POKEMON %s, en la posición (%d,%d).",entrenador->idEntrenador,aMoverse->nombre,aMoverse->posicionX,aMoverse->posicionY);
-			if (*idMensajeExec == -1)
-			{
-				printf("Falló el envio del mensaje CATCH_POKEMON %s.\n",mensaje->nombre_pokemon);
-				log_error(logger,"ERROR al enviar el mensaje CATCH_POKEMON %s.",mensaje->nombre_pokemon);
-				log_info(logger,"OPERACION DEFAULT: El entrenador %d capturó al pokemon %s.",entrenador->idEntrenador,mensaje->nombre_pokemon);
-				cambiarEstado(entrenador);
-				free(idMensajeExec);
-			} else {
-				printf("Envio mensaje catch %s, posicion: (%d,%d), id: %d.\n",mensaje->nombre_pokemon,mensaje->coordenada_X,mensaje->coordenada_Y,*idMensajeExec);
-				entrenador->idRecibido = *idMensajeExec;
-				entrenador->motivoBloqueo = ESPERA_CAUGHT;
-				list_add(ids_enviados, idMensajeExec);
-				pthread_mutex_lock(&mutexEstadoBloqueado);
-				list_add(estado_bloqueado, entrenador);
-				pthread_mutex_unlock(&mutexEstadoBloqueado);
-				log_info(logger,"Cambio del entrenador %d a la cola BLOQUEADO, esperando respueta del mensaje CATCH.",entrenador->idEntrenador);
-			}
-			free(mensaje);
-		}
-		//free(mensaje->nombre_pokemon);
+		moverEntrenador(entrenador,aMoverse->posicionX,aMoverse->posicionY,retardoCpu);
 	}
+
+	if(distanciaEntrenadorPokemon(entrenador->posicionX,entrenador->posicionY,entrenador->pokemonAMoverse->posicionX,entrenador->pokemonAMoverse->posicionY) != 0){
+		pthread_mutex_lock(&mutexEstadoReady);
+		list_add(estado_ready,entrenador);
+		pthread_mutex_unlock(&mutexEstadoReady);
+	} else {
+		//CONEXION AL BROKER Y ENVIO DE MENSAJE CATCH
+		catch_pokemon_msg* mensaje = catch_msg(aMoverse->nombre,aMoverse->posicionX,aMoverse->posicionY);
+		uint32_t* idMensajeExec = malloc(sizeof(int)); // no se libera aca porque se libera cuando liberamos  ids enviados
+		*idMensajeExec = enviar_mensaje(ip_broker,puerto_broker,CATCH_POKEMON,mensaje,0,true);
+		log_info(logger,"El entrenador %d envió el mensaje CATCH_POKEMON %s, en la posición (%d,%d).",entrenador->idEntrenador,aMoverse->nombre,aMoverse->posicionX,aMoverse->posicionY);
+		if (*idMensajeExec == -1){
+			printf("Falló el envio del mensaje CATCH_POKEMON %s.\n",mensaje->nombre_pokemon);
+			log_error(logger,"ERROR al enviar el mensaje CATCH_POKEMON %s.",mensaje->nombre_pokemon);
+			log_info(logger,"OPERACION DEFAULT: El entrenador %d capturó al pokemon %s.",entrenador->idEntrenador,mensaje->nombre_pokemon);
+			cambiarEstado(entrenador);
+			free(idMensajeExec);
+		} else {
+			printf("Envio mensaje catch %s, posicion: (%d,%d), id: %d.\n",mensaje->nombre_pokemon,mensaje->coordenada_X,mensaje->coordenada_Y,*idMensajeExec);
+			entrenador->idRecibido = *idMensajeExec;
+			entrenador->motivoBloqueo = ESPERA_CAUGHT;
+			list_add(ids_enviados, idMensajeExec);
+			pthread_mutex_lock(&mutexEstadoBloqueado);
+			list_add(estado_bloqueado, entrenador);
+			pthread_mutex_unlock(&mutexEstadoBloqueado);
+			log_info(logger,"Cambio del entrenador %d a la cola BLOQUEADO, esperando respueta del mensaje CATCH.",entrenador->idEntrenador);
+		}
+		free(mensaje);
+	}
+		//free(mensaje->nombre_pokemon);
 }
 
 void pasar_a_ready(){
