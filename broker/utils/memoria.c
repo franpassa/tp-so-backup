@@ -179,22 +179,28 @@ void buscar_particion_en_bs() {
 			if (flag > 1) {
 				consolidar_particiones_en_bs();
 			} else {
-				paso_3();
+				paso_3(); // chequear este paso que no me queda tan claro
 			}
 		}
 	}
 }
 
-void consolidar_particiones_en_bs(){ // Revisar
-	t_struct_secundaria* particion;
-	t_struct_secundaria* particion_siguiente;
-	for (int i = 0; i < list_size(estructuras_secundarias); i+=2) { // recorre cada 2 elementos ya que son buddys
-		particion = list_get(estructuras_secundarias, i);
-		particion_siguiente = list_get(estructuras_secundarias, i+1);
+void consolidar_particiones_en_bs(){ // Faltan unos casos mas
+
+	for (int i = 0; i < list_size(estructuras_secundarias); i++) {
+		t_struct_secundaria* particion = list_get(estructuras_secundarias, i);
+		t_struct_secundaria* particion_siguiente = list_get(estructuras_secundarias, i+1);
+		t_struct_secundaria* particion_anterior = list_get(estructuras_secundarias, i-1);
+
 		if(particion->tipo_mensaje == 6 && particion_siguiente->tipo_mensaje == 6 && particion->tamanio == particion_siguiente->tamanio){
 			particion->tamanio += particion_siguiente->tamanio;
 			list_remove_and_destroy_element(estructuras_secundarias,(i+1),free); // elimino la siguiente particion y le sumo a la anterior el tamanio de la primera
 		}
+		else if(particion->tipo_mensaje == 6 && particion_siguiente == NULL && particion_anterior->tipo_mensaje == 6 && particion_anterior->tamanio == particion_siguiente->tamanio){ // compara la ultima particion y la siguiente
+			particion_anterior->tamanio += particion->tamanio;
+			list_remove_and_destroy_element(estructuras_secundarias,i,free);
+		} // en caso de que llegue a la derecha ejemplo // 16(estoy aca) 16 32 -- 32 32(estoy aca) -- 64
+
 	}
 }
 
@@ -326,7 +332,7 @@ void paso_3(){
 		mover_memoria(a_sacar);
 
 	} else {
-	printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
+		printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 	}
 
 	if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"PARTCIONES")){
