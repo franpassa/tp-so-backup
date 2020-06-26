@@ -30,7 +30,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 	entra = -1;
 	tamanio_a_ocupar = size;
 
-	// lo uso en el while para buscar bit de inicio
+	// los uso en el while para buscar bit de inicio
 	uint32_t posicion_de_memoria = 0;
 	uint32_t ocupa_todo_el_msg = 0;
 	uint32_t contador_de_bit_de_inicio = 0;
@@ -57,10 +57,20 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 			printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 		}
 
+		while(posicion_de_memoria != (tamanio_memoria + 1) && ocupa_todo_el_msg != tamanio_a_ocupar){
+			if(memoria + posicion_de_memoria == NULL){
+				ocupa_todo_el_msg ++;
+			}else{
+				ocupa_todo_el_msg = 0;
+			}
+			contador_de_bit_de_inicio ++;
+			posicion_de_memoria ++;
+		}
+
 		est_a_utilizar->id_mensaje = id_mensaje;
 		est_a_utilizar->tamanio = size;
 		est_a_utilizar->tipo_mensaje = id_cola;
-		est_a_utilizar->bit_inicio = est_a_utilizar->bit_inicio + size; // Estoy hay que chequearlo
+		est_a_utilizar->bit_inicio = contador_de_bit_de_inicio - est_a_utilizar->tamanio;
 
         list_replace_and_destroy_element(estructuras_secundarias, entra, est_a_utilizar,free);
         memmove(memoria + est_a_utilizar->bit_inicio, mensaje, size); // esto tambien (nunca empezas desde la posicion 0 de la memoria)
@@ -72,7 +82,6 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 		t_struct_secundaria* particion_a_llenar_con_msg = (t_struct_secundaria*) list_get(estructuras_secundarias,entra);
 
 		particion_a_llenar_con_msg->tamanio = size;
-		particion_a_llenar_con_msg->bit_inicio = size;
 		particion_a_llenar_con_msg->id_mensaje = id_mensaje;
 		particion_a_llenar_con_msg->tipo_mensaje = id_cola;
 
@@ -93,7 +102,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 			}
 			contador_de_bit_de_inicio ++; // cuantas veces buscaste en la memoria
 			posicion_de_memoria ++;
-		}
+		} // Excelente, con pruebas de escritorio hecha
 
 		particion_a_llenar_con_msg->bit_inicio = contador_de_bit_de_inicio - particion_a_llenar_con_msg->tamanio; // BIT DE INICIO = VECES QUE BUSQUE QUE ESTUVIERA LIBRE LA MEMORIA PARA QUE PUEDA ALOJAR COMPLETO EL MENSAJE - EL TAMANIO DEL MENSAJE
 		list_replace_and_destroy_element(estructuras_secundarias, entra, particion_a_llenar_con_msg, free);
