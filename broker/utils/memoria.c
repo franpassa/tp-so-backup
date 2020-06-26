@@ -30,6 +30,11 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 	entra = -1;
 	tamanio_a_ocupar = size;
 
+	// lo uso en el while para buscar bit de inicio
+	uint32_t posicion_de_memoria = 0;
+	uint32_t ocupa_todo_el_msg = 0;
+	uint32_t contador_de_bit_de_inicio = 0;
+
 	if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"PARTICIONES")){
 
 		paso_1();
@@ -57,16 +62,44 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 		est_a_utilizar->tipo_mensaje = id_cola;
 		est_a_utilizar->bit_inicio = est_a_utilizar->bit_inicio + size; // Estoy hay que chequearlo
 
-        list_replace(estructuras_secundarias, entra, est_a_utilizar);
+        list_replace_and_destroy_element(estructuras_secundarias, entra, est_a_utilizar,free);
         memmove(memoria + est_a_utilizar->bit_inicio, mensaje, size); // esto tambien (nunca empezas desde la posicion 0 de la memoria)
 
 
 	} else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"BS")) {
 
-		buscar_particion_en_bs();
-		// Idem que en particiones pero quiero verificarlo que hay cosas que no me cierran  :)
+		buscar_particion_en_bs(); // la lista de particiones va a tener mas de 1 elemento al hacer esto
+		t_struct_secundaria* particion_a_llenar_con_msg = (t_struct_secundaria*) list_get(estructuras_secundarias,entra);
 
-		}else{
+		particion_a_llenar_con_msg->tamanio = size;
+		particion_a_llenar_con_msg->bit_inicio = size;
+		particion_a_llenar_con_msg->id_mensaje = id_mensaje;
+		particion_a_llenar_con_msg->tipo_mensaje = id_cola;
+
+		if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_REEMPLAZO"),"FIFO")) {
+			cont_orden ++;
+			particion_a_llenar_con_msg->auxiliar = cont_orden;
+		} else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_REEMPLAZO"),"LRU")) {
+			particion_a_llenar_con_msg->auxiliar = 1;
+		} else {
+			printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
+		}
+
+		while(posicion_de_memoria != (tamanio_memoria + 1) && ocupa_todo_el_msg != tamanio_a_ocupar){ // llega hasta limite + 1 porque cuento el ultimo
+			if(memoria + posicion_de_memoria == NULL){
+				ocupa_todo_el_msg ++; // tiene que llegar a ocupar por completo el msg
+			}else{
+				ocupa_todo_el_msg = 0; // si una posicion de la memoria ya esta ocupada, entonces vuelvo a buscar
+			}
+			contador_de_bit_de_inicio ++; // cuantas veces buscaste en la memoria
+			posicion_de_memoria ++;
+		}
+
+		particion_a_llenar_con_msg->bit_inicio = contador_de_bit_de_inicio - particion_a_llenar_con_msg->tamanio; // BIT DE INICIO = VECES QUE BUSQUE QUE ESTUVIERA LIBRE LA MEMORIA PARA QUE PUEDA ALOJAR COMPLETO EL MENSAJE - EL TAMANIO DEL MENSAJE
+		list_replace_and_destroy_element(estructuras_secundarias, entra, particion_a_llenar_con_msg, free);
+		memmove(memoria + particion_a_llenar_con_msg->bit_inicio, mensaje, size);
+
+		} else {
 			printf("Error en broker.config ALGORITMO_MEMORIA no valido");
 		}
 }
@@ -91,7 +124,7 @@ void buscar_particion_en_bs() {
 			particion = list_get(estructuras_secundarias, i);
 			if (particion->tipo_mensaje == 6) {
 				flag++;
-				while (particion->tamanio >= tamanio_a_ocupar && encontro_particion != 0) {
+				while (particion->tamanio >= tamanio_a_ocupar && encontro_particion != 0) { // divide las particiones (64 -- 32 32 -- 16 16 32 ..)
 					if (particion->tamanio / 2 > tamanio_a_ocupar) {
 						t_struct_secundaria* particion_nueva = duplicar_estructura(particion);
 						particion->tamanio = particion->tamanio / 2;
@@ -152,7 +185,7 @@ void buscar_particion_en_bs() {
 	}
 }
 
-void consolidar_particiones_en_bs(){
+void consolidar_particiones_en_bs(){ // Revisar
 	t_struct_secundaria* particion;
 	t_struct_secundaria* particion_siguiente;
 	for (int i = 0; i < list_size(estructuras_secundarias); i+=2) { // recorre cada 2 elementos ya que son buddys
@@ -348,7 +381,7 @@ void* de_id_mensaje_a_mensaje(uint32_t id_mensaje) {
 		}
 	}
 	void* mensaje = malloc(estructura3->tamanio);
-	memcpy(mensaje, memoria + estructura3->bit_inicio, estructura3->tamanio); // el bit de inicio nunca se asigna por eso daba cualquier cosa
+	memcpy(mensaje, memoria + estructura3->bit_inicio, estructura3->tamanio);
 
 	free(estructura3);
 	return mensaje;

@@ -157,4 +157,7 @@ void* de_id_mensaje_a_mensaje(uint32_t);
 uint32_t de_id_mensaje_a_cola(uint32_t);
 uint32_t de_id_mensaje_a_size(uint32_t);
 
+void buscar_particion_en_bs();
+void consolidar_particiones_en_bs();
+
 #endif /* BROKER_H_ */
