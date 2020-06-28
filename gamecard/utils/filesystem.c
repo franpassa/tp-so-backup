@@ -119,7 +119,6 @@ int create_bitmap(int cantidad_bloques){
 	return 0;
 }
 
-<<<<<<< HEAD
 int reservar_bloque(){
 	pthread_mutex_lock(&mutex_bitmap);
 	int bitmap_fd = open(fspaths->bitmap_file, O_RDWR, S_IRUSR | S_IWUSR);
@@ -151,34 +150,6 @@ void liberar_bloque(int bit_index){
 	pthread_mutex_lock(&mutex_bitmap);
 	int bitmap_fd = open(fspaths->bitmap_file, O_RDWR, S_IRUSR | S_IWUSR);
 	struct stat sb;
-=======
-// Esta función es una obra de arte
-void set_bit(int index, bool value){ // Revisar mmap
-	FILE* bitmap_file = fopen(fspaths->bitmap_file, "rb+");
-
-	div_t division = div(index, 8); // Divido el indice del bit por la cantidad de bits en un byte para obtener el byte y la posición del bit dentro de ese (cociente y resto).
-	char* byte = calloc(1, sizeof(char));
-	fseek(bitmap_file, division.quot, SEEK_SET); // Posiciono el puntero del bitmap a la posicion del byte que me interesa
-	fread(byte, sizeof(char), 1, bitmap_file); // Leo ese byte
-	t_bitarray* mini_bitarray = bitarray_create_with_mode(byte, sizeof(char), LSB_FIRST); // Creo un bitarray para poder modificar el bit
-	if(value){
-		bitarray_set_bit(mini_bitarray, division.rem); // Seteo o limpio el bit de interés
-	} else {
-		bitarray_clean_bit(mini_bitarray, division.rem);
-	}
-	fseek(bitmap_file, -1, SEEK_CUR); // Vuelvo un byte atrás para escribir el archivo
-	fwrite(byte, sizeof(char), 1, bitmap_file); // Reescribo el byte con un bit modificado
-
-	fclose(bitmap_file);
-	free(byte);
-	bitarray_destroy(mini_bitarray);
-}
-
-int get_free_block(){
-	long file_size;
-	t_bitarray* bitarray = read_bitmap(&file_size);
-	long bits_in_file = file_size * 8;
->>>>>>> 3359a0a753f58b7c9f663f025c406e2eacf80a80
 
 	if(fstat(bitmap_fd, &sb) != -1){
 		char* mapped_bitmap = mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, bitmap_fd, 0);
@@ -230,23 +201,44 @@ char* get_block_path(int block){
 	return block_path;
 }
 
-int crear_metadata(char* folder_path, uint32_t file_size, t_list* blocks){
-	char* metadata_path = string_duplicate(folder_path);
-	string_append(&metadata_path, "/Metadata.bin");
+void crear_metadata(char* nombre_pokemon, uint32_t file_size, t_list* blocks){
+	char* metadata_path = get_metadata_path(nombre_pokemon);
 	char* blocks_string = list_to_string(blocks);
 	FILE* metadata = fopen(metadata_path, "w");
 	if(metadata == NULL) {
 		free(metadata_path);
-		return -1;
+		return;
 	}
 	fprintf(metadata, "DIRECTORY=N\n"
 					  "SIZE=%d\n"
-					  "BLOCKS=[%s]\n"
+					  "BLOCKS=%s\n"
 					  "OPEN=N", file_size, blocks_string);
 
 	free(metadata_path);
 	fclose(metadata);
-	return 0;
+}
+
+void actualizar_metadata(char* nombre_pokemon, uint32_t file_size, t_list* bloques){
+	char* metadata_path = get_metadata_path(nombre_pokemon);
+	char* blocks_string = list_to_string(bloques);
+
+	t_config* metadata = config_create(metadata_path);
+	config_set_value(metadata, "SIZE", string_itoa(file_size));
+	config_set_value(metadata, "BLOCKS", blocks_string);
+	config_save(metadata);
+
+	config_destroy(metadata);
+	free(blocks_string);
+	free(metadata_path);
+}
+
+int crear_file(char* nombre_pokemon){
+	char* path_pokemon = get_pokemon_path(nombre_pokemon);
+	int status_creacion = mkdir(path_pokemon, 0700);
+
+	free(path_pokemon);
+
+	return status_creacion;
 }
 
 t_list* get_pokemon_blocks(char* nombre_pokemon){
@@ -323,6 +315,21 @@ int agregar_posicion_pokemon(t_pokemon pokemon){
 	return bytes;
 }
 
+// Devuelve la cantidad de bytes escritos y actualiza la lista 'bloques' con los bloques utilizados.
+int escribir_en_filesystem(t_pokemon pokemon, t_list* bloques, t_list* coordenadas){
+	int bytes_escritos;
+	t_list* strings_por_bloque = NULL;
+
+	obtener_bloques_necesarios(bloques, coordenadas);
+	strings_por_bloque = obtener_strings_por_bloque(coordenadas);
+	bytes_escritos = escribir_bloques(strings_por_bloque, bloques);
+
+	list_destroy_and_destroy_elements(strings_por_bloque, free);
+
+	return bytes_escritos;
+}
+
+
 int calcular_bloques_necesarios(t_list* lista_coordenadas){
 	int blocks_max_size = config_get_int_value(metadata_config, "BLOCK_SIZE"); // Preparación
 	char* string_coordenadas = coordenadas_to_string(lista_coordenadas);
@@ -332,23 +339,9 @@ int calcular_bloques_necesarios(t_list* lista_coordenadas){
 
 	free(string_coordenadas); // Liberación
 
-	if(division.rem != 0){
-		return division.quot + 1;
-	} else {
-		return division.quot;
-	}
+	return division.rem != 0 ? division.quot + 1 : division.quot;
 
 }
-
-/*void set_bit2(){
-	*fd = open(path, O_RDONLY, S_IRUSR | S_IWUSR);
-	struct stat sb;
-	if(fstat(*fd, &sb) == -1) {
-		perror("No se pudo abrir el archivo");
-	} else {
-		return mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, *fd, 0);
-	}
-}*/
 
 int unlink_cb(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf){
     int rv = remove(fpath);

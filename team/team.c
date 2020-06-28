@@ -110,6 +110,8 @@ void inicializarVariables(){
 	IP = config_get_string_value(config, "IP_TEAM");
 	PUERTO = config_get_string_value(config, "PUERTO_TEAM");
 	QUANTUM = config_get_int_value(config,"QUANTUM");
+	ESTIMACION_INICIAL = config_get_double_value(config, "ESTIMACION_INICIAL");
+	ALPHA = config_get_double_value(config, "ALPHA");
 
 	estado_new = crearListaDeEntrenadores(posicionesEntrenadores,pokesEntrenadores,pokesObjetivos);
 	pokemons_objetivos = crearListaPokesObjetivos(estado_new);

@@ -9,6 +9,7 @@ void cambiarAExit(t_entrenador* entrenador)
 	pthread_mutex_unlock(&mutexEstadoExit);
 	log_info(logger,"Cambio del entrenador %d a la cola EXIT.",entrenador->idEntrenador);
 }
+
 void cambiarABlockNada(t_entrenador* entrenador)
 {
 	entrenador->motivoBloqueo = MOTIVO_NADA;
@@ -17,6 +18,7 @@ void cambiarABlockNada(t_entrenador* entrenador)
 	pthread_mutex_unlock(&mutexEstadoBloqueado);
 	log_info(logger,"Cambio del entrenador %d a la cola BLOQUEADO, no tiene NADA que hacer.",entrenador->idEntrenador);
 }
+
 void cambiarABlockDeadlock(t_entrenador* entrenador)
 {
 	entrenador->motivoBloqueo = ESPERA_DEADLOCK;
@@ -142,9 +144,7 @@ void estado_exec()
 
 		if (!list_is_empty(estado_ready)){
 
-			pthread_mutex_lock(&mutexHayEntrenadorProcesando);
 			if(!hayEntrenadorProcesando){
-			pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
 
 				pthread_mutex_lock(&mutexHayEntrenadorProcesando);
 				hayEntrenadorProcesando = true;
@@ -163,18 +163,26 @@ void estado_exec()
 void planificacion()
 {
 	t_entrenador* entrenador = NULL;
-	pthread_mutex_lock(&mutexEstadoReady);
-	entrenador = (t_entrenador*) list_remove(estado_ready,0);
-	pthread_mutex_unlock(&mutexEstadoReady);
+
+	if(string_equals_ignore_case(ALGORITMO,"SJF-SD")){
+		pthread_mutex_lock(&mutexEstadoReady);
+		entrenador = elDeMenorEstimacion(estado_ready);
+		pthread_mutex_unlock(&mutexEstadoReady);
+	} else {
+		pthread_mutex_lock(&mutexEstadoReady);
+		entrenador = (t_entrenador*) list_remove(estado_ready,0);
+		pthread_mutex_unlock(&mutexEstadoReady);
+	}
 
 	t_pokemon* aMoverse = entrenador->pokemonAMoverse;
 
 	if (aMoverse!= NULL && entrenador != NULL){
-		//uint32_t distancia = distanciaEntrenadorPokemon(entrenador->posicionX, entrenador->posicionY,aMoverse->posicionX,aMoverse->posicionY);
 		moverEntrenador(entrenador,aMoverse->posicionX,aMoverse->posicionY,retardoCpu);
 	}
 
-	if(distanciaEntrenadorPokemon(entrenador->posicionX,entrenador->posicionY,entrenador->pokemonAMoverse->posicionX,entrenador->pokemonAMoverse->posicionY) != 0){
+	uint32_t distancia = distanciaEntrenadorPokemon(entrenador->posicionX, entrenador->posicionY,aMoverse->posicionX,aMoverse->posicionY);
+
+	if(distancia != 0){
 		pthread_mutex_lock(&mutexEstadoReady);
 		list_add(estado_ready,entrenador);
 		pthread_mutex_unlock(&mutexEstadoReady);
@@ -227,6 +235,12 @@ void pasar_a_ready(){
 			t_list* lista = listaALaQuePertenece(entrenadorTemporal);
 
 			list_remove_and_destroy_by_condition(lista,(void*) es_el_mismo_entrenador,free);
+
+			uint32_t distancia = distanciaEntrenadorPokemon(entrenadorTemporal->posicionX, entrenadorTemporal->posicionY,(entrenadorTemporal->pokemonAMoverse)->posicionX,(entrenadorTemporal->pokemonAMoverse)->posicionY);
+
+			if(string_equals_ignore_case(ALGORITMO,"SJF-SD") || string_equals_ignore_case(ALGORITMO,"SJF-CD")){
+				recalcularEstimacion(entrenadorTemporal,distancia);
+			}
 
 			pthread_mutex_lock(&mutexEstadoReady);
 			list_add(estado_ready,entrenadorTemporal);

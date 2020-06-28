@@ -2,6 +2,7 @@
 #define ENTRENADOR_H_
 
 #include "pokemon.h"
+#include <math.h>
 #include <pthread.h>
 
 typedef enum{
@@ -21,6 +22,7 @@ typedef struct Entrenador
 	uint32_t idRecibido;
 	t_pokemon* pokemonAMoverse;
 	motivo motivoBloqueo;
+	double estimacion;
 }t_entrenador;
 
 t_log* logger;
@@ -35,6 +37,8 @@ pthread_mutex_t mutexLogEntrenador;
 
 char* ALGORITMO;
 uint32_t QUANTUM;
+double ESTIMACION_INICIAL;
+double ALPHA;
 
 // posiciones
 uint32_t posicionXEntrenador(int nroEntrenador, char** posicionesEntrenadores);
@@ -96,6 +100,8 @@ void realizarCambio(t_entrenador* entrenador1, t_entrenador* entrenador2);
 
 t_list* crearListaObjetivosPosta(t_list* pokesObjetivosGlobal, t_list* entrenadoresNew);
 void sacar1(char* nombre, t_list* listaDeEspecies);
+void recalcularEstimacion(t_entrenador* entrenador,uint32_t ciclosRecorridos);
+t_entrenador* elDeMenorEstimacion(t_list* entrenadores);
 
 
 
