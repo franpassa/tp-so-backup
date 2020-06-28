@@ -89,6 +89,7 @@ t_list* crearListaDeEntrenadores(char** posicionesEntrenadores, char** pokesEntr
 		entrenador->idRecibido = 0;
 		entrenador->motivoBloqueo = MOTIVO_NADA;
 		entrenador->pokemonAMoverse = NULL;
+		entrenador->estimacion = ESTIMACION_INICIAL;
 		list_add(entrenadores,entrenador);
 	}
 
@@ -140,6 +141,7 @@ void igualarEntrenador(t_entrenador* unEntrenador, t_entrenador* otroEntrenador)
 	unEntrenador->pokesObjetivos = otroEntrenador->pokesObjetivos;
 	unEntrenador->posicionX = otroEntrenador->posicionX;
 	unEntrenador->posicionY = otroEntrenador->posicionY;
+	unEntrenador->estimacion = otroEntrenador->estimacion;
 }
 
 void setearEnCeroEntrenador (t_entrenador* unEntrenador)
@@ -336,7 +338,7 @@ void moverConDesalojoPorRR(t_entrenador* unEntrenador, uint32_t posX, uint32_t p
 
 void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu)
 {
-	if(string_equals_ignore_case(ALGORITMO,"FIFO"))
+	if(string_equals_ignore_case(ALGORITMO,"FIFO") || string_equals_ignore_case(ALGORITMO,"SJF-SD"))
 	{
 		moverSinDesalojar(unEntrenador,posX,posY,retardoCpu);
 	}
@@ -560,7 +562,30 @@ void sacar1(char* nombre, t_list* listaDeEspecies)
 	}
 }
 
+void recalcularEstimacion(t_entrenador* entrenador,uint32_t ciclosRecorridos){
+	entrenador->estimacion = ALPHA*ciclosRecorridos + (1-ALPHA)*entrenador->estimacion;
+}
 
+t_entrenador* elDeMenorEstimacion(t_list* entrenadores){ //DEVUELVE EL ENTRENADOR DE MENOR ESTIMACION Y LO BORRA DE LA LISTA
+
+	t_entrenador* entrenadorInicial = (t_entrenador*) list_get(entrenadores,0);
+	double estimacionFlag = entrenadorInicial->estimacion;
+
+	void buscarMenor(t_entrenador* unEntrenador){
+		double estimacion = unEntrenador->estimacion;
+		if(estimacion < estimacionFlag){
+			estimacionFlag = unEntrenador->estimacion;
+		}
+	}
+
+	list_iterate(entrenadores,(void*) buscarMenor);
+
+	bool tieneLaMenor(t_entrenador* unEntrenador){
+		return fabs(unEntrenador->estimacion)== fabs(estimacionFlag);
+	}
+
+	return list_remove_by_condition(entrenadores,(void*)tieneLaMenor);
+}
 
 
 
