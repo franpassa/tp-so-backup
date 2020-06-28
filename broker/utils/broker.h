@@ -58,7 +58,7 @@ int cont_orden;
 
 uint32_t tamanio_memoria;
 
-t_list* estructuras_secundarias;
+t_list* lista_de_particiones;
 
 // VARIABLES GLOBALES
 
@@ -146,9 +146,9 @@ void inicializar_memoria();
 void almacenar(void*, uint32_t, uint32_t, uint32_t);
 t_struct_secundaria* duplicar_estructura(t_struct_secundaria*);
 void llenar_estructura(t_struct_secundaria*, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
-void paso_1();
-void paso_2();
-void paso_3();
+void buscar_particion_en_particiones_dinamicas();
+void compactar();
+void elegir_victima_para_eliminar_mediante_FIFO_o_LRU();
 void liberar_memoria_interna();
 int cont_orden_f();
 void actualizar_bit_inicio(int);
@@ -158,6 +158,6 @@ uint32_t de_id_mensaje_a_cola(uint32_t);
 uint32_t de_id_mensaje_a_size(uint32_t);
 
 void buscar_particion_en_bs();
-void consolidar_particiones_en_bs();
+void consolidar_particiones_en_bs(int posicion_liberada);
 
 #endif /* BROKER_H_ */
