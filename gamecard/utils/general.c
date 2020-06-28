@@ -47,7 +47,11 @@ char* list_to_string(t_list* list){
 	}
 	char* string_trimmed = string_substring_until(string, string_length(string)-1);
 	free(string);
-	return string_trimmed;
+	char* list_string = string_new();
+	string_append_with_format(&list_string, "[%s]", string_trimmed);
+	free(string_trimmed);
+
+	return list_string;
 }
 
 char* get_file_as_text(char* file_path){
@@ -60,4 +64,28 @@ char* get_file_as_text(char* file_path){
 	file_text[file_size] = '\0';
 
 	return file_text;
+}
+
+int min(int a, int b){
+	return (a < b) ? a : b;
+}
+
+t_list* dividir_string_por_tamanio(char* string, int tamanio){
+	t_list* list_strings = list_create();
+	int largo_string = string_length(string);
+
+	if(largo_string < tamanio){
+		list_add(list_strings, string_duplicate(string));
+	} else {
+		int inicio_substring = 0;
+		int largo_substring = tamanio;
+		while(largo_string != inicio_substring){
+			char* substring = string_substring(string, inicio_substring, largo_substring);
+			if(substring[0] == '\n') substring = substring + 1;
+			list_add(list_strings, substring);
+			inicio_substring += largo_substring;
+			largo_substring = min(tamanio, largo_string - inicio_substring);
+		}
+	}
+	return list_strings;
 }

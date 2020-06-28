@@ -50,21 +50,39 @@ char* coordenadas_to_string(t_list* coordenadas){
 // Si ya existe en la lista le suma la cantidad, si no lo crea y lo agrega.
 void add_coordenada(t_list* lista_coordenadas, t_coordenada coordenada){
 
+	t_coordenada* coordenada_en_lista = find_coordenada(lista_coordenadas, coordenada);
+
+	if(coordenada_en_lista != NULL){
+		coordenada_en_lista->cantidad += coordenada.cantidad;
+	} else {
+		t_coordenada* nueva_coordenada = malloc(sizeof(t_coordenada));
+		*nueva_coordenada = coordenada;
+		list_add(lista_coordenadas, nueva_coordenada);
+	}
+}
+
+bool quitar_de_coordenada(t_list* lista_coordenadas, t_coordenada coordenada){
+
+	t_coordenada* coordenada_en_lista = find_coordenada(lista_coordenadas, coordenada);
+
+	if(coordenada_en_lista != NULL){
+		coordenada_en_lista->cantidad -= coordenada.cantidad;
+		if(coordenada_en_lista->cantidad == 0){
+			remover_coordenada(lista_coordenadas, coordenada);
+		}
+	}
+}
+
+void remover_coordenada(t_list* lista_coordenadas, t_coordenada coordenada){
+
 	bool es_la_misma(t_coordenada* coordenada_en_lista){
 		bool mismaX = coordenada.x == coordenada_en_lista->x;
 		bool mismaY = coordenada.y == coordenada_en_lista->y;
 		return mismaX && mismaY;
 	}
 
-	t_coordenada* misma_coordenada = (t_coordenada*) list_find(lista_coordenadas, (void*) es_la_misma);
+	list_remove_and_destroy_by_condition(lista_coordenadas, (void*) es_la_misma, free);
 
-	if(misma_coordenada != NULL){
-		misma_coordenada->cantidad += coordenada.cantidad;
-	} else {
-		t_coordenada* nueva_coordenada = malloc(sizeof(t_coordenada));
-		*nueva_coordenada = coordenada;
-		list_add(lista_coordenadas, nueva_coordenada);
-	}
 }
 
 t_coordenada* find_coordenada(t_list* lista_coordenadas, t_coordenada coordenada){

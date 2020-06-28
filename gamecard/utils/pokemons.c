@@ -103,6 +103,41 @@ int crear_pokemon(t_pokemon pokemon){
 	return 0;
 }
 
+void get_pokemon_blocks_and_coordenadas(char* nombre_pokemon, t_list** blocks, t_list** coordenadas){
+	*blocks = get_pokemon_blocks(nombre_pokemon);
+	char* contenido_bloques = get_blocks_content(*blocks);
+	*coordenadas = string_to_coordenadas(contenido_bloques);
+
+	free(contenido_bloques);
+}
+
+void new_pokemon(t_pokemon pokemon){
+	t_list* coordenadas = NULL; // Todas las coordenadas que se encuentran de esos bloques
+	t_list* bloques = NULL;
+	int bytes_file;
+
+	if(existe_pokemon(pokemon.nombre)){
+		get_pokemon_blocks_and_coordenadas(pokemon.nombre, &bloques, &coordenadas);
+		add_coordenada(coordenadas, pokemon.posicion);
+
+		bytes_file = escribir_en_filesystem(pokemon, bloques, coordenadas);
+
+		actualizar_metadata(pokemon.nombre, bytes_file, bloques);
+	} else {
+		bloques = list_create();
+		coordenadas = list_create();
+		add_coordenada(coordenadas, pokemon.posicion);
+
+		bytes_file = escribir_en_filesystem(pokemon, bloques, coordenadas);
+
+		if(crear_file(pokemon.nombre) != -1){
+			crear_metadata(pokemon.nombre, bytes_file, bloques);
+		} else {
+			terminar_aplicacion("error creando pokemon");
+		}
+	}
+}
+
 char* get_last(char** array){
 	int index = 0;
 	while(array[index] != NULL) index++;
@@ -116,11 +151,12 @@ bool is_file_open(char* nombre_pokemon){
 	string_append(&path_metadata, "/Metadata.bin");
 
 	t_config* metadata_config = config_create(path_metadata);
-	char* open_status = string_duplicate(config_get_string_value(metadata_config, "OPEN"));
+	char* open_status = config_get_string_value(metadata_config, "OPEN");
+	bool is_open = open_status[0] == 'Y';
 
 	free(path_metadata);
 	config_destroy(metadata_config);
-	bool is_open = open_status[0] == 'Y';
+
 	free(open_status);
 
 	return is_open;

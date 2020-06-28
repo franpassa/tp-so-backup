@@ -50,14 +50,8 @@ void procesar_msg(queue_name tipo_msg, void* msg){
 		case NEW_POKEMON:;
 			new_pokemon_msg* new_pok = (new_pokemon_msg*) msg;
 			t_pokemon pokemon = init_pokemon(new_pok->nombre_pokemon, new_pok->coordenada_X, new_pok->coordenada_Y, new_pok->cantidad_pokemon);
-			if(!existe_pokemon(pokemon.nombre)){
-				crear_pokemon(pokemon);
-			} else {
-				int ult_bloque = obtener_ultimo_bloque(pokemon.nombre);
-				uint32_t bytes_escritos;
-				t_list* nuevos_bloques = escribir_en_bloques(pokemon, ult_bloque, &bytes_escritos);
-				list_iterate(nuevos_bloques, (void*) print_ints);
-			}
+
+			new_pokemon(pokemon);
 
 			break;
 
