@@ -159,5 +159,6 @@ uint32_t de_id_mensaje_a_size(uint32_t);
 
 void buscar_particion_en_bs();
 void consolidar_particiones_en_bs(int posicion_liberada);
+bool son_buddies(t_struct_secundaria*, t_struct_secundaria*, int, int);
 
 #endif /* BROKER_H_ */

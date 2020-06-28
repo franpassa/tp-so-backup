@@ -137,7 +137,7 @@ void buscar_particion_en_bs() {
 					if (particion->tamanio / 2 > tamanio_a_ocupar) {
 						t_struct_secundaria* particion_nueva = duplicar_estructura(particion);
 						particion->tamanio = particion->tamanio / 2;
-						particion_nueva->tamanio = particion->tamanio / 2;
+						particion_nueva->tamanio = particion->tamanio; // ya va a estar divido el tamanio
 						list_add_in_index(lista_de_particiones, i + 1, particion_nueva);
 					} else {
 						encontro_particion = 0;
@@ -148,7 +148,7 @@ void buscar_particion_en_bs() {
 		}
 		if (entra == -1) {
 			if (flag > 1) {
-				elegir_victima_para_eliminar_mediante_FIFO_o_LRU();
+				elegir_victima_para_eliminar_mediante_FIFO_o_LRU(); // Como esta en BS entonces elimino y consolido
 			}
 		}
 
@@ -174,7 +174,7 @@ void buscar_particion_en_bs() {
 			if (particion->tamanio / 2 > tamanio_a_ocupar) {
 				t_struct_secundaria* particion_nueva = duplicar_estructura(particion);
 				particion->tamanio = particion->tamanio / 2;
-				particion_nueva->tamanio = particion->tamanio / 2;
+				particion_nueva->tamanio = particion->tamanio;
 				list_add_in_index(lista_de_particiones, entra + 1, particion_nueva);
 			} else {
 				encontro_particion = 0;
@@ -189,8 +189,20 @@ void buscar_particion_en_bs() {
 	}
 }
 
-void consolidar_particiones_en_bs(int posicion_liberada){ // Consolido cada vez que se libera una particion
+bool son_buddies(t_struct_secundaria* particion_A, t_struct_secundaria* particion_B, int direccion_de_particion_A, int direccion_de_particion_B) {
+	int operacion_xorA_B = direccion_de_particion_B ^ particion_A->tamanio;
+	bool xorA_B = direccion_de_particion_A == operacion_xorA_B;
 
+	return particion_A->tamanio == particion_B->tamanio && xorA_B;
+}
+
+void consolidar_particiones_en_bs(int posicion_a_liberar){ // Consolido cada vez que se libera una particion y sigo consolidando hasta que no pueda mas
+	t_struct_secundaria* particion_a_consolidar = list_get(lista_de_particiones, posicion_a_liberar);
+	t_struct_secundaria* particion_que_puede_ser_buddy = list_get(lista_de_particiones, posicion_a_liberar + 1);
+	while(son_buddies(particion_a_consolidar, particion_que_puede_ser_buddy, particion_a_consolidar->bit_inicio, particion_que_puede_ser_buddy->bit_inicio)){
+		particion_que_puede_ser_buddy->tamanio = particion_que_puede_ser_buddy->tamanio + particion_a_consolidar->tamanio;
+		list_remove_and_destroy_element(lista_de_particiones,posicion_a_liberar,free);
+	}
 }
 
 void buscar_particion_en_particiones_dinamicas(){
