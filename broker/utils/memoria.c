@@ -148,7 +148,7 @@ void buscar_particion_en_bs() {
 		}
 		if (entra == -1) {
 			if (flag > 1) {
-				elegir_victima_para_eliminar_mediante_FIFO_o_LRU(); // Como esta en BS entonces elimino y consolido
+				elegir_victima_para_eliminar_mediante_FIFO_o_LRU(); // Como esta en BS entonces elimino y veo si puedo consolidar
 			}
 		}
 
@@ -192,16 +192,27 @@ void buscar_particion_en_bs() {
 bool son_buddies(t_struct_secundaria* particion_A, t_struct_secundaria* particion_B, int direccion_de_particion_A, int direccion_de_particion_B) {
 	int operacion_xorA_B = direccion_de_particion_B ^ particion_A->tamanio;
 	bool xorA_B = direccion_de_particion_A == operacion_xorA_B;
-
 	return particion_A->tamanio == particion_B->tamanio && xorA_B;
 }
 
-void consolidar_particiones_en_bs(int posicion_a_liberar){ // Consolido cada vez que se libera una particion y sigo consolidando hasta que no pueda mas
+bool es_potencia_de_dos(int numero){
+	return ((numero!=0) && ((numero & (numero-1)) == 0)); // & = OPERACION LOGICA AND
+}
+
+void consolidar_particiones_en_bs(int posicion_a_liberar) { // Consolido cada vez que se libera una particion y sigo consolidando hasta que no pueda mas
 	t_struct_secundaria* particion_a_consolidar = list_get(lista_de_particiones, posicion_a_liberar);
-	t_struct_secundaria* particion_que_puede_ser_buddy = list_get(lista_de_particiones, posicion_a_liberar + 1);
-	while(son_buddies(particion_a_consolidar, particion_que_puede_ser_buddy, particion_a_consolidar->bit_inicio, particion_que_puede_ser_buddy->bit_inicio)){
-		particion_que_puede_ser_buddy->tamanio = particion_que_puede_ser_buddy->tamanio + particion_a_consolidar->tamanio;
-		list_remove_and_destroy_element(lista_de_particiones,posicion_a_liberar,free);
+	particion_a_consolidar->id_mensaje = 0;
+	particion_a_consolidar->tipo_mensaje = 6;
+	while(!es_potencia_de_dos(particion_a_consolidar->tamanio)){ // Le sumo 1 hasta ver si es potencia de 2 ya que la estructura >= al size que tenia antes (ejemplo: tamanio = 6 entonces 7 ..8 para ahi)
+		particion_a_consolidar->tamanio +=1;
+	}
+
+	for (int i = 0; i < list_size(lista_de_particiones); i++) {
+		t_struct_secundaria* particion_a_comparar_si_es_buddy = list_get(lista_de_particiones, i);
+		while(son_buddies(particion_a_consolidar, particion_a_comparar_si_es_buddy, particion_a_consolidar->bit_inicio, particion_a_comparar_si_es_buddy->bit_inicio)) {
+			particion_a_comparar_si_es_buddy->tamanio = particion_a_comparar_si_es_buddy->tamanio + particion_a_consolidar->tamanio;
+			list_remove_and_destroy_element(lista_de_particiones, posicion_a_liberar, free);
+		}
 	}
 }
 
@@ -215,7 +226,7 @@ void buscar_particion_en_particiones_dinamicas(){
 			if (nueva_est->tipo_mensaje == 6){
 				flag ++;
 				if(nueva_est->tamanio >= tamanio_a_ocupar ){
-					entra = i; // Si encuentra mas de un lugar, 0, 2, 3, entonces entra = 3, no deberia ser entra= 0?
+					entra = i;
 				}
 			}
 		}
@@ -292,7 +303,7 @@ void compactar(){
 
 void elegir_victima_para_eliminar_mediante_FIFO_o_LRU(){
 	t_struct_secundaria* particion_a_sacar;
-	int orden , orden_menor;
+	int orden, orden_menor;
 	int a_sacar = 0;
 	if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_REEMPLAZO"),"FIFO")){
 		for(int i = 0; i< list_size(lista_de_particiones); i++ ){
@@ -366,7 +377,7 @@ void mover_memoria(int a_sacar){ // No me queda claro esto
 	t_struct_secundaria* estructura_a_mover_memoria;
 
 	estructura_a_mover_memoria = list_get(lista_de_particiones,a_sacar);
-	int tamanio_a_mover = tamanio_memoria - (estructura_a_mover_memoria->bit_inicio + estructura_a_mover_memoria->tamanio); // El bit de inicio no es la primera posicion de el tamanio?
+	int tamanio_a_mover = tamanio_memoria - (estructura_a_mover_memoria->bit_inicio + estructura_a_mover_memoria->tamanio);
 	char* comienzo_a_sacar = memoria + estructura_a_mover_memoria-> bit_inicio;
 	// de donde voy a sacar la memoria a mover
 	char* de_donde = memoria + estructura_a_mover_memoria->bit_inicio + estructura_a_mover_memoria->tamanio;
