@@ -201,30 +201,43 @@ char* get_block_path(int block){
 	return block_path;
 }
 
-void crear_metadata(char* nombre_pokemon, uint32_t file_size, t_list* blocks){
+void crear_metadata(char* nombre_pokemon, uint32_t file_size, t_list* blocks, bool keep_open){
 	char* metadata_path = get_metadata_path(nombre_pokemon);
-	char* blocks_string = list_to_string(blocks);
+	char* blocks_string;
+	if(blocks != NULL){
+		blocks_string = list_to_string(blocks);
+	} else {
+		blocks_string = string_duplicate("[]");
+	}
 	FILE* metadata = fopen(metadata_path, "w");
 	if(metadata == NULL) {
 		free(metadata_path);
 		return;
 	}
+	char open_flag = keep_open ? 'Y' : 'N';
 	fprintf(metadata, "DIRECTORY=N\n"
 					  "SIZE=%d\n"
 					  "BLOCKS=%s\n"
-					  "OPEN=N", file_size, blocks_string);
+					  "OPEN=%c", file_size, blocks_string, open_flag);
 
 	free(metadata_path);
 	fclose(metadata);
 }
 
-void actualizar_metadata(char* nombre_pokemon, uint32_t file_size, t_list* bloques){
+void actualizar_metadata(char* nombre_pokemon, uint32_t file_size, t_list* bloques, bool open_flag){
 	char* metadata_path = get_metadata_path(nombre_pokemon);
 	char* blocks_string = list_to_string(bloques);
+	char* open_value;
+	if(open_flag){
+		open_value = string_duplicate("Y");
+	} else {
+		open_value = string_duplicate("N");
+	}
 
 	t_config* metadata = config_create(metadata_path);
 	config_set_value(metadata, "SIZE", string_itoa(file_size));
 	config_set_value(metadata, "BLOCKS", blocks_string);
+	config_set_value(metadata, "OPEN", open_value);
 	config_save(metadata);
 
 	config_destroy(metadata);
@@ -232,10 +245,10 @@ void actualizar_metadata(char* nombre_pokemon, uint32_t file_size, t_list* bloqu
 	free(metadata_path);
 }
 
-int crear_file(char* nombre_pokemon){
+int crear_file(char* nombre_pokemon, bool bloquear){
 	char* path_pokemon = get_pokemon_path(nombre_pokemon);
 	int status_creacion = mkdir(path_pokemon, 0700);
-
+	crear_metadata(nombre_pokemon, 0, NULL, bloquear);
 	free(path_pokemon);
 
 	return status_creacion;

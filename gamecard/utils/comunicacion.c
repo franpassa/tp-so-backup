@@ -17,10 +17,11 @@ void esperar_conexion(int socket_sv){
 
 	struct sockaddr_in dir_cliente;
 	int tam_direccion = sizeof(struct sockaddr_in);
-	int socket_gameboy = accept(socket_sv, (void*) &dir_cliente, (socklen_t*) &tam_direccion);
+	int* socket_gameboy = malloc(sizeof(int));
+	*socket_gameboy = accept(socket_sv, (void*) &dir_cliente, (socklen_t*) &tam_direccion);
 
 	pthread_t hilo_escucha;
-	pthread_create(&hilo_escucha, NULL, (void*) manejar_msg_gameboy, &socket_gameboy);
+	pthread_create(&hilo_escucha, NULL, (void*) manejar_msg_gameboy, socket_gameboy);
 	pthread_detach(hilo_escucha);
 
 }
@@ -33,9 +34,10 @@ void manejar_msg_gameboy(int* socket_gameboy){
 	uint32_t id_recibido;
 	queue_name tipo_msg;
 	void* msg = recibir_mensaje(*socket_gameboy, &id_recibido, &tipo_msg);
+	free(socket_gameboy);
 
 	procesar_msg(tipo_msg, msg);
-
+	free_mensaje(tipo_msg, msg);
 }
 
 void print_ints(int* elem){
@@ -44,8 +46,8 @@ void print_ints(int* elem){
 
 void procesar_msg(queue_name tipo_msg, void* msg){
 	char* msg_string = msg_as_string(tipo_msg, msg);
-	if(msg_string) printf("msg recibido: %s\n", msg_string);
-
+	if(msg_string) printf("%s\n", msg_string);
+	free(msg_string);
 	switch(tipo_msg){
 		case NEW_POKEMON:;
 			new_pokemon_msg* new_pok = (new_pokemon_msg*) msg;

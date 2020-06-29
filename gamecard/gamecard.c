@@ -3,6 +3,8 @@
 void asignar_globales(){
 	config = get_config(CONFIG_PATH);
 	logger = crear_log(LOG_PATH);
+	sem_files = dictionary_create();
+	pthread_mutex_init(&mutex_dict, NULL);
 	pthread_mutex_init(&mutex_bitmap, NULL);
 }
 

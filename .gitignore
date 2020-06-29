@@ -1,0 +1,12 @@
+*.cproject
+*.settings/
+*.project
+*.o
+*.so
+*.d
+*.mk
+*log
+*/Default/gamecard
+*/Default/broker
+*/Default/team
+*/Default/gameboy

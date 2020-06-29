@@ -59,11 +59,16 @@ char* get_file_as_text(char* file_path){
 
 	int file_size = get_file_size(f);
 	char* file_text = malloc(file_size + 1);
-	fread(file_text, file_size, 1, f);
-	fclose(f);
-	file_text[file_size] = '\0';
+	int bytes_read = fread(file_text, file_size, 1, f);
+	if(bytes_read == 1){
+		fclose(f);
+		file_text[file_size] = '\0';
 
-	return file_text;
+		return file_text;
+	} else {
+		printf("BYTES LEIDOS %d\n", bytes_read);
+		return NULL;
+	}
 }
 
 int min(int a, int b){
@@ -81,7 +86,11 @@ t_list* dividir_string_por_tamanio(char* string, int tamanio){
 		int largo_substring = tamanio;
 		while(largo_string != inicio_substring){
 			char* substring = string_substring(string, inicio_substring, largo_substring);
-			if(substring[0] == '\n') substring = substring + 1;
+			if(substring[0] == '\n') {
+				char* substring_mod = string_substring_from(substring, 1);
+				free(substring);
+				substring = substring_mod;
+			}
 			list_add(list_strings, substring);
 			inicio_substring += largo_substring;
 			largo_substring = min(tamanio, largo_string - inicio_substring);
