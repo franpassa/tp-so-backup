@@ -70,6 +70,9 @@ bool quitar_de_coordenada(t_list* lista_coordenadas, t_coordenada coordenada){
 		if(coordenada_en_lista->cantidad == 0){
 			remover_coordenada(lista_coordenadas, coordenada);
 		}
+		return true;
+	}  else {
+		return false;
 	}
 }
 

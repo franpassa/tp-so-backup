@@ -59,11 +59,15 @@ char* get_file_as_text(char* file_path){
 
 	int file_size = get_file_size(f);
 	char* file_text = malloc(file_size + 1);
-	fread(file_text, file_size, 1, f);
-	fclose(f);
-	file_text[file_size] = '\0';
+	int bytes_read = fread(file_text, file_size, 1, f);
+	if(bytes_read == 1){
+		fclose(f);
+		file_text[file_size] = '\0';
 
-	return file_text;
+		return file_text;
+	} else {
+		return NULL;
+	}
 }
 
 int min(int a, int b){

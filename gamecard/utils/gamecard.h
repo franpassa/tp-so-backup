@@ -76,6 +76,10 @@ pthread_t hilo_gameboy;
 
 pthread_mutex_t mutex_bitmap;
 
+// --- Diccionarios ---
+
+t_dictionary* sem_files;
+
 // -------- Funciones --------
 
 // --- General ---
@@ -105,7 +109,7 @@ int get_bitmap_free_block();
 char* get_block_path(int block);
 void free_fspaths(t_fspaths* paths);
 int write_blocks(char* contenido_bloques, t_list* blocks);
-void crear_metadata(char* folder_path, uint32_t file_size, t_list* blocks);
+void crear_metadata(char* nombre_pokemon, uint32_t file_size, t_list* blocks, bool keep_open);
 void actualizar_metadata(char* nombre_pokemon, uint32_t file_size, t_list* bloques);
 void eliminar_files();
 char* get_blocks_content(t_list* blocks);
@@ -116,7 +120,7 @@ int agregar_posicion_pokemon(t_pokemon pokemon);
 void obtener_bloques_necesarios(t_list* bloques_actuales, t_list* coordenadas);
 t_list* obtener_strings_por_bloque(t_list* coordenadas);
 int escribir_bloques(t_list* strings_por_bloque, t_list* blocks);
-int crear_file(char* nombre_pokemon);
+int crear_file(char* nombre_pokemon, bool bloquear);
 
 // --- Pokemons ---
 t_coordenada init_coordenada(uint32_t x, uint32_t y, uint32_t cantidad);
@@ -124,7 +128,6 @@ t_pokemon init_pokemon(char* nombre, uint32_t x, uint32_t y, uint32_t cantidad);
 // Devuelve un número de bloque si el pokemon existe, -1 si no
 int obtener_ultimo_bloque(char* nombre_pokemon);
 t_list* escribir_en_bloques(t_pokemon pokemon, t_list* lista_bloques, uint32_t *bytes_escritos);
-int crear_pokemon(t_pokemon pokemon);
 char* get_pokemon_path(char* nombre);
 bool existe_pokemon(char* nombre_pokemon);
 void toggle_open_flag(char* nombre_pokemon);
@@ -138,6 +141,7 @@ t_list* string_to_coordenadas(char* string_coordenadas);
 char* coordenadas_to_string(t_list* coordenadas);
 void add_coordenada(t_list* lista_coordenadas, t_coordenada coordenada);
 t_coordenada* find_coordenada(t_list* lista_coordenadas, t_coordenada coordenada);
+void remover_coordenada(t_list* lista_coordenadas, t_coordenada coordenada);
 
 // --- Comunicacion ---
 int escuchar_gameboy();

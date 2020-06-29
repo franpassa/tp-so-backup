@@ -17,10 +17,11 @@ void esperar_conexion(int socket_sv){
 
 	struct sockaddr_in dir_cliente;
 	int tam_direccion = sizeof(struct sockaddr_in);
-	int socket_gameboy = accept(socket_sv, (void*) &dir_cliente, (socklen_t*) &tam_direccion);
+	int* socket_gameboy = malloc(sizeof(int));
+	*socket_gameboy = accept(socket_sv, (void*) &dir_cliente, (socklen_t*) &tam_direccion);
 
 	pthread_t hilo_escucha;
-	pthread_create(&hilo_escucha, NULL, (void*) manejar_msg_gameboy, &socket_gameboy);
+	pthread_create(&hilo_escucha, NULL, (void*) manejar_msg_gameboy, socket_gameboy);
 	pthread_detach(hilo_escucha);
 
 }
@@ -28,13 +29,16 @@ void esperar_conexion(int socket_sv){
 void manejar_msg_gameboy(int* socket_gameboy){
 
 	queue_name cola_productor;
+	printf("recibo mensaje de socket %d\n", *socket_gameboy);
 	recv(*socket_gameboy, &cola_productor, sizeof(queue_name), MSG_WAITALL);
 
 	uint32_t id_recibido;
 	queue_name tipo_msg;
 	void* msg = recibir_mensaje(*socket_gameboy, &id_recibido, &tipo_msg);
+	free(socket_gameboy);
 
 	procesar_msg(tipo_msg, msg);
+
 
 }
 

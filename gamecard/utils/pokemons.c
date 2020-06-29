@@ -76,66 +76,12 @@ void agregar_bloques_metadata(t_list* nuevos_bloques, char* nombre_pokemon){
 	free(metadata_path);
 }
 
-//0 si OK, -1 error
-int crear_pokemon(t_pokemon pokemon){
-	char* path_pokemon = get_pokemon_path(pokemon.nombre);
-
-	if(mkdir(path_pokemon , 0700) == -1){
-		perror("Error creando pokemon");
-	} else {
-		t_list* bloques = list_create();
-		t_list* coordenadas = list_create();
-		list_add(coordenadas, &(pokemon.posicion));
-		obtener_bloques_necesarios(bloques, coordenadas);
-		t_list* strings_por_bloque = obtener_strings_por_bloque(coordenadas);
-		int bytes = escribir_bloques(strings_por_bloque, bloques);
-		list_destroy(coordenadas);
-
-		if(bloques != NULL){
-			crear_metadata(path_pokemon, bytes, bloques);
-			list_destroy_and_destroy_elements(bloques, free);
-		} else {
-			printf("Error en 'crear_pokemon'");
-		}
-	}
-
-	free(path_pokemon);
-	return 0;
-}
-
 void get_pokemon_blocks_and_coordenadas(char* nombre_pokemon, t_list** blocks, t_list** coordenadas){
 	*blocks = get_pokemon_blocks(nombre_pokemon);
 	char* contenido_bloques = get_blocks_content(*blocks);
 	*coordenadas = string_to_coordenadas(contenido_bloques);
 
 	free(contenido_bloques);
-}
-
-void new_pokemon(t_pokemon pokemon){
-	t_list* coordenadas = NULL; // Todas las coordenadas que se encuentran de esos bloques
-	t_list* bloques = NULL;
-	int bytes_file;
-
-	if(existe_pokemon(pokemon.nombre)){
-		get_pokemon_blocks_and_coordenadas(pokemon.nombre, &bloques, &coordenadas);
-		add_coordenada(coordenadas, pokemon.posicion);
-
-		bytes_file = escribir_en_filesystem(pokemon, bloques, coordenadas);
-
-		actualizar_metadata(pokemon.nombre, bytes_file, bloques);
-	} else {
-		bloques = list_create();
-		coordenadas = list_create();
-		add_coordenada(coordenadas, pokemon.posicion);
-
-		bytes_file = escribir_en_filesystem(pokemon, bloques, coordenadas);
-
-		if(crear_file(pokemon.nombre) != -1){
-			crear_metadata(pokemon.nombre, bytes_file, bloques);
-		} else {
-			terminar_aplicacion("error creando pokemon");
-		}
-	}
 }
 
 char* get_last(char** array){
@@ -157,7 +103,64 @@ bool is_file_open(char* nombre_pokemon){
 	free(path_metadata);
 	config_destroy(metadata_config);
 
-	free(open_status);
-
 	return is_open;
+}
+
+void set_open_flag(char* nombre_pokemon, bool value){
+	char* path_metadata = get_metadata_path(nombre_pokemon);
+
+	t_config* metadata = config_create(path_metadata);
+	char* open_flag;
+
+	if(value){
+		open_flag = string_duplicate("Y");
+	} else {
+		open_flag = string_duplicate("N");
+	}
+
+	config_set_value(metadata, "OPEN", open_flag);
+	config_save(metadata);
+
+	free(open_flag);
+	config_destroy(metadata);
+	free(path_metadata);
+}
+
+void new_pokemon(t_pokemon pokemon){
+	t_list* coordenadas = NULL;
+	t_list* bloques = NULL;
+	int bytes_file;
+
+	if(existe_pokemon(pokemon.nombre)){
+		pthread_mutex_t* mx_file = (pthread_mutex_t*) dictionary_get(sem_files, pokemon.nombre);
+		printf("%d\n", mx_file != NULL);
+		while(is_file_open(pokemon.nombre)){
+			printf("Archivo %s está abierto, esperando para acceder...", pokemon.nombre);
+			sleep(10);
+		}
+		pthread_mutex_lock(mx_file);
+		set_open_flag(pokemon.nombre, true);
+		pthread_mutex_unlock(mx_file);
+		get_pokemon_blocks_and_coordenadas(pokemon.nombre, &bloques, &coordenadas);
+		add_coordenada(coordenadas, pokemon.posicion);
+
+		bytes_file = escribir_en_filesystem(pokemon, bloques, coordenadas);
+
+		actualizar_metadata(pokemon.nombre, bytes_file, bloques);
+		set_open_flag(pokemon.nombre, false);
+	} else {
+		pthread_mutex_t* mx_file = malloc(sizeof(pthread_mutex_t));
+		pthread_mutex_init(mx_file, NULL);
+		dictionary_put(sem_files, pokemon.nombre, mx_file);
+		crear_file(pokemon.nombre, true);
+		pthread_mutex_lock(mx_file);
+		pthread_mutex_unlock(mx_file);
+		bloques = list_create();
+		coordenadas = list_create();
+		add_coordenada(coordenadas, pokemon.posicion);
+
+		bytes_file = escribir_en_filesystem(pokemon, bloques, coordenadas);
+		actualizar_metadata(pokemon.nombre, bytes_file, bloques);
+		set_open_flag(pokemon.nombre, false);
+	}
 }
