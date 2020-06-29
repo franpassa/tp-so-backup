@@ -11,6 +11,7 @@ t_coordenada init_coordenada(uint32_t x, uint32_t y, uint32_t cantidad){
 
 t_pokemon init_pokemon(char* nombre, uint32_t x, uint32_t y, uint32_t cantidad){
 	t_pokemon pokemon;
+	string_to_lower(nombre);
 	pokemon.nombre = nombre;
 	pokemon.posicion = init_coordenada(x, y, cantidad);
 
@@ -159,6 +160,12 @@ void actualizar_metadata_y_ceder_acceso(char* nombre_pokemon, uint32_t file_size
 	pthread_mutex_unlock(mutex_file);
 }
 
+void ceder_acceso(char* nombre_pokemon, pthread_mutex_t* mutex_file){
+	pthread_mutex_lock(mutex_file);
+	set_open_flag(nombre_pokemon, false);
+	pthread_mutex_unlock(mutex_file);
+}
+
 pthread_mutex_t* crear_file_con_semaforo(char* nombre_pokemon){
 	pthread_mutex_t* mx_file = malloc(sizeof(pthread_mutex_t));
 	pthread_mutex_init(mx_file, NULL);
@@ -183,7 +190,7 @@ void new_pokemon(t_pokemon pokemon){
 		pthread_mutex_t* mutex_file = esperar_acceso(pokemon.nombre);
 		get_pokemon_blocks_and_coordenadas(pokemon.nombre, &bloques, &coordenadas);
 		add_coordenada(coordenadas, pokemon.posicion);
-		bytes_file = escribir_en_filesystem(pokemon, bloques, coordenadas);
+		bytes_file = escribir_en_filesystem(bloques, coordenadas);
 		actualizar_metadata_y_ceder_acceso(pokemon.nombre, bytes_file, bloques, mutex_file);
 	} else {
 		pthread_mutex_t* mutex_file = crear_file_con_semaforo(pokemon.nombre);
@@ -191,7 +198,41 @@ void new_pokemon(t_pokemon pokemon){
 		coordenadas = list_create();
 		add_coordenada(coordenadas, pokemon.posicion);
 
-		bytes_file = escribir_en_filesystem(pokemon, bloques, coordenadas);
+		bytes_file = escribir_en_filesystem(bloques, coordenadas);
 		actualizar_metadata_y_ceder_acceso(pokemon.nombre, bytes_file, bloques, mutex_file);
 	}
+}
+
+uint32_t catch_pokemon(t_pokemon pokemon){
+	t_list* coordenadas = NULL;
+	t_list* bloques = NULL;
+	int bytes_file;
+
+	uint32_t resultado;
+	if(existe_pokemon(pokemon.nombre)){
+		pthread_mutex_t* mutex_file = esperar_acceso(pokemon.nombre);
+		get_pokemon_blocks_and_coordenadas(pokemon.nombre, &bloques, &coordenadas);
+		resultado = restar_coordenada(coordenadas, pokemon.posicion);
+		bytes_file = escribir_en_filesystem(bloques, coordenadas);
+		actualizar_metadata_y_ceder_acceso(pokemon.nombre, bytes_file, bloques, mutex_file);
+	} else {
+		resultado = 0;
+	}
+	return resultado;
+}
+
+uint32_t* get_pokemon(char* nombre_pokemon, uint32_t* cant_posiciones){
+	t_list* coordenadas = NULL;
+	t_list* bloques = NULL;
+
+	uint32_t* posiciones;
+	if(existe_pokemon(nombre_pokemon)){
+		pthread_mutex_t* mutex_file = esperar_acceso(nombre_pokemon);
+		get_pokemon_blocks_and_coordenadas(nombre_pokemon, &bloques, &coordenadas);
+		posiciones = obtener_coordenadas(coordenadas, cant_posiciones);
+		ceder_acceso(nombre_pokemon, mutex_file);
+	} else {
+		posiciones = NULL;
+	}
+	return posiciones;
 }

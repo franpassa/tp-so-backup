@@ -1,10 +1,9 @@
 *.cproject
-*.settings/
+*/.settings
 *.project
 *.o
 *.so
 *.d
-*.mk
 *log
 */Default/gamecard
 */Default/broker
