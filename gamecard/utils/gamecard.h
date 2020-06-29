@@ -75,6 +75,7 @@ pthread_t hilo_gameboy;
 // --- Semáforos ---
 
 pthread_mutex_t mutex_bitmap;
+pthread_mutex_t mutex_dict;
 
 // --- Diccionarios ---
 
@@ -110,7 +111,7 @@ char* get_block_path(int block);
 void free_fspaths(t_fspaths* paths);
 int write_blocks(char* contenido_bloques, t_list* blocks);
 void crear_metadata(char* nombre_pokemon, uint32_t file_size, t_list* blocks, bool keep_open);
-void actualizar_metadata(char* nombre_pokemon, uint32_t file_size, t_list* bloques);
+void actualizar_metadata(char* nombre_pokemon, uint32_t file_size, t_list* bloques, bool open_flag);
 void eliminar_files();
 char* get_blocks_content(t_list* blocks);
 t_list* string_to_coordenadas(char* string_coordenadas);

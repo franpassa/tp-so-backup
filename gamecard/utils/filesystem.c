@@ -224,13 +224,20 @@ void crear_metadata(char* nombre_pokemon, uint32_t file_size, t_list* blocks, bo
 	fclose(metadata);
 }
 
-void actualizar_metadata(char* nombre_pokemon, uint32_t file_size, t_list* bloques){
+void actualizar_metadata(char* nombre_pokemon, uint32_t file_size, t_list* bloques, bool open_flag){
 	char* metadata_path = get_metadata_path(nombre_pokemon);
 	char* blocks_string = list_to_string(bloques);
+	char* open_value;
+	if(open_flag){
+		open_value = string_duplicate("Y");
+	} else {
+		open_value = string_duplicate("N");
+	}
 
 	t_config* metadata = config_create(metadata_path);
 	config_set_value(metadata, "SIZE", string_itoa(file_size));
 	config_set_value(metadata, "BLOCKS", blocks_string);
+	config_set_value(metadata, "OPEN", open_value);
 	config_save(metadata);
 
 	config_destroy(metadata);

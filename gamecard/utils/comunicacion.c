@@ -29,7 +29,6 @@ void esperar_conexion(int socket_sv){
 void manejar_msg_gameboy(int* socket_gameboy){
 
 	queue_name cola_productor;
-	printf("recibo mensaje de socket %d\n", *socket_gameboy);
 	recv(*socket_gameboy, &cola_productor, sizeof(queue_name), MSG_WAITALL);
 
 	uint32_t id_recibido;
@@ -38,8 +37,7 @@ void manejar_msg_gameboy(int* socket_gameboy){
 	free(socket_gameboy);
 
 	procesar_msg(tipo_msg, msg);
-
-
+	free_mensaje(tipo_msg, msg);
 }
 
 void print_ints(int* elem){
@@ -48,8 +46,8 @@ void print_ints(int* elem){
 
 void procesar_msg(queue_name tipo_msg, void* msg){
 	char* msg_string = msg_as_string(tipo_msg, msg);
-	if(msg_string) printf("msg recibido: %s\n", msg_string);
-
+	if(msg_string) printf("%s\n", msg_string);
+	free(msg_string);
 	switch(tipo_msg){
 		case NEW_POKEMON:;
 			new_pokemon_msg* new_pok = (new_pokemon_msg*) msg;

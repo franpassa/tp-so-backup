@@ -95,13 +95,21 @@ char* get_last(char** array){
 bool is_file_open(char* nombre_pokemon){
 	char* path_metadata = get_pokemon_path(nombre_pokemon);
 	string_append(&path_metadata, "/Metadata.bin");
+	bool is_open;
 
 	t_config* metadata_config = config_create(path_metadata);
-	char* open_status = config_get_string_value(metadata_config, "OPEN");
-	bool is_open = open_status[0] == 'Y';
-
+	if(metadata_config != NULL){
+		if(config_has_property(metadata_config, "OPEN")){
+			char* open_status = config_get_string_value(metadata_config, "OPEN");
+			is_open = open_status[0] == 'Y';
+		} else {
+			is_open = true;
+		}
+		config_destroy(metadata_config);
+	} else {
+		is_open = true;
+	}
 	free(path_metadata);
-	config_destroy(metadata_config);
 
 	return is_open;
 }
@@ -126,41 +134,64 @@ void set_open_flag(char* nombre_pokemon, bool value){
 	free(path_metadata);
 }
 
+pthread_mutex_t* esperar_acceso(char* nombre_pokemon){
+	pthread_mutex_lock(&mutex_dict);
+	pthread_mutex_t* mx_file = (pthread_mutex_t*) dictionary_get(sem_files, nombre_pokemon);
+	pthread_mutex_unlock(&mutex_dict);
+
+	while(1){
+		pthread_mutex_lock(mx_file);
+		if(!is_file_open(nombre_pokemon)){
+			set_open_flag(nombre_pokemon, true);
+			pthread_mutex_unlock(mx_file);
+			return mx_file;
+		} else {
+			int tiempo_reintento = config_get_int_value(config, "TIEMPO_DE_REINTENTO_OPERACION");
+			pthread_mutex_unlock(mx_file);
+			sleep(tiempo_reintento);
+		}
+	}
+}
+
+void actualizar_metadata_y_ceder_acceso(char* nombre_pokemon, uint32_t file_size, t_list* bloques, pthread_mutex_t* mutex_file){
+	pthread_mutex_lock(mutex_file);
+	actualizar_metadata(nombre_pokemon, file_size, bloques, false);
+	pthread_mutex_unlock(mutex_file);
+}
+
+pthread_mutex_t* crear_file_con_semaforo(char* nombre_pokemon){
+	pthread_mutex_t* mx_file = malloc(sizeof(pthread_mutex_t));
+	pthread_mutex_init(mx_file, NULL);
+	pthread_mutex_lock(mx_file);
+
+	pthread_mutex_lock(&mutex_dict);
+	dictionary_put(sem_files, nombre_pokemon, mx_file);
+	pthread_mutex_unlock(&mutex_dict);
+
+	crear_file(nombre_pokemon, true);
+	pthread_mutex_unlock(mx_file);
+
+	return mx_file;
+}
+
 void new_pokemon(t_pokemon pokemon){
 	t_list* coordenadas = NULL;
 	t_list* bloques = NULL;
 	int bytes_file;
 
 	if(existe_pokemon(pokemon.nombre)){
-		pthread_mutex_t* mx_file = (pthread_mutex_t*) dictionary_get(sem_files, pokemon.nombre);
-		printf("%d\n", mx_file != NULL);
-		while(is_file_open(pokemon.nombre)){
-			printf("Archivo %s está abierto, esperando para acceder...", pokemon.nombre);
-			sleep(10);
-		}
-		pthread_mutex_lock(mx_file);
-		set_open_flag(pokemon.nombre, true);
-		pthread_mutex_unlock(mx_file);
+		pthread_mutex_t* mutex_file = esperar_acceso(pokemon.nombre);
 		get_pokemon_blocks_and_coordenadas(pokemon.nombre, &bloques, &coordenadas);
 		add_coordenada(coordenadas, pokemon.posicion);
-
 		bytes_file = escribir_en_filesystem(pokemon, bloques, coordenadas);
-
-		actualizar_metadata(pokemon.nombre, bytes_file, bloques);
-		set_open_flag(pokemon.nombre, false);
+		actualizar_metadata_y_ceder_acceso(pokemon.nombre, bytes_file, bloques, mutex_file);
 	} else {
-		pthread_mutex_t* mx_file = malloc(sizeof(pthread_mutex_t));
-		pthread_mutex_init(mx_file, NULL);
-		dictionary_put(sem_files, pokemon.nombre, mx_file);
-		crear_file(pokemon.nombre, true);
-		pthread_mutex_lock(mx_file);
-		pthread_mutex_unlock(mx_file);
+		pthread_mutex_t* mutex_file = crear_file_con_semaforo(pokemon.nombre);
 		bloques = list_create();
 		coordenadas = list_create();
 		add_coordenada(coordenadas, pokemon.posicion);
 
 		bytes_file = escribir_en_filesystem(pokemon, bloques, coordenadas);
-		actualizar_metadata(pokemon.nombre, bytes_file, bloques);
-		set_open_flag(pokemon.nombre, false);
+		actualizar_metadata_y_ceder_acceso(pokemon.nombre, bytes_file, bloques, mutex_file);
 	}
 }
