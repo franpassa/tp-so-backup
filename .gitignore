@@ -3,7 +3,6 @@
 *.project
 *.o
 *.so
-*.d
 *log
 */Default/gamecard
 */Default/broker
