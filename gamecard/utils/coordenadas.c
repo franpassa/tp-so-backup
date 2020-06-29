@@ -47,6 +47,17 @@ char* coordenadas_to_string(t_list* coordenadas){
 	return coordenadas_string;
 }
 
+t_coordenada* find_coordenada(t_list* lista_coordenadas, t_coordenada coordenada){
+
+	bool es_la_misma(t_coordenada* coordenada_en_lista){
+		bool mismaX = coordenada.x == coordenada_en_lista->x;
+		bool mismaY = coordenada.y == coordenada_en_lista->y;
+		return mismaX && mismaY;
+	}
+
+	return (t_coordenada*) list_find(lista_coordenadas, (void*) es_la_misma);
+}
+
 // Si ya existe en la lista le suma la cantidad, si no lo crea y lo agrega.
 void add_coordenada(t_list* lista_coordenadas, t_coordenada coordenada){
 
@@ -58,21 +69,6 @@ void add_coordenada(t_list* lista_coordenadas, t_coordenada coordenada){
 		t_coordenada* nueva_coordenada = malloc(sizeof(t_coordenada));
 		*nueva_coordenada = coordenada;
 		list_add(lista_coordenadas, nueva_coordenada);
-	}
-}
-
-bool quitar_de_coordenada(t_list* lista_coordenadas, t_coordenada coordenada){
-
-	t_coordenada* coordenada_en_lista = find_coordenada(lista_coordenadas, coordenada);
-
-	if(coordenada_en_lista != NULL){
-		coordenada_en_lista->cantidad -= coordenada.cantidad;
-		if(coordenada_en_lista->cantidad == 0){
-			remover_coordenada(lista_coordenadas, coordenada);
-		}
-		return true;
-	}  else {
-		return false;
 	}
 }
 
@@ -88,13 +84,34 @@ void remover_coordenada(t_list* lista_coordenadas, t_coordenada coordenada){
 
 }
 
-t_coordenada* find_coordenada(t_list* lista_coordenadas, t_coordenada coordenada){
+uint32_t* obtener_coordenadas(t_list* coordenadas, uint32_t* cant_coordenadas){
+	*cant_coordenadas = list_size(coordenadas)*2; // Cada coordenada tiene X e Y => la cant total de valores es 2 veces la cant de coordenadas
+	uint32_t* posiciones_diferentes = malloc(sizeof(uint32_t) * (*cant_coordenadas));
+	int index = -1;
 
-	bool es_la_misma(t_coordenada* coordenada_en_lista){
-		bool mismaX = coordenada.x == coordenada_en_lista->x;
-		bool mismaY = coordenada.y == coordenada_en_lista->y;
-		return mismaX && mismaY;
+	void obtener_pos_diferentes(t_coordenada* coordenada){
+		index++;
+		posiciones_diferentes[index] = coordenada->x;
+		index++;
+		posiciones_diferentes[index] = coordenada->y;
 	}
+	list_iterate(coordenadas, (void*) obtener_pos_diferentes);
 
-	return (t_coordenada*) list_find(lista_coordenadas, (void*) es_la_misma);
+	*cant_coordenadas /= 2;
+	return posiciones_diferentes;
+}
+
+bool restar_coordenada(t_list* lista_coordenadas, t_coordenada coordenada){
+
+	t_coordenada* coordenada_en_lista = find_coordenada(lista_coordenadas, coordenada);
+
+	if(coordenada_en_lista != NULL){
+		coordenada_en_lista->cantidad -= coordenada.cantidad;
+		if(coordenada_en_lista->cantidad == 0){
+			remover_coordenada(lista_coordenadas, coordenada);
+		}
+		return true;
+	}  else {
+		return false;
+	}
 }

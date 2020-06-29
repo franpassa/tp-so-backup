@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>gamecard</name>
+	<name>game_card</name>
 	<comment></comment>
 	<projects>
+		<project>libs</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

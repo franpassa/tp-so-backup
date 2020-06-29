@@ -329,7 +329,7 @@ int agregar_posicion_pokemon(t_pokemon pokemon){
 }
 
 // Devuelve la cantidad de bytes escritos y actualiza la lista 'bloques' con los bloques utilizados.
-int escribir_en_filesystem(t_pokemon pokemon, t_list* bloques, t_list* coordenadas){
+int escribir_en_filesystem(t_list* bloques, t_list* coordenadas){
 	int bytes_escritos;
 	t_list* strings_por_bloque = NULL;
 
