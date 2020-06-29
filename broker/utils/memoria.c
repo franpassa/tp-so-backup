@@ -201,11 +201,6 @@ bool es_potencia_de_dos(int numero){
 
 void consolidar_particiones_en_bs(int posicion_a_liberar) { // Consolido cada vez que se libera una particion y sigo consolidando hasta que no pueda mas
 	t_struct_secundaria* particion_a_consolidar = list_get(lista_de_particiones, posicion_a_liberar);
-	particion_a_consolidar->id_mensaje = 0;
-	particion_a_consolidar->tipo_mensaje = 6;
-	while(!es_potencia_de_dos(particion_a_consolidar->tamanio)){ // Le sumo 1 hasta ver si es potencia de 2 ya que la estructura >= al size que tenia antes (ejemplo: tamanio = 6 entonces 7 ..8 para ahi)
-		particion_a_consolidar->tamanio +=1;
-	}
 
 	for (int i = 0; i < list_size(lista_de_particiones); i++) {
 		t_struct_secundaria* particion_a_comparar_si_es_buddy = list_get(lista_de_particiones, i);
@@ -363,29 +358,61 @@ int cont_orden_f(){
 	return cont_orden;
 }
 
-void actualizar_bit_inicio(int a_sacar){
-	t_struct_secundaria* estructura_bit_inicio;
+void actualizar_bit_inicio(int a_sacar){ // actualiza el bit de inicio y lo elimina de la lista de particiones a la particion a sacar
+	t_struct_secundaria* particion_siguiente_de_a_sacar; // a sacar + 1
+	t_struct_secundaria* particion_anterior_de_a_sacar; // a sacar - 1
 
-	for (int f = a_sacar + 1; f < list_size(lista_de_particiones); f++) {
-		estructura_bit_inicio = list_get(lista_de_particiones, f);
-		estructura_bit_inicio->bit_inicio = estructura_bit_inicio->bit_inicio - estructura->tamanio; // ver esto
-		list_replace_and_destroy_element(lista_de_particiones,f,estructura_bit_inicio,free);
+	for (int f = a_sacar + 1; f < list_size(lista_de_particiones); f++) { // Siempre haces que el bit inicio siguiente se mueva para atras
+		particion_siguiente_de_a_sacar = list_get(lista_de_particiones, f);
+		particion_anterior_de_a_sacar = list_get(lista_de_particiones, f-1);
+		// estructura_bit_inicio = list_get(lista_de_particiones, f);
+		//estructura_bit_inicio->bit_inicio = estructura_bit_inicio->bit_inicio - estructura->tamanio;
+		particion_siguiente_de_a_sacar->bit_inicio = particion_siguiente_de_a_sacar->bit_inicio - particion_anterior_de_a_sacar->bit_inicio;
+		list_replace_and_destroy_element(lista_de_particiones,f,particion_siguiente_de_a_sacar,free); // Modificas el anterior f (bit de inicio anterior) al nuevo f (bit de inicio cambiado)
 	}
 }
 
-void mover_memoria(int a_sacar){ // No me queda claro esto
+void mover_memoria(int a_sacar){ // Perfecto
 	t_struct_secundaria* estructura_a_mover_memoria;
 
 	estructura_a_mover_memoria = list_get(lista_de_particiones,a_sacar);
 	int tamanio_a_mover = tamanio_memoria - (estructura_a_mover_memoria->bit_inicio + estructura_a_mover_memoria->tamanio);
-	char* comienzo_a_sacar = memoria + estructura_a_mover_memoria-> bit_inicio;
+	void* comienzo_a_sacar = memoria + estructura_a_mover_memoria-> bit_inicio;
 	// de donde voy a sacar la memoria a mover
-	char* de_donde = memoria + estructura_a_mover_memoria->bit_inicio + estructura_a_mover_memoria->tamanio;
+	void* de_donde = memoria + estructura_a_mover_memoria->bit_inicio + estructura_a_mover_memoria->tamanio;
 
 	memmove(comienzo_a_sacar, de_donde, tamanio_a_mover);
 
 	list_remove_and_destroy_element(lista_de_particiones, a_sacar, free);
 	list_add(lista_de_particiones, estructura_a_mover_memoria);
+}
+
+void mover_memoria_en_bs(int a_sacar){ // Creo que en bs es distinto, todavia no esta terminado
+	t_struct_secundaria* particion_a_mover_memoria;
+
+	particion_a_mover_memoria = list_get(lista_de_particiones,a_sacar);
+	int tamanio_a_mover = tamanio_memoria - (particion_a_mover_memoria->bit_inicio + particion_a_mover_memoria->tamanio);
+	void* comienzo_a_sacar = memoria + particion_a_mover_memoria-> bit_inicio;
+	// de donde voy a sacar la memoria a mover
+	void* de_donde = memoria + particion_a_mover_memoria->bit_inicio + particion_a_mover_memoria->tamanio;
+
+	//memmove(comienzo_a_sacar, de_donde, tamanio_a_mover);
+
+	int contador_de_tamanio_completo_vacio = 0;
+
+	while(comienzo_a_sacar!= NULL && contador_de_tamanio_completo_vacio != particion_a_mover_memoria->tamanio){
+		comienzo_a_sacar = NULL;
+		comienzo_a_sacar ++;
+		contador_de_tamanio_completo_vacio++;
+	}
+	particion_a_mover_memoria->id_mensaje = 0;
+	particion_a_mover_memoria->tipo_mensaje = 6;
+	while(!es_potencia_de_dos(particion_a_mover_memoria->tamanio)){ // Le sumo 1 hasta ver si es potencia de 2 ya que la estructura >= al size que tenia antes (ejemplo: tamanio = 6 entonces 7 ..8 para ahi)
+		particion_a_mover_memoria->tamanio +=1;
+	}
+	particion_a_mover_memoria->auxiliar = 0; //
+	list_replace_and_destroy_element(lista_de_particiones,a_sacar,particion_a_mover_memoria,free);
+	// quedaria msg_a_sacar -> [6, tamanio_potencia_de_2, 0, bit de inicio, 0] y en memoria si elimino 2do msg => memoria=hola----andas
 }
 
 void* de_id_mensaje_a_mensaje(uint32_t id_mensaje) { // Perfecto
