@@ -23,11 +23,6 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 	entra = -1;
 	tamanio_a_ocupar = size;
 
-	// los uso en el while para buscar bit de inicio
-	uint32_t posicion_de_memoria = 0;
-	uint32_t ocupa_todo_el_msg = 0;
-	uint32_t contador_de_bit_de_inicio = 0;
-
 	if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"PARTICIONES")){
 
 		buscar_particion_en_particiones_dinamicas();
@@ -37,7 +32,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 
 		if (estructura_memoria->tamanio > size){
 			estructura_memoria->tamanio = estructura_memoria->tamanio - size;
-			// estructura_memoria->bit_inicio = estructura_memoria->bit_inicio + size; // El bit de inicio lo voy a obtener en el while
+			estructura_memoria->bit_inicio = estructura_memoria->bit_inicio + size; // El bit de inicio lo voy a obtener en el while
 			list_add_in_index(lista_de_particiones, (entra + 1), estructura_memoria);
 		}
 
@@ -50,20 +45,9 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 			printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 		}
 
-		while(posicion_de_memoria != (tamanio_memoria + 1) && ocupa_todo_el_msg != tamanio_a_ocupar){ // Esto lo uso para saber el bit de inicio
-			if(memoria + posicion_de_memoria == NULL){
-				ocupa_todo_el_msg ++;
-			}else{
-				ocupa_todo_el_msg = 0;
-			}
-			contador_de_bit_de_inicio ++;
-			posicion_de_memoria ++;
-		}
-
 		est_a_utilizar->id_mensaje = id_mensaje;
 		est_a_utilizar->tamanio = size;
 		est_a_utilizar->tipo_mensaje = id_cola;
-		est_a_utilizar->bit_inicio = contador_de_bit_de_inicio - est_a_utilizar->tamanio;
 
         list_replace_and_destroy_element(lista_de_particiones, entra, est_a_utilizar,free);
         memmove(memoria + est_a_utilizar->bit_inicio, mensaje, size);
@@ -259,7 +243,7 @@ void compactar(){
 	int tamanio_lista_actual = list_size(lista_de_particiones);
 	for (int i = 0; i < tamanio_lista_actual; i++ ){
 		estructura1 = list_get(lista_de_particiones,i);
-		if (estructura1->tipo_mensaje == 6 && i < list_size(lista_de_particiones)){
+		if (estructura1->tipo_mensaje == 6 && i+1 < tamanio_lista_actual){
 			estructura2 = list_get(lista_de_particiones,(i+1));
 			if(estructura2->tipo_mensaje == 6){
 				estructura1->tamanio += estructura2->tamanio;
@@ -275,7 +259,7 @@ void compactar(){
 
 				mover_memoria(i);
 
-				estructura2->bit_inicio = tamanio_memoria - estructura1->tamanio; // ver esto
+				estructura2->bit_inicio = tamanio_memoria - estructura1->tamanio;
 				estructura2->id_mensaje = 0;
 				estructura2->tamanio = estructura1->tamanio;
 				estructura2->tipo_mensaje = 6;
@@ -290,43 +274,19 @@ void compactar(){
 
 void elegir_victima_para_eliminar_mediante_FIFO_o_LRU(){
 	t_struct_secundaria* particion_a_sacar;
-	int orden, orden_menor;
 	int a_sacar = 0;
+
 	if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_REEMPLAZO"),"FIFO")){
-		for(int i = 0; i< list_size(lista_de_particiones); i++ ){
-			particion_a_sacar = list_get(lista_de_particiones,i);
-			if(i == 0){
-				orden = particion_a_sacar->auxiliar;
-				a_sacar = 0;
-			}
-			orden_menor = particion_a_sacar->auxiliar;
-			if (orden_menor < orden && particion_a_sacar->tipo_mensaje != 6){
-				orden_menor = orden;
-				a_sacar = i;
-			}
-		}
+
+		algoritmo_FIFO(particion_a_sacar,a_sacar);
 
 		actualizar_bit_inicio(a_sacar);
 
 		mover_memoria(a_sacar);
 
 	} else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_REEMPLAZO"),"LRU")) {
-		int contador = 0;
-		int flag_2 = 0;
-		do {
-			if (contador == list_size(lista_de_particiones)){
-				contador = 0;
-			}
-			particion_a_sacar = list_get(lista_de_particiones,contador);
-			if (particion_a_sacar->auxiliar == 0 ){
-				a_sacar = contador;
-				flag_2 = 1;
-			} else {
-				particion_a_sacar->auxiliar = 0;
-				list_replace_and_destroy_element(lista_de_particiones, contador,particion_a_sacar, free);
-			}
-			contador ++;
-		} while(flag_2 == 0);
+
+		algoritmo_LRU(particion_a_sacar,a_sacar);
 
 		actualizar_bit_inicio(a_sacar);
 
@@ -346,6 +306,41 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU(){
 	}
 }
 
+void algoritmo_FIFO(t_struct_secundaria* particion_a_sacar,int a_sacar){
+	int orden, orden_menor;
+	for(int i = 0; i< list_size(lista_de_particiones); i++ ){
+		particion_a_sacar = list_get(lista_de_particiones,i);
+		if(i == 0){
+			orden = particion_a_sacar->auxiliar;
+			a_sacar = 0;
+		}
+		orden_menor = particion_a_sacar->auxiliar;
+		if (orden_menor < orden && particion_a_sacar->tipo_mensaje != 6){
+			orden_menor = orden;
+			a_sacar = i;
+		}
+	}
+}
+
+void algoritmo_LRU(t_struct_secundaria* particion_a_sacar,int a_sacar){
+	int contador = 0;
+	int flag_2 = 0;
+	do {
+		if (contador == list_size(lista_de_particiones)){
+			contador = 0;
+		}
+		particion_a_sacar = list_get(lista_de_particiones,contador);
+		if (particion_a_sacar->auxiliar == 0 ){
+			a_sacar = contador;
+			flag_2 = 1;
+		} else {
+			particion_a_sacar->auxiliar = 0;
+			list_replace_and_destroy_element(lista_de_particiones, contador,particion_a_sacar, free);
+		}
+		contador ++;
+	} while(flag_2 == 0);
+}
+
 int cont_orden_f(){
 	cont_orden += 1;
 	return cont_orden;
@@ -353,15 +348,13 @@ int cont_orden_f(){
 
 void actualizar_bit_inicio(int a_sacar){ // actualiza el bit de inicio y lo elimina de la lista de particiones a la particion a sacar // Creo que asi esta perfecto
 	t_struct_secundaria* particion_siguiente_de_a_sacar; // a sacar + 1
-	t_struct_secundaria* particion_anterior_de_a_sacar; // a sacar - 1
+	t_struct_secundaria* particion_a_sacar;
 
 	for (int f = a_sacar + 1; f < list_size(lista_de_particiones); f++) { // Siempre haces que el bit inicio siguiente se mueva para atras
 		particion_siguiente_de_a_sacar = list_get(lista_de_particiones, f);
-		particion_anterior_de_a_sacar = list_get(lista_de_particiones, f-1); // el primer for va a ser el a_sacar
-		// estructura_bit_inicio = list_get(lista_de_particiones, f);
-		// estructura_bit_inicio->bit_inicio = estructura_bit_inicio->bit_inicio - estructura->tamanio;
-		particion_siguiente_de_a_sacar->bit_inicio = particion_anterior_de_a_sacar->bit_inicio;
-		list_replace_and_destroy_element(lista_de_particiones,f,particion_siguiente_de_a_sacar,free); // Modificas el anterior f (bit de inicio anterior) al nuevo f (bit de inicio cambiado)
+		particion_a_sacar = list_get(lista_de_particiones, f-1); // el primer for va a ser el a_sacar
+		particion_siguiente_de_a_sacar->bit_inicio = particion_siguiente_de_a_sacar->bit_inicio - particion_a_sacar->tamanio;
+		list_replace_and_destroy_element(lista_de_particiones,f,particion_siguiente_de_a_sacar,free);
 	}
 }
 
@@ -372,27 +365,26 @@ void mover_memoria(int a_sacar) {
 	void* comienzo_a_sacar = memoria + particion_a_mover_memoria->bit_inicio;
 	void* de_donde = memoria + particion_a_mover_memoria->bit_inicio + particion_a_mover_memoria->tamanio;
 	// de donde voy a sacar la memoria a mover
-	if (string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_MEMORIA"), "PARTCIONES")) {
-		memmove(comienzo_a_sacar, de_donde, tamanio_a_mover);
-		list_remove_and_destroy_element(lista_de_particiones, a_sacar, free);
-		list_add(lista_de_particiones, particion_a_mover_memoria);
 
-	} else if (string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_MEMORIA"), "BS")) {
-		int contador_de_tamanio_completo_vacio = 0;
-		while (comienzo_a_sacar != NULL && contador_de_tamanio_completo_vacio != particion_a_mover_memoria->tamanio) {
-			comienzo_a_sacar = NULL;
-			comienzo_a_sacar++;
-			contador_de_tamanio_completo_vacio++;
-		}
-		particion_a_mover_memoria->id_mensaje = 0;
-		particion_a_mover_memoria->tipo_mensaje = 6;
-		while (!es_potencia_de_dos(particion_a_mover_memoria->tamanio)) { // Le sumo 1 hasta ver si es potencia de 2 ya que la estructura >= al size que tenia antes (ejemplo: tamanio = 6 entonces 7 ..8 para ahi)
-			particion_a_mover_memoria->tamanio += 1;
-		}
-		particion_a_mover_memoria->auxiliar = 0;
-		list_replace_and_destroy_element(lista_de_particiones, a_sacar, particion_a_mover_memoria, free);
-		// quedaria msg_a_sacar -> [6, tamanio_potencia_de_2, 0, bit de inicio, 0] y en memoria si elimino 2do msg => memoria=hola----andas
-	}
+	memmove(comienzo_a_sacar, de_donde, tamanio_a_mover);
+	list_remove_and_destroy_element(lista_de_particiones, a_sacar, free);
+	list_add(lista_de_particiones, particion_a_mover_memoria);
+
+//		int contador_de_tamanio_completo_vacio = 0;
+//		while (comienzo_a_sacar != NULL && contador_de_tamanio_completo_vacio != particion_a_mover_memoria->tamanio) {
+//			comienzo_a_sacar = NULL;
+//			comienzo_a_sacar++;
+//			contador_de_tamanio_completo_vacio++;
+//		}
+//		particion_a_mover_memoria->id_mensaje = 0;
+//		particion_a_mover_memoria->tipo_mensaje = 6;
+//		while (!es_potencia_de_dos(particion_a_mover_memoria->tamanio)) { // Le sumo 1 hasta ver si es potencia de 2 ya que la estructura >= al size que tenia antes (ejemplo: tamanio = 6 entonces 7 ..8 para ahi)
+//			particion_a_mover_memoria->tamanio += 1;
+//		}
+//		particion_a_mover_memoria->auxiliar = 0;
+//		list_replace_and_destroy_element(lista_de_particiones, a_sacar, particion_a_mover_memoria, free);
+//		// quedaria msg_a_sacar -> [6, tamanio_potencia_de_2, 0, bit de inicio, 0] y en memoria si elimino 2do msg => memoria=hola----andas
+
 }
 
 void* de_id_mensaje_a_mensaje(uint32_t id_mensaje) {

@@ -161,5 +161,7 @@ void buscar_particion_en_bs();
 void consolidar_particiones_en_bs(int posicion_liberada);
 bool son_buddies(t_struct_secundaria*, t_struct_secundaria*, int, int);
 bool es_potencia_de_dos(int);
+void algoritmo_FIFO(t_struct_secundaria*,int);
+void algoritmo_LRU(t_struct_secundaria*,int);
 
 #endif /* BROKER_H_ */
