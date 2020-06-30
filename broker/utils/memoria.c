@@ -94,16 +94,16 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 			printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 		}
 
-		while(posicion_de_memoria != (tamanio_memoria + 1) && ocupa_todo_el_msg != tamanio_a_ocupar && es_potencia_de_dos(contador_de_bit_de_inicio)){ // llega hasta limite + 1 porque cuento el ultimo y termina
+		while(posicion_de_memoria != (tamanio_memoria + 1) && ocupa_todo_el_msg != tamanio_a_ocupar && es_potencia_de_dos(posicion_de_memoria)){ // llega hasta limite + 1 porque cuento el ultimo y termina
 			if(memoria + posicion_de_memoria == NULL && ocupa_todo_el_msg != tamanio_a_ocupar){ // Lo pongo de nuevo asi puedo parar el if cuando sea null
 				ocupa_todo_el_msg ++; // tiene que llegar a ocupar por completo el msg
-			}else{
+				contador_de_bit_de_inicio ++;
+			} else {
 				ocupa_todo_el_msg = 0; // si una posicion de la memoria ya esta ocupada, entonces vuelvo a buscar
+				contador_de_bit_de_inicio ++; // cuantas veces buscaste en la memoria
 			}
 
-			contador_de_bit_de_inicio ++; // cuantas veces buscaste en la memoria
 			posicion_de_memoria ++;
-
 		} // Excelente, con pruebas de escritorio hecha
 
 		particion_a_llenar_con_msg->bit_inicio = contador_de_bit_de_inicio - particion_a_llenar_con_msg->tamanio; // BIT DE INICIO = VECES QUE BUSQUE QUE ESTUVIERA LIBRE LA MEMORIA PARA QUE PUEDA ALOJAR COMPLETO EL MENSAJE - EL TAMANIO DEL MENSAJE
@@ -368,10 +368,10 @@ void actualizar_bit_inicio(int a_sacar){ // actualiza el bit de inicio y lo elim
 
 	for (int f = a_sacar + 1; f < list_size(lista_de_particiones); f++) { // Siempre haces que el bit inicio siguiente se mueva para atras
 		particion_siguiente_de_a_sacar = list_get(lista_de_particiones, f);
-		particion_anterior_de_a_sacar = list_get(lista_de_particiones, f-1);
+		particion_anterior_de_a_sacar = list_get(lista_de_particiones, f-1); // el primer for va a ser el a_sacar
 		// estructura_bit_inicio = list_get(lista_de_particiones, f);
 		// estructura_bit_inicio->bit_inicio = estructura_bit_inicio->bit_inicio - estructura->tamanio;
-		particion_siguiente_de_a_sacar->bit_inicio = particion_siguiente_de_a_sacar->bit_inicio - particion_anterior_de_a_sacar->bit_inicio;
+		particion_siguiente_de_a_sacar->bit_inicio = particion_anterior_de_a_sacar->bit_inicio;
 		list_replace_and_destroy_element(lista_de_particiones,f,particion_siguiente_de_a_sacar,free); // Modificas el anterior f (bit de inicio anterior) al nuevo f (bit de inicio cambiado)
 	}
 }
