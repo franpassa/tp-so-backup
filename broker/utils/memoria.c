@@ -9,19 +9,12 @@ void inicializar_memoria() {
 	lista_de_particiones = list_create();
 	cont_orden = 0;
 
-	if (string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"PARTICIONES")) {
+	particion_inicial->tipo_mensaje = 6;
+	particion_inicial->tamanio = tamanio_memoria;
+	particion_inicial->id_mensaje = 0;
+	particion_inicial->bit_inicio = 0;
+	list_add(lista_de_particiones,particion_inicial);
 
-		particion_inicial->tipo_mensaje = 6;
-		particion_inicial->tamanio = tamanio_memoria;
-		particion_inicial->id_mensaje = 0;
-		particion_inicial->bit_inicio = 0;
-		list_add(lista_de_particiones,particion_inicial);
-
-	} else if (string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"), "BS")) {
-
-	} else {
-		printf("Error en broker.config ALGORITMO_MEMORIA no valido");
-	}
 }
 
 
@@ -100,7 +93,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 				contador_de_bit_de_inicio ++;
 			} else {
 				ocupa_todo_el_msg = 0; // si una posicion de la memoria ya esta ocupada, entonces vuelvo a buscar
-				contador_de_bit_de_inicio ++; // cuantas veces buscaste en la memoria
+				contador_de_bit_de_inicio ++; // cuantas veces buscaste en la memoria hasta que puedas completar el tamanio del mensaje
 			}
 
 			posicion_de_memoria ++;
@@ -128,13 +121,11 @@ t_struct_secundaria* duplicar_estructura(t_struct_secundaria* estructura){
 
 void buscar_particion_en_bs() {
 	t_struct_secundaria* particion;
-	flag = 0;
 	int encontro_particion = 1;
 	if (string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_PARTICION_LIBRE"),"FF")) {
-		for (int i = 0; i < list_size(lista_de_particiones); i++) {
+		for (int i = 0; i < list_size(lista_de_particiones); i++) { // list_iterate podemos usar por ahi (despues verlo)
 			particion = list_get(lista_de_particiones, i);
 			if (particion->tipo_mensaje == 6) {
-				flag++; // cantidad de espacios libres
 				while (particion->tamanio >= tamanio_a_ocupar && encontro_particion != 0) { // divide las particiones (64 -- 32 32 -- 16 16 32 ..)
 					if (particion->tamanio / 2 > tamanio_a_ocupar) {
 						t_struct_secundaria* particion_nueva = duplicar_estructura(particion);
@@ -149,9 +140,7 @@ void buscar_particion_en_bs() {
 			}
 		}
 		if (entra == -1) {
-			if (flag > 1) {
-				elegir_victima_para_eliminar_mediante_FIFO_o_LRU(); // Como esta en BS entonces elimino y veo si puedo consolidar
-			}
+			elegir_victima_para_eliminar_mediante_FIFO_o_LRU(); // Como esta en BS entonces elimino y veo si puedo consolidar
 		}
 
 	} else if(string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_PARTICION_LIBRE"),"BF")){
@@ -342,7 +331,7 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU(){
 		actualizar_bit_inicio(a_sacar);
 
 		mover_memoria(a_sacar);
-
+		// ver bs
 	} else {
 		printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 	}
