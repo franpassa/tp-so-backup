@@ -49,7 +49,7 @@ typedef struct {
 
 void* memoria;
 
-t_struct_secundaria* estructura;
+t_struct_secundaria* particion_inicial;
 int flag;
 int entra;
 int tamanio_a_ocupar;

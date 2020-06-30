@@ -5,17 +5,17 @@ void inicializar_memoria() {
 	tamanio_memoria = config_get_int_value(config,"TAMANIO_MEMORIA");
 	memoria = malloc(tamanio_memoria);
 
-	estructura = malloc(sizeof(t_struct_secundaria));
+	particion_inicial = malloc(sizeof(t_struct_secundaria));
 	lista_de_particiones = list_create();
 	cont_orden = 0;
 
 	if (string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"PARTICIONES")) {
 
-		estructura->tipo_mensaje = 6;
-		estructura->tamanio = tamanio_memoria;
-		estructura->id_mensaje = 0;
-		estructura->bit_inicio = 0;
-		list_add(lista_de_particiones,estructura);
+		particion_inicial->tipo_mensaje = 6;
+		particion_inicial->tamanio = tamanio_memoria;
+		particion_inicial->id_mensaje = 0;
+		particion_inicial->bit_inicio = 0;
+		list_add(lista_de_particiones,particion_inicial);
 
 	} else if (string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"), "BS")) {
 
@@ -44,7 +44,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 
 		if (estructura_memoria->tamanio > size){
 			estructura_memoria->tamanio = estructura_memoria->tamanio - size;
-			// estructura_memoria->bit_inicio = estructura_memoria->bit_inicio + size; // ver esto no esta tan chequeado
+			// estructura_memoria->bit_inicio = estructura_memoria->bit_inicio + size; // El bit de inicio lo voy a obtener en el while
 			list_add_in_index(lista_de_particiones, (entra + 1), estructura_memoria);
 		}
 
@@ -134,7 +134,7 @@ void buscar_particion_en_bs() {
 		for (int i = 0; i < list_size(lista_de_particiones); i++) {
 			particion = list_get(lista_de_particiones, i);
 			if (particion->tipo_mensaje == 6) {
-				flag++;
+				flag++; // cantidad de espacios libres
 				while (particion->tamanio >= tamanio_a_ocupar && encontro_particion != 0) { // divide las particiones (64 -- 32 32 -- 16 16 32 ..)
 					if (particion->tamanio / 2 > tamanio_a_ocupar) {
 						t_struct_secundaria* particion_nueva = duplicar_estructura(particion);
@@ -265,17 +265,18 @@ void buscar_particion_en_particiones_dinamicas(){
 }
 
 void compactar(){
+	t_struct_secundaria* estructura1;
 	t_struct_secundaria* estructura2;
 	int tamanio_lista_actual = list_size(lista_de_particiones);
 	for (int i = 0; i < tamanio_lista_actual; i++ ){
-		estructura = list_get(lista_de_particiones,i);
-		if (estructura->tipo_mensaje == 6 && i < list_size(lista_de_particiones)){
+		estructura1 = list_get(lista_de_particiones,i);
+		if (estructura1->tipo_mensaje == 6 && i < list_size(lista_de_particiones)){
 			estructura2 = list_get(lista_de_particiones,(i+1));
 			if(estructura2->tipo_mensaje == 6){
-				estructura->tamanio += estructura2->tamanio;
+				estructura1->tamanio += estructura2->tamanio;
 
 				list_remove_and_destroy_element(lista_de_particiones,(i+1),free);
-				list_replace_and_destroy_element(lista_de_particiones,i,estructura,free);
+				list_replace_and_destroy_element(lista_de_particiones,i,estructura1,free);
 
 				tamanio_lista_actual -= 1;
 				i -= 1;
@@ -285,9 +286,9 @@ void compactar(){
 
 				mover_memoria(i);
 
-				estructura2->bit_inicio = tamanio_memoria - estructura->tamanio; // ver esto
+				estructura2->bit_inicio = tamanio_memoria - estructura1->tamanio; // ver esto
 				estructura2->id_mensaje = 0;
-				estructura2->tamanio = estructura->tamanio;
+				estructura2->tamanio = estructura1->tamanio;
 				estructura2->tipo_mensaje = 6;
 
 				list_add(lista_de_particiones,estructura2);
@@ -369,13 +370,13 @@ void actualizar_bit_inicio(int a_sacar){ // actualiza el bit de inicio y lo elim
 		particion_siguiente_de_a_sacar = list_get(lista_de_particiones, f);
 		particion_anterior_de_a_sacar = list_get(lista_de_particiones, f-1);
 		// estructura_bit_inicio = list_get(lista_de_particiones, f);
-		//estructura_bit_inicio->bit_inicio = estructura_bit_inicio->bit_inicio - estructura->tamanio;
+		// estructura_bit_inicio->bit_inicio = estructura_bit_inicio->bit_inicio - estructura->tamanio;
 		particion_siguiente_de_a_sacar->bit_inicio = particion_siguiente_de_a_sacar->bit_inicio - particion_anterior_de_a_sacar->bit_inicio;
 		list_replace_and_destroy_element(lista_de_particiones,f,particion_siguiente_de_a_sacar,free); // Modificas el anterior f (bit de inicio anterior) al nuevo f (bit de inicio cambiado)
 	}
 }
 
-void mover_memoria(int a_sacar) { // Perfecto
+void mover_memoria(int a_sacar) {
 	t_struct_secundaria* particion_a_mover_memoria;
 	particion_a_mover_memoria = list_get(lista_de_particiones, a_sacar);
 	int tamanio_a_mover = tamanio_memoria - (particion_a_mover_memoria->bit_inicio + particion_a_mover_memoria->tamanio);
@@ -405,7 +406,7 @@ void mover_memoria(int a_sacar) { // Perfecto
 	}
 }
 
-void* de_id_mensaje_a_mensaje(uint32_t id_mensaje) { // Perfecto
+void* de_id_mensaje_a_mensaje(uint32_t id_mensaje) {
 
 	t_struct_secundaria* estructura3 = malloc(sizeof(t_struct_secundaria));
 	t_struct_secundaria* estructura_a_comparar_de_lista;
@@ -424,7 +425,7 @@ void* de_id_mensaje_a_mensaje(uint32_t id_mensaje) { // Perfecto
 	return mensaje;
 }
 
-uint32_t de_id_mensaje_a_cola(uint32_t id_mensaje) { // Perfecto
+uint32_t de_id_mensaje_a_cola(uint32_t id_mensaje) {
 
 	t_struct_secundaria* estructura3 = malloc(sizeof(t_struct_secundaria));
 	t_struct_secundaria* estructura_a_comparar_de_lista;
@@ -439,7 +440,7 @@ uint32_t de_id_mensaje_a_cola(uint32_t id_mensaje) { // Perfecto
 }
 
 
-uint32_t de_id_mensaje_a_size(uint32_t id_mensaje) { // Perfecto
+uint32_t de_id_mensaje_a_size(uint32_t id_mensaje) {
 
 	t_struct_secundaria* estructura3 = malloc(sizeof(t_struct_secundaria));
 	t_struct_secundaria* estructura_a_comparar_de_lista;
