@@ -95,6 +95,7 @@ char* get_last(char** array);
 char* get_file_as_text(char* file_path);
 t_list* dividir_string_por_tamanio(char* string, int tamanio);
 int min(int a, int b);
+void esperar_tiempo_retardo();
 
 // --- Filesystem ---
 

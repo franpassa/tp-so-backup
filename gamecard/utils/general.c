@@ -18,6 +18,11 @@ t_log* crear_log(char* log_path){
 		return mi_log;
 }
 
+void esperar_tiempo_retardo(){
+	int tiempo_retardo = config_get_int_value(config, "TIEMPO_RETARDO_OPERACION");
+	sleep(tiempo_retardo);
+}
+
 void terminar_aplicacion(char* mensaje){
 	printf("ERROR: %s\n", mensaje);
 	abort();
