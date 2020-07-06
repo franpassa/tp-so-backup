@@ -220,6 +220,7 @@ void crear_metadata(char* nombre_pokemon, uint32_t file_size, t_list* blocks, bo
 					  "BLOCKS=%s\n"
 					  "OPEN=%c", file_size, blocks_string, open_flag);
 
+	free(blocks_string);
 	free(metadata_path);
 	fclose(metadata);
 }
@@ -235,12 +236,15 @@ void actualizar_metadata(char* nombre_pokemon, uint32_t file_size, t_list* bloqu
 	}
 
 	t_config* metadata = config_create(metadata_path);
-	config_set_value(metadata, "SIZE", string_itoa(file_size));
+	char* str_file_size = string_itoa(file_size);
+	config_set_value(metadata, "SIZE", str_file_size);
 	config_set_value(metadata, "BLOCKS", blocks_string);
 	config_set_value(metadata, "OPEN", open_value);
 	config_save(metadata);
 
 	config_destroy(metadata);
+	free(str_file_size);
+	free(open_value);
 	free(blocks_string);
 	free(metadata_path);
 }
@@ -272,6 +276,7 @@ t_list* get_pokemon_blocks(char* nombre_pokemon){
 		index++;
 	}
 
+	free_array(blocks_array);
 	config_destroy(pokemon_metadata);
 	free(metadata_path);
 
@@ -344,13 +349,13 @@ int escribir_en_filesystem(t_list* bloques, t_list* coordenadas){
 
 
 int calcular_bloques_necesarios(t_list* lista_coordenadas){
-	int blocks_max_size = config_get_int_value(metadata_config, "BLOCK_SIZE"); // Preparación
+	int blocks_max_size = config_get_int_value(metadata_config, "BLOCK_SIZE");
 	char* string_coordenadas = coordenadas_to_string(lista_coordenadas);
 	int largo_coordenadas = string_length(string_coordenadas);
 
-	div_t division = div(largo_coordenadas, blocks_max_size); // Cálculo
+	div_t division = div(largo_coordenadas, blocks_max_size);
 
-	free(string_coordenadas); // Liberación
+	free(string_coordenadas);
 
 	return division.rem != 0 ? division.quot + 1 : division.quot;
 

@@ -22,10 +22,6 @@ void terminar(){
 	free_fspaths(fspaths);
 }
 
-void print_int(int* string){
-	printf("%d\n", *string);
-}
-
 int main(){
 
 	inicializar();

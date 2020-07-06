@@ -103,3 +103,18 @@ t_list* dividir_string_por_tamanio(char* string, int tamanio){
 	}
 	return list_strings;
 }
+
+void free_array(char** array){
+	int index = 0;
+	char* str;
+	while((str = array[index]) != NULL){
+		free(str);
+		index++;
+	}
+	free(array);
+}
+
+
+
+
+

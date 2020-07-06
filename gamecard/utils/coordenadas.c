@@ -2,9 +2,8 @@
 
 t_coordenada string_to_coordenada(char* string_coordenada){
 	uint32_t x, y, cantidad;
-	char* template_scan = string_duplicate("%d-%d=%d");
 
-	sscanf(string_coordenada, template_scan, &x, &y, &cantidad);
+	sscanf(string_coordenada, "%d-%d=%d", &x, &y, &cantidad);
 
 	return init_coordenada(x, y, cantidad);
 }
@@ -21,7 +20,7 @@ t_list* string_to_coordenadas(char* string_coordenadas){
 		list_add(coordenadas, struct_coordenada);
 		index++;
 	}
-	free(array_coordenadas);
+	free_array(array_coordenadas);
 
 	return coordenadas;
 }
@@ -39,7 +38,9 @@ char* coordenadas_to_string(t_list* coordenadas){
 
 	for(int i = 0; i < coordenadas_size; i++){
 		t_coordenada* coordenada = list_get(coordenadas, i);
-		string_append_with_format(&coordenadas_string, "%s\n", coordenada_to_string(*coordenada));
+		char* str_coord = coordenada_to_string(*coordenada);
+		string_append_with_format(&coordenadas_string, "%s\n", str_coord);
+		free(str_coord);
 	}
 	int largo_string = string_length(coordenadas_string);
 	coordenadas_string[largo_string-1] = '\0'; // Saco el último \n

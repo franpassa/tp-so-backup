@@ -203,6 +203,8 @@ void new_pokemon(t_pokemon pokemon){
 		esperar_tiempo_retardo();
 		actualizar_metadata_y_ceder_acceso(pokemon.nombre, bytes_file, bloques, mutex_file);
 	}
+	list_destroy_and_destroy_elements(coordenadas, free);
+	list_destroy_and_destroy_elements(bloques, free);
 }
 
 uint32_t catch_pokemon(t_pokemon pokemon){
