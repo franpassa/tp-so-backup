@@ -164,5 +164,6 @@ bool son_buddies(t_struct_secundaria*, t_struct_secundaria*);
 bool es_potencia_de_dos(int);
 int algoritmo_FIFO(t_struct_secundaria*);
 int algoritmo_LRU(t_struct_secundaria*);
+t_struct_secundaria* encontrar_particion_en_base_a_un_id_mensaje(uint32_t);
 
 #endif /* BROKER_H_ */

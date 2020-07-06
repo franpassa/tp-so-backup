@@ -32,7 +32,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 
 		if (estructura_memoria->tamanio > size){
 			estructura_memoria->tamanio = estructura_memoria->tamanio - size;
-			estructura_memoria->bit_inicio = estructura_memoria->bit_inicio + size; // El bit de inicio lo voy a obtener en el while
+			estructura_memoria->bit_inicio = estructura_memoria->bit_inicio + size;
 			list_add_in_index(lista_de_particiones, (entra + 1), estructura_memoria);
 		}
 
@@ -262,51 +262,52 @@ void compactar(){
 	buscar_particion_en_particiones_dinamicas();
 }
 
-void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones(){
+void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones() {
 	t_struct_secundaria* particion_a_sacar;
 	int a_sacar = 0;
 
-	if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_REEMPLAZO"),"FIFO")){
+	for (int i = 0; i < list_size(lista_de_particiones); i++) {
+		particion_a_sacar = list_get(lista_de_particiones, i);
+		if (string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_REEMPLAZO"),"FIFO")) {
 
-		a_sacar = algoritmo_FIFO(particion_a_sacar);
+			a_sacar = algoritmo_FIFO(particion_a_sacar);
+			actualizar_bit_inicio(a_sacar);
+			mover_memoria(a_sacar);
 
-		actualizar_bit_inicio(a_sacar);
+		} else if (string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_REEMPLAZO"),"LRU")) {
 
-		mover_memoria(a_sacar);
+			a_sacar = algoritmo_LRU(particion_a_sacar);
+			actualizar_bit_inicio(a_sacar);
+			mover_memoria(a_sacar);
 
-	} else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_REEMPLAZO"),"LRU")) {
-
-		a_sacar = algoritmo_LRU(particion_a_sacar);
-
-		actualizar_bit_inicio(a_sacar);
-
-		mover_memoria(a_sacar);
-
-	} else {
-		printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
+		} else {
+			printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
+		}
 	}
-
 	buscar_particion_en_particiones_dinamicas();
 }
 
-void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs(){
+void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 
 	t_struct_secundaria* particion_a_sacar;
 	int a_sacar = 0;
 
-	if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_REEMPLAZO"),"FIFO")){
+	for (int i = 0; i < list_size(lista_de_particiones); i++) {
+		particion_a_sacar = list_get(lista_de_particiones, i);
+		if (string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_REEMPLAZO"), "FIFO")) {
 
-		a_sacar = algoritmo_FIFO(particion_a_sacar);
+			a_sacar = algoritmo_FIFO(particion_a_sacar);
 
-	} else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_REEMPLAZO"),"LRU")) {
+		} else if (string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_REEMPLAZO"), "LRU")) {
 
-		a_sacar = algoritmo_LRU(particion_a_sacar);
+			a_sacar = algoritmo_LRU(particion_a_sacar);
 
-	} else {
-		printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
+		} else {
+			printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
+		}
 	}
 
-	particion_a_sacar = list_get(lista_de_particiones,a_sacar);
+	particion_a_sacar = list_get(lista_de_particiones, a_sacar);
 	particion_a_sacar->id_mensaje = 0;
 	particion_a_sacar->tipo_mensaje = 6;
 	while (!es_potencia_de_dos(particion_a_sacar->tamanio)) { // Le sumo 1 hasta ver si es potencia de 2 ya que la estructura >= al size que tenia antes (ejemplo: tamanio = 6 entonces 7 ..8 para ahi)
@@ -324,7 +325,7 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs(){
 
 int algoritmo_FIFO(t_struct_secundaria* particion_a_sacar){
 	int orden, orden_menor;
-	int a_sacar;
+	int a_sacar = -1; // Creo q esta bien esto
 	for(int i = 0; i< list_size(lista_de_particiones); i++ ){
 		particion_a_sacar = list_get(lista_de_particiones,i);
 		if(i == 0){
@@ -393,53 +394,41 @@ void mover_memoria(int a_sacar) {
 
 }
 
-void* de_id_mensaje_a_mensaje(uint32_t id_mensaje) {
+void* de_id_mensaje_a_mensaje(uint32_t id_mensaje){
 
-	t_struct_secundaria* estructura3 = malloc(sizeof(t_struct_secundaria));
-	t_struct_secundaria* estructura_a_comparar_de_lista;
+	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola = encontrar_particion_en_base_a_un_id_mensaje(id_mensaje);
 
-	for (int i = 0; i < list_size(lista_de_particiones); i++) {
-		estructura_a_comparar_de_lista = list_get(lista_de_particiones,i);
-		if (estructura_a_comparar_de_lista->id_mensaje == id_mensaje) {
-			estructura3->tamanio = estructura_a_comparar_de_lista->tamanio;
-			estructura3->bit_inicio = estructura_a_comparar_de_lista->bit_inicio;
-		}
-	}
-	void* mensaje = malloc(estructura3->tamanio);
-	memcpy(mensaje, memoria + estructura3->bit_inicio, estructura3->tamanio);
+	void* mensaje = malloc(particion_de_donde_voy_a_sacar_el_tipo_de_cola->tamanio);
+	memcpy(mensaje, memoria + particion_de_donde_voy_a_sacar_el_tipo_de_cola->bit_inicio, particion_de_donde_voy_a_sacar_el_tipo_de_cola->tamanio);
 
-	free(estructura3);
 	return mensaje;
 }
 
-uint32_t de_id_mensaje_a_cola(uint32_t id_mensaje) {
+uint32_t de_id_mensaje_a_cola(uint32_t id_mensaje){
 
-	t_struct_secundaria* estructura3 = malloc(sizeof(t_struct_secundaria));
-	t_struct_secundaria* estructura_a_comparar_de_lista;
+	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola = encontrar_particion_en_base_a_un_id_mensaje(id_mensaje);
 
-	for (int i = 0; i < list_size(lista_de_particiones); i++) {
-		estructura_a_comparar_de_lista = list_get(lista_de_particiones,i);
-		if (estructura_a_comparar_de_lista->id_mensaje == id_mensaje) {
-			estructura3->tipo_mensaje = estructura_a_comparar_de_lista->tipo_mensaje;
-		}
-	}
-	return estructura3->tipo_mensaje;
+	return particion_de_donde_voy_a_sacar_el_tipo_de_cola->tipo_mensaje;
+
 }
 
 
-uint32_t de_id_mensaje_a_size(uint32_t id_mensaje) {
+uint32_t de_id_mensaje_a_size(uint32_t id_mensaje){
 
-	t_struct_secundaria* estructura3 = malloc(sizeof(t_struct_secundaria));
-	t_struct_secundaria* estructura_a_comparar_de_lista;
+	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola = encontrar_particion_en_base_a_un_id_mensaje(id_mensaje);
 
-	for (int i = 0; i < list_size(lista_de_particiones); i++) {
-		estructura_a_comparar_de_lista = list_get(lista_de_particiones, i);
-		if (estructura_a_comparar_de_lista->id_mensaje == id_mensaje) {
-			estructura3->tamanio = estructura_a_comparar_de_lista->tamanio;
-		}
-	}
-
-	return estructura3->tamanio;
+	return particion_de_donde_voy_a_sacar_el_tipo_de_cola->tamanio;
 }
 
+t_struct_secundaria* encontrar_particion_en_base_a_un_id_mensaje(uint32_t id_mensaje){
+
+	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola;
+
+	bool mismo_id(void* una_particion){
+		t_struct_secundaria* particion_a_comparar =  (t_struct_secundaria*) una_particion;
+		return particion_a_comparar->id_mensaje == id_mensaje;
+	}
+	particion_de_donde_voy_a_sacar_el_tipo_de_cola = list_find(lista_de_particiones,mismo_id);
+	return particion_de_donde_voy_a_sacar_el_tipo_de_cola;
+}
 

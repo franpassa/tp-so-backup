@@ -34,7 +34,7 @@ int mandar(queue_name cola, void* stream, int id ,int socket_receptor, int size)
 	void* a_enviar = serializar_paquete(paquete, total_bytes);
 
 	if (send(socket_receptor, a_enviar, total_bytes, 0) == -1) {
-		perror("Error enviando mensaje");
+		perror("Error enviando mensaje"); // Esta tirando este error
 		control = -1;
 	}
 
@@ -72,7 +72,7 @@ void recorrer_cola(t_cola_de_mensajes* nombre) {
 							return nro == *sub;
 						}
 
-						list_remove_and_destroy_by_condition(nombre->lista_suscriptores,es_igual_a,free);
+						list_remove_and_destroy_by_condition(nombre->lista_suscriptores, es_igual_a, free);
 
 						uint32_t id_afuera = info_a_sacar->id;
 						do {
