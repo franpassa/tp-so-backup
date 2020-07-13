@@ -33,8 +33,13 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 		if (estructura_memoria->tamanio > size){
 			estructura_memoria->tamanio = estructura_memoria->tamanio - size;
 			estructura_memoria->bit_inicio = estructura_memoria->bit_inicio + size;
-			list_add_in_index(lista_de_particiones, (entra + 1), estructura_memoria);
+			if(list_size(lista_de_particiones) == entra){ // Hice este cambio por las dudas
+				list_add(lista_de_particiones, estructura_memoria);
+			} else {
+				list_add_in_index(lista_de_particiones, (entra + 1), estructura_memoria);
+			}
 		}
+
 
 		if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_REEMPLAZO"),"FIFO")) {
 			cont_orden ++;
@@ -51,7 +56,6 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 
         list_replace_and_destroy_element(lista_de_particiones, entra, est_a_utilizar,free);
         memmove(memoria + est_a_utilizar->bit_inicio, mensaje, size);
-
 
 	} else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"BS")) {
 
@@ -254,7 +258,7 @@ void compactar(){
 				estructura2->tamanio = estructura1->tamanio;
 				estructura2->tipo_mensaje = 6;
 
-				list_add(lista_de_particiones,estructura2);
+				list_add(lista_de_particiones, estructura2);
 				i -= 1;
 			}
 		}
