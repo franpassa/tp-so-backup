@@ -177,7 +177,7 @@ void planificacion()
 	t_pokemon* aMoverse = entrenador->pokemonAMoverse;
 
 	if (aMoverse!= NULL && entrenador != NULL){
-		moverEntrenador(entrenador,aMoverse->posicionX,aMoverse->posicionY,retardoCpu);
+		moverEntrenador(entrenador,aMoverse->posicionX,aMoverse->posicionY);
 	}
 
 	uint32_t distancia = distanciaEntrenadorPokemon(entrenador->posicionX, entrenador->posicionY,aMoverse->posicionX,aMoverse->posicionY);
@@ -485,7 +485,7 @@ void deadlock()
 				}
 				else
 				{
-					moverEntrenador(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY,retardoCpu);
+					moverSinDesalojar(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY);
 					realizarCambio(entrenador,entrenadorAMoverse);
 					cambiarEstado(entrenador);
 				}

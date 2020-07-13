@@ -256,7 +256,7 @@ bool puedeAtrapar(t_entrenador* entrenador){
 }
 
 // funcion por si las dudas
-void moverEntrenadorX(t_entrenador* unEntrenador, uint32_t posX,uint32_t retardoCpu)
+void moverEntrenadorX(t_entrenador* unEntrenador, uint32_t posX)
 {
     while(abs(unEntrenador->posicionX - posX) > 0)
     {
@@ -276,7 +276,7 @@ void moverEntrenadorX(t_entrenador* unEntrenador, uint32_t posX,uint32_t retardo
     }
 }
 
-void moverEntrenadorY(t_entrenador* unEntrenador, uint32_t posY,uint32_t retardoCpu)
+void moverEntrenadorY(t_entrenador* unEntrenador, uint32_t posY)
 {
     while(abs(unEntrenador->posicionY - posY) > 0)
     {
@@ -296,56 +296,58 @@ void moverEntrenadorY(t_entrenador* unEntrenador, uint32_t posY,uint32_t retardo
     }
 }
 
-void moverSinDesalojar(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu)
+void moverSinDesalojar(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY)
 {
-    moverEntrenadorX(unEntrenador,posX,retardoCpu);
-    moverEntrenadorY(unEntrenador,posY,retardoCpu);
+    moverEntrenadorX(unEntrenador,posX);
+    moverEntrenadorY(unEntrenador,posY);
 }
 
-void moverConDesalojoPorRR(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu,uint32_t quantum){
+void moverConDesalojoPorRR(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY){
 
-	while(quantum > 0){
-		if(posX != unEntrenador->posicionX){
+	uint32_t distanciaRecorrida = 0;
 
-			uint32_t posParcial ;
+	uint32_t distancia = distanciaEntrenadorPokemon(unEntrenador->posicionX, unEntrenador->posicionY,posX,posY);
 
-			if(posX > unEntrenador->posicionX){
-				posParcial = unEntrenador->posicionX +1;
-			} else {
-				posParcial = unEntrenador->posicionX -1;
-			}
-			moverEntrenadorX(unEntrenador,posParcial,retardoCpu);
-			quantum --;
-		} else {
-			if(posY != unEntrenador->posicionY){
+	while(distanciaRecorrida < QUANTUM && distancia!=0){
 
-				uint32_t posParcial2;
+		if(abs(unEntrenador->posicionX - posX) > 0){
+		        sleep(retardoCpu);
+		        if(unEntrenador->posicionX > posX){
+		            unEntrenador->posicionX --;
+		        } else {
+		            unEntrenador->posicionX ++;
+		        }
+		        printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		        distanciaRecorrida++;
+		        distancia = distanciaEntrenadorPokemon(unEntrenador->posicionX, unEntrenador->posicionY,posX,posY);
+		        if(distanciaRecorrida == QUANTUM){break;}
+		    }
 
-				if(posY > unEntrenador->posicionY){
-					posParcial2 = unEntrenador->posicionY +1;
-				} else {
-					posParcial2 = unEntrenador->posicionY -1;
-				}
-
-				moverEntrenadorY(unEntrenador,posParcial2,retardoCpu);
-				quantum --;
-			}
-
-			break;
-		}
+		if(abs(unEntrenador->posicionY - posY) > 0){
+		        sleep(retardoCpu);
+		        if(unEntrenador->posicionY > posY){
+		            unEntrenador->posicionY --;
+		        } else {
+		            unEntrenador->posicionY ++;
+		        }
+		        printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		        distanciaRecorrida++;
+		        distancia = distanciaEntrenadorPokemon(unEntrenador->posicionX, unEntrenador->posicionY,posX,posY);
+		        if(distanciaRecorrida == QUANTUM){break;}
+		    }
 	}
 }
 
-void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu)
+void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY)
 {
 	if(string_equals_ignore_case(ALGORITMO,"FIFO") || string_equals_ignore_case(ALGORITMO,"SJF-SD"))
 	{
-		moverSinDesalojar(unEntrenador,posX,posY,retardoCpu);
+		moverSinDesalojar(unEntrenador,posX,posY);
 	}
 
 	if(string_equals_ignore_case(ALGORITMO,"RR")){
 
-		moverConDesalojoPorRR(unEntrenador,posX,posY,retardoCpu,QUANTUM);
+		moverConDesalojoPorRR(unEntrenador,posX,posY);
 	}
 }
 
@@ -513,7 +515,6 @@ void realizarCambio(t_entrenador* entrenador1, t_entrenador* entrenador2)
 	uint32_t indiceDelPokemonDondeEstaEnElEntrenador2 = retornarIndice(entrenador2->pokesAtrapados,pokemon(entrenador1->pokesObjetivos));
 
 	char* flag = list_remove(entrenador2->pokesAtrapados,indiceDelPokemonDondeEstaEnElEntrenador2);
-	sleep(5);
 	char* flag2 = list_replace(entrenador1->pokesAtrapados,a,flag);
 	sleep(5);
 	list_add(entrenador2->pokesAtrapados,flag2);

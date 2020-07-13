@@ -39,6 +39,7 @@ char* ALGORITMO;
 uint32_t QUANTUM;
 double ESTIMACION_INICIAL;
 double ALPHA;
+uint32_t retardoCpu;
 
 // posiciones
 uint32_t posicionXEntrenador(int nroEntrenador, char** posicionesEntrenadores);
@@ -80,12 +81,12 @@ t_list* listaALaQuePertenece(t_entrenador* unEntrenador);
 
 bool puedeAtrapar(t_entrenador* entrenador);
 void mostrar_ids(void* id);
-void moverEntrenadorX(t_entrenador* unEntrenador, uint32_t posX,uint32_t retardoCpu);
-void moverEntrenadorY(t_entrenador* unEntrenador, uint32_t posY,uint32_t retardoCpu);
-void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu);
-void moverSinDesalojar(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu);
-void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu);
-void moverConDesalojoPorRR(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu,uint32_t quantum);
+void moverEntrenadorX(t_entrenador* unEntrenador, uint32_t posX);
+void moverEntrenadorY(t_entrenador* unEntrenador, uint32_t posY);
+void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY);
+void moverSinDesalojar(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY);
+void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY);
+void moverConDesalojoPorRR(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY);
 
 t_list* pokemonesAlPedo(t_entrenador* unEntrenador);
 t_list* pokemonesQueLeFaltan(t_entrenador* unEntrenador);
