@@ -19,7 +19,7 @@ void mandar_mensajes() {
 	}
 }
 
-int mandar(queue_name cola, void* stream, int id ,int socket_receptor, int size) {
+int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size) {
 	int control = 0;
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
@@ -28,7 +28,8 @@ int mandar(queue_name cola, void* stream, int id ,int socket_receptor, int size)
 	paquete->buffer->size = size;
 
 	// El tamaño total sería: id_cola (4) + buffer_size (4) + stream (buffer_size)
-	int total_bytes = size + sizeof(queue_name) + sizeof(uint32_t);
+	int total_bytes = paquete->buffer->size + sizeof(queue_name) + sizeof(uint32_t);
+	//printf("%d\n", total_bytes);
 
 	paquete->buffer->stream = stream;
 	void* a_enviar = serializar_paquete(paquete, total_bytes);
@@ -44,6 +45,7 @@ int mandar(queue_name cola, void* stream, int id ,int socket_receptor, int size)
 	free(a_enviar);
 
 	return control;
+
 }
 
 

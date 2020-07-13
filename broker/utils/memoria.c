@@ -13,7 +13,7 @@ void inicializar_memoria() {
 	particion_inicial->tamanio = tamanio_memoria;
 	particion_inicial->id_mensaje = 0;
 	particion_inicial->bit_inicio = 0;
-	list_add(lista_de_particiones,particion_inicial);
+	list_add(lista_de_particiones, particion_inicial);
 
 }
 
@@ -27,13 +27,13 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 
 		buscar_particion_en_particiones_dinamicas();
 
-		t_struct_secundaria* estructura_memoria = (t_struct_secundaria*) list_get(lista_de_particiones,entra); // en lista
+		t_struct_secundaria* estructura_memoria = (t_struct_secundaria*) list_get(lista_de_particiones, entra); // en lista
 		t_struct_secundaria* est_a_utilizar = duplicar_estructura(estructura_memoria); // copia que tengo afuera
 
 		if (estructura_memoria->tamanio > size){
 			estructura_memoria->tamanio = estructura_memoria->tamanio - size;
 			estructura_memoria->bit_inicio = estructura_memoria->bit_inicio + size;
-			if(list_size(lista_de_particiones) == entra){ // Hice este cambio por las dudas
+			if(list_size(lista_de_particiones) - 1 == entra){ // Hice este cambio por las dudas estoy comparando la posicion con el tam lista , pongo -1 porque el ultimo elemento es siempre +1 mayor
 				list_add(lista_de_particiones, estructura_memoria);
 			} else {
 				list_add_in_index(lista_de_particiones, (entra + 1), estructura_memoria);
@@ -54,8 +54,10 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 		est_a_utilizar->tamanio = size;
 		est_a_utilizar->tipo_mensaje = id_cola;
 
-        list_replace_and_destroy_element(lista_de_particiones, entra, est_a_utilizar,free);
+        list_replace(lista_de_particiones, entra, est_a_utilizar); // El replace_and_destroy_element tira mas errores en valgrind
         memmove(memoria + est_a_utilizar->bit_inicio, mensaje, size);
+
+        printf("Bit De inicio = %d \n", est_a_utilizar->bit_inicio); // Lo hace bien
 
 	} else if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_MEMORIA"),"BS")) {
 
@@ -75,7 +77,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 			printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 		}
 
-		list_replace_and_destroy_element(lista_de_particiones, entra, particion_a_llenar_con_msg, free);
+		list_replace(lista_de_particiones, entra, particion_a_llenar_con_msg);
 		memmove(memoria + particion_a_llenar_con_msg->bit_inicio, mensaje, size);
 
 		} else {
@@ -186,7 +188,7 @@ void buscar_particion_en_particiones_dinamicas(){
 	flag = 0;
 	if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_PARTICION_LIBRE"),"FF")){
 		for (int i = 0; i < list_size(lista_de_particiones); i++ ){
-			nueva_est = list_get(lista_de_particiones,i);
+			nueva_est = list_get(lista_de_particiones, i);
 			if (nueva_est->tipo_mensaje == 6){
 				flag ++;
 				if(nueva_est->tamanio >= tamanio_a_ocupar ){
