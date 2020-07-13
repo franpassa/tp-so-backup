@@ -145,7 +145,7 @@ int main(int argc, char** argv){
 		suscripcion_t info_suscripcion = init_suscripcion(socket_broker, cola);
 
 		pthread_t listener_thread;
-		pthread_create(&listener_thread, NULL, (void*) recibir_mensajes, (void*) &info_suscripcion);
+		pthread_create(&listener_thread, NULL, (void*) recibir_mensajes, (void*) &socket_broker);
 
 		sleep(duracion_suscripcion);
 
