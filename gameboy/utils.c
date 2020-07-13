@@ -71,14 +71,14 @@ char* unir_args(char** args, int cant){
 	return args_string;
 }
 
-void recibir_mensajes(suscripcion_t* info_suscripcion){
+void recibir_mensajes(int* socket){
 
 	while(1){
 		uint32_t id;
 		queue_name tipo_msg;
-		void* msg = recibir_mensaje(info_suscripcion->socket, &id, &tipo_msg);
+		void* msg = recibir_mensaje(*socket, &id, &tipo_msg);
 		printf("id: %d ->", id);
-		print_msg(info_suscripcion->cola, msg);
+		print_msg(tipo_msg, msg);
 	}
 
 }
