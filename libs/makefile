@@ -1,10 +1,7 @@
 all: libcuarenteam.so
 
-libcuarenteam.so: conexiones.o
-	gcc -shared -g -O0 conexiones.o
-
-conexiones.o: conexiones.c conexiones.h
-	gcc -c -Wall -g -O0 -fPIC conexiones.c
+libcuarenteam.so:
+	gcc  -shared -g -O0 -o libcuarenteam.so -fPIC conexiones.c
 
 install: libcuarenteam.so
 	cp -u libcuarenteam.so /usr/lib
