@@ -34,16 +34,75 @@ void manejar_msg_gameboy(int* socket_gameboy){
 	uint32_t id_recibido;
 	queue_name tipo_msg;
 	void* msg = recibir_mensaje(*socket_gameboy, &id_recibido, &tipo_msg);
-	free(socket_gameboy);
+	free(socket_gameboy); // Se libera ya que se cierra dsp de enviar el msg.
 
 	procesar_msg(tipo_msg, msg, id_recibido);
 	free_mensaje(tipo_msg, msg);
+}
+
+
+
+void suscribir_a_colas(){
+	char* ip_broker = config_get_string_value(config, "IP_BROKER");
+	char* puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
+	int segundos_reintento = config_get_int_value(config, "TIEMPO_DE_REINTENTO_CONEXION");
+
+	bool conexion_exitosa = false;
+
+	while(!conexion_exitosa){
+		socket_new = suscribirse_a_cola(NEW_POKEMON, ip_broker, puerto_broker);
+		socket_catch = suscribirse_a_cola(CATCH_POKEMON, ip_broker, puerto_broker);
+		socket_get = suscribirse_a_cola(GET_POKEMON, ip_broker, puerto_broker);
+
+		if(socket_new != -1 && socket_catch != -1 && socket_get != -1){
+			printf("Conexión con el Broker exitosa\n");
+			conexion_exitosa = true;
+		} else {
+			printf("Falló la conexión con el Broker, reintentando en %d segundos...\n", segundos_reintento);
+			sleep(segundos_reintento);
+		}
+	}
+}
+
+void escuchar_socket(int* socket){
+	uint32_t id;
+	queue_name cola;
+
+	while(1){
+		void* msg = recibir_mensaje(*socket, &id, &cola);
+		if(msg != NULL){
+			procesar_msg(cola, msg, id);
+		} else {
+			if(pthread_mutex_trylock(&mutex_reconexion) == 0){
+				printf("Falló la conexión con el Broker, reintentando...\n");
+				suscribir_a_colas();
+				pthread_cond_broadcast(&cond_reconectado);
+				pthread_mutex_unlock(&mutex_reconexion);
+			} else {
+				pthread_mutex_lock(&mutex_espera);
+				pthread_cond_wait(&cond_reconectado, &mutex_espera);
+				pthread_mutex_unlock(&mutex_espera);
+			}
+		}
+	}
+}
+
+void iniciar_hilos_escucha_broker(){
+	suscribir_a_colas();
+
+	pthread_create(&hilo_new, NULL, (void*) escuchar_socket, &socket_new);
+	pthread_detach(hilo_new);
+	pthread_create(&hilo_catch, NULL, (void*) escuchar_socket, &socket_catch);
+	pthread_detach(hilo_catch);
+	pthread_create(&hilo_get, NULL, (void*) escuchar_socket, &socket_get);
+	pthread_detach(hilo_get);
 }
 
 void procesar_msg(queue_name tipo_msg, void* msg, uint32_t id_msg){
 	char* msg_string = msg_as_string(tipo_msg, msg);
 	if(msg_string) printf("%s\n", msg_string);
 	free(msg_string);
+
 	t_pokemon pokemon;
 	switch(tipo_msg){
 		case NEW_POKEMON:;
