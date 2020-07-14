@@ -164,7 +164,7 @@ void planificacion()
 {
 	t_entrenador* entrenador = NULL;
 
-	if(string_equals_ignore_case(ALGORITMO,"SJF-SD")){
+	if(string_equals_ignore_case(ALGORITMO,"SJF-SD") || string_equals_ignore_case(ALGORITMO,"SJF-CD")){
 		pthread_mutex_lock(&mutexEstadoReady);
 		entrenador = elDeMenorEstimacion(estado_ready);
 		pthread_mutex_unlock(&mutexEstadoReady);

@@ -87,6 +87,7 @@ void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY);
 void moverSinDesalojar(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY);
 void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY);
 void moverConDesalojoPorRR(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY);
+void moverConDesalojoPorSJF(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY);
 
 t_list* pokemonesAlPedo(t_entrenador* unEntrenador);
 t_list* pokemonesQueLeFaltan(t_entrenador* unEntrenador);
@@ -103,6 +104,7 @@ t_list* crearListaObjetivosPosta(t_list* pokesObjetivosGlobal, t_list* entrenado
 void sacar1(char* nombre, t_list* listaDeEspecies);
 void recalcularEstimacion(t_entrenador* entrenador,uint32_t ciclosRecorridos);
 t_entrenador* elDeMenorEstimacion(t_list* entrenadores);
+bool esElDeMenorEstimacion(t_list* entrenadores, t_entrenador* entrenador);
 
 
 

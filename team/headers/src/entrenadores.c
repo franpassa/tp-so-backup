@@ -269,10 +269,8 @@ void moverEntrenadorX(t_entrenador* unEntrenador, uint32_t posX)
         {
             unEntrenador->posicionX ++;
         }
-        pthread_mutex_lock(&mutexLogEntrenador);
         log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
         printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
-        pthread_mutex_unlock(&mutexLogEntrenador);
     }
 }
 
@@ -289,10 +287,8 @@ void moverEntrenadorY(t_entrenador* unEntrenador, uint32_t posY)
         {
             unEntrenador->posicionY ++;
         }
-        pthread_mutex_lock(&mutexLogEntrenador);
         log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
         printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
-        pthread_mutex_unlock(&mutexLogEntrenador);
     }
 }
 
@@ -306,9 +302,7 @@ void moverConDesalojoPorRR(t_entrenador* unEntrenador, uint32_t posX, uint32_t p
 
 	uint32_t distanciaRecorrida = 0;
 
-	uint32_t distancia = distanciaEntrenadorPokemon(unEntrenador->posicionX, unEntrenador->posicionY,posX,posY);
-
-	while(distanciaRecorrida < QUANTUM && distancia!=0){
+	while(distanciaRecorrida < QUANTUM && distanciaEntrenadorPokemon(unEntrenador->posicionX, unEntrenador->posicionY,posX,posY)!=0){
 
 		if(abs(unEntrenador->posicionX - posX) > 0){
 		        sleep(retardoCpu);
@@ -317,9 +311,9 @@ void moverConDesalojoPorRR(t_entrenador* unEntrenador, uint32_t posX, uint32_t p
 		        } else {
 		            unEntrenador->posicionX ++;
 		        }
+		        log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
 		        printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
 		        distanciaRecorrida++;
-		        distancia = distanciaEntrenadorPokemon(unEntrenador->posicionX, unEntrenador->posicionY,posX,posY);
 		        if(distanciaRecorrida == QUANTUM){break;}
 		    }
 
@@ -330,24 +324,66 @@ void moverConDesalojoPorRR(t_entrenador* unEntrenador, uint32_t posX, uint32_t p
 		        } else {
 		            unEntrenador->posicionY ++;
 		        }
+		        log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
 		        printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
 		        distanciaRecorrida++;
-		        distancia = distanciaEntrenadorPokemon(unEntrenador->posicionX, unEntrenador->posicionY,posX,posY);
 		        if(distanciaRecorrida == QUANTUM){break;}
+		    }
+	}
+}
+
+void moverConDesalojoPorSJF(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY){
+
+	while(distanciaEntrenadorPokemon(unEntrenador->posicionX, unEntrenador->posicionY,posX,posY)!=0){
+
+		if(abs(unEntrenador->posicionX - posX) > 0){
+
+		        if(!esElDeMenorEstimacion(estado_ready,unEntrenador)){
+		        	break;
+		        }
+
+		        sleep(retardoCpu);
+
+		        if(unEntrenador->posicionX > posX){
+		            unEntrenador->posicionX --;
+		        } else {
+		            unEntrenador->posicionX ++;
+		        }
+		        log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		        printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		    }
+
+		if(abs(unEntrenador->posicionY - posY) > 0){
+
+		        if(!esElDeMenorEstimacion(estado_ready,unEntrenador)){
+		        	break;
+		        }
+
+		        sleep(retardoCpu);
+
+		        if(unEntrenador->posicionY > posY){
+		            unEntrenador->posicionY --;
+		        } else {
+		            unEntrenador->posicionY ++;
+		        }
+		        log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		        printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
 		    }
 	}
 }
 
 void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY)
 {
-	if(string_equals_ignore_case(ALGORITMO,"FIFO") || string_equals_ignore_case(ALGORITMO,"SJF-SD"))
-	{
+	if(string_equals_ignore_case(ALGORITMO,"FIFO") || string_equals_ignore_case(ALGORITMO,"SJF-SD")){
 		moverSinDesalojar(unEntrenador,posX,posY);
 	}
 
 	if(string_equals_ignore_case(ALGORITMO,"RR")){
-
 		moverConDesalojoPorRR(unEntrenador,posX,posY);
+	}
+
+	if(string_equals_ignore_case(ALGORITMO,"SJF-CD")){
+		moverConDesalojoPorSJF(unEntrenador,posX,posY);
 	}
 }
 
@@ -588,6 +624,25 @@ t_entrenador* elDeMenorEstimacion(t_list* entrenadores){ //DEVUELVE EL ENTRENADO
 	return list_remove_by_condition(entrenadores,(void*)tieneLaMenor);
 }
 
+bool esElDeMenorEstimacion(t_list* entrenadores, t_entrenador* entrenador){
+
+	double estimacionFlag = entrenador->estimacion;
+
+	void buscarMenor(t_entrenador* unEntrenador){
+		double estimacion = unEntrenador->estimacion;
+		if(estimacion < estimacionFlag){
+			estimacionFlag = unEntrenador->estimacion;
+		}
+	}
+
+	list_iterate(entrenadores,(void*) buscarMenor);
+
+	bool tieneLaMenor(t_entrenador* unEntrenador){
+		return fabs(unEntrenador->estimacion)== fabs(estimacionFlag);
+	}
+
+	return tieneLaMenor(entrenador);
+}
 
 
 
