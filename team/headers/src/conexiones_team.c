@@ -508,9 +508,7 @@ void deadlock()
 
 	list_iterate(estado_exit,mostrarEntrenador);
 
-	printf("Los entrenadores en estado bloqueado son: \n");
-
-	list_iterate(estado_bloqueado,mostrarEntrenador);
+	printf("\nLos ciclos de CPU totales consumidos son: %d\n\n",ciclosConsumidos);
 
 }
 

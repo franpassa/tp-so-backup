@@ -23,6 +23,7 @@ typedef struct Entrenador
 	t_pokemon* pokemonAMoverse;
 	motivo motivoBloqueo;
 	double estimacion;
+	uint32_t ciclosAcumulados;
 }t_entrenador;
 
 t_log* logger;
@@ -40,6 +41,7 @@ uint32_t QUANTUM;
 double ESTIMACION_INICIAL;
 double ALPHA;
 uint32_t retardoCpu;
+uint32_t ciclosConsumidos;
 
 // posiciones
 uint32_t posicionXEntrenador(int nroEntrenador, char** posicionesEntrenadores);

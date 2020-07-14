@@ -79,8 +79,6 @@ sem_t semCaught;
 sem_t semLocalized;
 sem_t semAppeared;
 
-uint32_t ciclosConsumidos;
-
 bool hayEntrenadorProcesando; 	// funcion a futuro, chequear en otro proceso si hay un entrenador
 bool envioGets;								//corriendo porque cuando sale del bloqueo porque ya le
 								// mandaron el caught
