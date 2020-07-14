@@ -275,7 +275,7 @@ void moverEntrenadorX(t_entrenador* unEntrenador, uint32_t posX)
         ciclosConsumidos++;
         unEntrenador->ciclosAcumulados ++;
         log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
-        printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+        printf("El entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
     }
 }
 
@@ -295,7 +295,7 @@ void moverEntrenadorY(t_entrenador* unEntrenador, uint32_t posY)
         ciclosConsumidos++;
         unEntrenador->ciclosAcumulados ++;
         log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
-        printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+        printf("El entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
     }
 }
 
@@ -319,11 +319,11 @@ void moverConDesalojoPorRR(t_entrenador* unEntrenador, uint32_t posX, uint32_t p
 		            unEntrenador->posicionX ++;
 		        }
 		        log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
-		        printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		        printf("El entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
 		        distanciaRecorrida++;
 		        ciclosConsumidos++;
 		        unEntrenador->ciclosAcumulados ++;
-		        if(distanciaRecorrida == QUANTUM){break;}
+		        if(distanciaRecorrida == QUANTUM){cambiosDeContexto++;break;}
 		    }
 
 		if(abs(unEntrenador->posicionY - posY) > 0){
@@ -334,11 +334,11 @@ void moverConDesalojoPorRR(t_entrenador* unEntrenador, uint32_t posX, uint32_t p
 		            unEntrenador->posicionY ++;
 		        }
 		        log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
-		        printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		        printf("El entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
 		        distanciaRecorrida++;
 		        ciclosConsumidos++;
 		        unEntrenador->ciclosAcumulados ++;
-		        if(distanciaRecorrida == QUANTUM){break;}
+		        if(distanciaRecorrida == QUANTUM){cambiosDeContexto++;break;}
 		    }
 	}
 }
@@ -350,6 +350,7 @@ void moverConDesalojoPorSJF(t_entrenador* unEntrenador, uint32_t posX, uint32_t 
 		if(abs(unEntrenador->posicionX - posX) > 0){
 
 		        if(!esElDeMenorEstimacion(estado_ready,unEntrenador)){
+		        	cambiosDeContexto++;
 		        	break;
 		        }
 
@@ -363,12 +364,13 @@ void moverConDesalojoPorSJF(t_entrenador* unEntrenador, uint32_t posX, uint32_t 
 		        ciclosConsumidos++;
 		        unEntrenador->ciclosAcumulados ++;
 		        log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
-		        printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		        printf("El entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
 		    }
 
 		if(abs(unEntrenador->posicionY - posY) > 0){
 
 		        if(!esElDeMenorEstimacion(estado_ready,unEntrenador)){
+		        	cambiosDeContexto++;
 		        	break;
 		        }
 
@@ -382,7 +384,7 @@ void moverConDesalojoPorSJF(t_entrenador* unEntrenador, uint32_t posX, uint32_t 
 		        ciclosConsumidos++;
 		        unEntrenador->ciclosAcumulados ++;
 		        log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
-		        printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		        printf("El entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
 		    }
 	}
 }
@@ -658,6 +660,10 @@ bool esElDeMenorEstimacion(t_list* entrenadores, t_entrenador* entrenador){
 	}
 
 	return tieneLaMenor(entrenador);
+}
+
+void mostrarCiclos(t_entrenador* entrenador){
+	printf("Los ciclos de CPU consumidos por el entrenador %d son: %d\n",entrenador->idEntrenador,entrenador->ciclosAcumulados);
 }
 
 
