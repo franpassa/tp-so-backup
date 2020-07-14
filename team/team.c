@@ -118,6 +118,8 @@ void inicializarVariables(){
 	objetivos_globales = crearListaObjetivoGlobal(pokemons_objetivos);
 	objetivos_posta = crearListaObjetivosPosta(objetivos_globales, estado_new);
 	hayEntrenadorProcesando = false;
+	ciclosConsumidos = 0;
+	cambiosDeContexto = 0;
 }
 
 void liberarVariables()

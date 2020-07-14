@@ -42,6 +42,7 @@ double ESTIMACION_INICIAL;
 double ALPHA;
 uint32_t retardoCpu;
 uint32_t ciclosConsumidos;
+uint32_t cambiosDeContexto;
 
 // posiciones
 uint32_t posicionXEntrenador(int nroEntrenador, char** posicionesEntrenadores);

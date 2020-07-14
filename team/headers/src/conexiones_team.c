@@ -79,6 +79,7 @@ void enviar_gets(t_list* objetivos_globales) {
 		get_pokemon_msg* a_enviar = get_msg(mensaje);
 		uint32_t* id_respuesta = malloc(sizeof(uint32_t));
 		*id_respuesta = enviar_mensaje(ip_broker, puerto_broker,GET_POKEMON,a_enviar,0,true);
+		ciclosConsumidos++;
 		if (*id_respuesta == -1) {
 			log_error(logger,"ERROR al enviar el mensaje GET_POKEMON %s.",a_enviar->nombre_pokemon);
 			log_info(logger,"OPERACION DEFAULT: No existen locaciones disponibles para el pokemon %s.",a_enviar->nombre_pokemon);
@@ -192,6 +193,7 @@ void planificacion()
 		uint32_t* idMensajeExec = malloc(sizeof(int)); // no se libera aca porque se libera cuando liberamos  ids enviados
 		*idMensajeExec = enviar_mensaje(ip_broker,puerto_broker,CATCH_POKEMON,mensaje,0,true);
 		log_info(logger,"El entrenador %d envió el mensaje CATCH_POKEMON %s, en la posición (%d,%d).",entrenador->idEntrenador,aMoverse->nombre,aMoverse->posicionX,aMoverse->posicionY);
+		ciclosConsumidos++;
 		if (*idMensajeExec == -1){
 			printf("Falló el envio del mensaje CATCH_POKEMON %s.\n",mensaje->nombre_pokemon);
 			log_error(logger,"ERROR al enviar el mensaje CATCH_POKEMON %s.",mensaje->nombre_pokemon);
@@ -457,6 +459,7 @@ void deadlock()
 {
 	t_entrenador* entrenador;
 	bool logueo = false;
+	uint32_t cantidadDeadlocks = 0;
 	while(1)
 	{
 		printf("Chequeando si hay deadlock. \n");
@@ -465,7 +468,7 @@ void deadlock()
 		{
 			printf("Hay deadlock. \n");
 
-			if(!logueo)
+			if(!logueo) // se hace esto para que aparezca el inicio de correccion del deadlock 1 sola vez y no se loguee cada vez que entramos aca
 			{
 				logueo = true;
 				log_info(logger,"Inicia el algoritmo de correccion de DEADLOCK.");
@@ -488,6 +491,7 @@ void deadlock()
 					moverSinDesalojar(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY);
 					realizarCambio(entrenador,entrenadorAMoverse);
 					cambiarEstado(entrenador);
+					cantidadDeadlocks += 1;
 				}
 
 				list_destroy(losQueTienenElPokemonQueLeFalta);
@@ -500,6 +504,7 @@ void deadlock()
 	}
 
 	log_info(logger,"Finaliza el algoritmo de correccion de DEADLOCK.");
+
 	log_info(logger,"Se cumplio el OBJETIVO del TEAM.");
 
 	printf("Los entrenadores fueron planificados en su totalidad.\n");
@@ -508,6 +513,7 @@ void deadlock()
 
 	list_iterate(estado_exit,mostrarEntrenador);
 
+	printf("\nSe produjeron %d deadlocks. \n", cantidadDeadlocks);
 	printf("\nLos ciclos de CPU totales consumidos son: %d\n\n",ciclosConsumidos);
 
 }
