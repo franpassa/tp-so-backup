@@ -158,6 +158,8 @@ void buscar_particion_en_bs() {
 				elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs(); // Como esta en BS entonces elimino y consolido
 			}
 		}
+	} else {
+		printf("Error en broker.config ALGORITMO_PARTICION_LIBRE no valido");
 	}
 }
 
