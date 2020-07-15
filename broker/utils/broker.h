@@ -54,6 +54,10 @@ void* memoria;
 int flag;
 int entra;
 int tamanio_a_ocupar;
+char* algoritmo_memoria;
+char* algoritmo_remplazo;
+char* algoritmo_part_libre;
+int recuencia_compactacion;
 
 int cont_orden;
 
@@ -86,6 +90,8 @@ pthread_mutex_t semaforo_suscriber;
 pthread_mutex_t sem_cola[6];
 pthread_mutex_t mutex_productores;
 sem_t contenido_cola[6];
+pthread_mutex_t semaforo_struct_s;
+pthread_mutex_t semaforo_memoria;
 
 // HILOS
 

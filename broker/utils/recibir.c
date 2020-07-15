@@ -126,7 +126,9 @@ void agregar_a_cola(uint32_t id_cola, uint32_t size, void* mensaje, uint32_t id_
 	info_msg->quienes_lo_recibieron = list_create();
 	info_msg->a_quienes_fue_enviado = list_create();
 
-    almacenar(mensaje,id_cola,id_mensaje,size);
+	pthread_mutex_lock(&(semaforo_struct_s));
+	almacenar(mensaje,id_cola,id_mensaje,size);
+	pthread_mutex_unlock(&(semaforo_struct_s));
 
 	queue_push(int_a_nombre_cola(id_cola)->cola, info_msg);
 
@@ -223,8 +225,3 @@ int revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_en_buffer) {
 
 	return mensaje_nuevo;
 }
-
-
-
-
-
