@@ -466,7 +466,7 @@ void deadlock()
 	{
 		printf("\nChequeando si hay deadlock... \n");
 
-		if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && list_all_satisfy(estado_bloqueado,(void*) bloqueadoPorDeadlock))
+		if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && list_all_satisfy(estado_bloqueado,(void*) bloqueadoPorDeadlock) && !list_is_empty(estado_bloqueado))
 		{
 
 			if(!logueo) // se hace esto para que aparezca el inicio de correccion del deadlock 1 sola vez y no se loguee cada vez que entramos aca
@@ -501,12 +501,11 @@ void deadlock()
 			}
 		} else {
 			printf("No hay deadlock.\n\n");
+			if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && list_is_empty(estado_bloqueado)){break;}
 		}
 
 		sleep(3); // con esto dejo el proceso corriendo y chequeo
 	}
-
-	printf("No hay deadlock.\n\n");
 
 	log_info(logger,"Finaliza el algoritmo de correccion de DEADLOCK.");
 	log_info(logger,"Se cumplio el OBJETIVO del TEAM.");
