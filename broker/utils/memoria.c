@@ -281,23 +281,18 @@ void compactar(){
 }
 
 void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones() {
-	t_struct_secundaria* particion_a_sacar;
+
 	int a_sacar = 0;
 
 	if (string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_REEMPLAZO"),"FIFO")) {
-
-		a_sacar = algoritmo_FIFO(particion_a_sacar);
-		log_info(logger,"ELIMINO PARTICIO:%d -- BIT DE INCICIO:0x%x", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
-
+		a_sacar = algoritmo_FIFO();
 	} else if (string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_REEMPLAZO"),"LRU")) {
-
-		a_sacar = algoritmo_LRU(particion_a_sacar);
-		log_info(logger,"ELIMINO PARTICIO:%d -- BIT DE INCICIO:0x%x", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
-
+		a_sacar = algoritmo_LRU();
 	} else {
 		printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 	}
-	particion_a_sacar = list_get(lista_de_particiones,a_sacar);
+	t_struct_secundaria* particion_a_sacar = list_get(lista_de_particiones,a_sacar);
+	log_info(logger,"ELIMINO PARTICIO:%d -- BIT DE INCICIO:0x%x", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
 	particion_a_sacar->id_mensaje = -1;
 	particion_a_sacar->tipo_mensaje= 6;
 
@@ -316,20 +311,18 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones() {
 
 void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 
-	t_struct_secundaria* particion_a_sacar;
 	int a_sacar = 0;
 
 	if (string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_REEMPLAZO"), "FIFO")) {
-		a_sacar = algoritmo_FIFO(particion_a_sacar);
+		a_sacar = algoritmo_FIFO();
 	} else if (string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_REEMPLAZO"), "LRU")) {
-		a_sacar = algoritmo_LRU(particion_a_sacar);
+		a_sacar = algoritmo_LRU();
 	} else {
 		printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 	}
+
+	t_struct_secundaria* particion_a_sacar = list_get(lista_de_particiones, a_sacar);
 	log_info(logger,"ELIMINO PARTICION:%d -- BIT DE INCICIO:0x%x", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
-
-
-	particion_a_sacar = list_get(lista_de_particiones, a_sacar);
 	particion_a_sacar->id_mensaje = 0;
 	particion_a_sacar->tipo_mensaje = 6;
 
@@ -346,7 +339,8 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 
 
 
-int algoritmo_FIFO(t_struct_secundaria* particion_a_sacar){
+int algoritmo_FIFO(){
+	t_struct_secundaria* particion_a_sacar;
 	int orden, orden_menor;
 	int a_sacar = -1; // Creo q esta bien esto
 	for(int i = 0; i< list_size(lista_de_particiones); i++ ){
@@ -364,7 +358,8 @@ int algoritmo_FIFO(t_struct_secundaria* particion_a_sacar){
 	return a_sacar;
 }
 
-int algoritmo_LRU(t_struct_secundaria* particion_a_sacar){
+int algoritmo_LRU(){
+	t_struct_secundaria* particion_a_sacar;
 	int contador = 0;
 	int flag_2 = 0;
 	int a_sacar = 0 ;
