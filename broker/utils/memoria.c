@@ -192,21 +192,22 @@ void consolidar_particiones_en_bs(int posicion_a_liberar) { // Consolido cada ve
 void buscar_particion_en_particiones_dinamicas(){
 	t_struct_secundaria* nueva_est;
 
-	flag = 0;
 	if(string_equals_ignore_case(config_get_string_value(config,"ALGORITMO_PARTICION_LIBRE"),"FF")){
 		for (int i = 0; i < list_size(lista_de_particiones); i++ ){
 			nueva_est = list_get(lista_de_particiones, i);
 			if (nueva_est->tipo_mensaje == 6){
-				flag ++;
 				if(nueva_est->tamanio >= tamanio_a_ocupar ){
 					entra = i;
 				}
 			}
 		}
 		if (entra == -1){
-			if (flag > 1){
+			if (flag == config_get_int_value(config,"FRECUENCIA_COMPACTACION")){
+				compactar();
+			}else if (config_get_int_value(config,"FRECUENCIA_COMPACTACION") == -1 && flag == -1){
 				compactar();
 			}else{
+				flag += 1;
 				elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones();
 			}
 		}
@@ -217,7 +218,6 @@ void buscar_particion_en_particiones_dinamicas(){
 		for (int i = 0; i< list_size(lista_de_particiones); i++ ){
 			nueva_est = list_get(lista_de_particiones,i);
 			if (nueva_est->tipo_mensaje == 6){
-				flag ++;
 				if(nueva_est->tamanio >= tamanio_a_ocupar ){
 					sobra = (nueva_est->tamanio - tamanio_a_ocupar);
 					if (sobra < sobra_menor){
@@ -228,9 +228,12 @@ void buscar_particion_en_particiones_dinamicas(){
 			}
 		}
 		if (entra == -1){
-			if (flag > 1){
+			if (flag == config_get_int_value(config,"FRECUENCIA_COMPACTACION")){
+				compactar();
+			}else if (config_get_int_value(config,"FRECUENCIA_COMPACTACION") == -1 && flag == -1){
 				compactar();
 			}else{
+				flag += 1;
 				elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones();
 			}
 		}
@@ -283,26 +286,33 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones() {
 	t_struct_secundaria* particion_a_sacar;
 	int a_sacar = 0;
 
-	for (int i = 0; i < list_size(lista_de_particiones); i++) {
-		particion_a_sacar = list_get(lista_de_particiones, i);
-		if (string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_REEMPLAZO"),"FIFO")) {
+	if (string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_REEMPLAZO"),"FIFO")) {
 
-			a_sacar = algoritmo_FIFO(particion_a_sacar);
-			log_info(logger,"ELIMINO PARTICIO:%d -- BIT DE INCICIO:0x%x", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
-			actualizar_bit_inicio(a_sacar);
-			mover_memoria(a_sacar);
+		a_sacar = algoritmo_FIFO(particion_a_sacar);
+		log_info(logger,"ELIMINO PARTICIO:%d -- BIT DE INCICIO:0x%x", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
 
-		} else if (string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_REEMPLAZO"),"LRU")) {
+	} else if (string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_REEMPLAZO"),"LRU")) {
 
-			a_sacar = algoritmo_LRU(particion_a_sacar);
-			log_info(logger,"ELIMINO PARTICIO:%d -- BIT DE INCICIO:0x%x", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
-			actualizar_bit_inicio(a_sacar);
-			mover_memoria(a_sacar);
+		a_sacar = algoritmo_LRU(particion_a_sacar);
+		log_info(logger,"ELIMINO PARTICIO:%d -- BIT DE INCICIO:0x%x", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
 
-		} else {
-			printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
-		}
+	} else {
+		printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 	}
+	particion_a_sacar = list_get(lista_de_particiones,a_sacar);
+	particion_a_sacar->id_mensaje = -1;
+	particion_a_sacar->tipo_mensaje= 6;
+
+	bool esVacio(void* una_particion){
+		t_struct_secundaria* particion_a_comparar =  (t_struct_secundaria*) una_particion;
+		return particion_a_comparar->tipo_mensaje == 6;
+	}
+
+	if (list_all_satisfy(lista_de_particiones,esVacio)){
+		flag = -1;
+	}
+
+	list_replace_and_destroy_element(lista_de_particiones,a_sacar,particion_a_sacar,free);
 	buscar_particion_en_particiones_dinamicas();
 }
 
@@ -311,21 +321,20 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 	t_struct_secundaria* particion_a_sacar;
 	int a_sacar = 0;
 
-	for (int i = 0; i < list_size(lista_de_particiones); i++) {
-		particion_a_sacar = list_get(lista_de_particiones, i);
-		if (string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_REEMPLAZO"), "FIFO")) {
-			a_sacar = algoritmo_FIFO(particion_a_sacar);
-		} else if (string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_REEMPLAZO"), "LRU")) {
-			a_sacar = algoritmo_LRU(particion_a_sacar);
-		} else {
-			printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
-		}
-		log_info(logger,"ELIMINO PARTICION:%d -- BIT DE INCICIO:0x%x", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
+	if (string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_REEMPLAZO"), "FIFO")) {
+		a_sacar = algoritmo_FIFO(particion_a_sacar);
+	} else if (string_equals_ignore_case(config_get_string_value(config, "ALGORITMO_REEMPLAZO"), "LRU")) {
+		a_sacar = algoritmo_LRU(particion_a_sacar);
+	} else {
+		printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 	}
+	log_info(logger,"ELIMINO PARTICION:%d -- BIT DE INCICIO:0x%x", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
+
 
 	particion_a_sacar = list_get(lista_de_particiones, a_sacar);
 	particion_a_sacar->id_mensaje = 0;
 	particion_a_sacar->tipo_mensaje = 6;
+
 	while (!es_potencia_de_dos(particion_a_sacar->tamanio)) { // Le sumo 1 hasta ver si es potencia de 2 ya que la estructura >= al size que tenia antes (ejemplo: tamanio = 6 entonces 7 ..8 para ahi)
 		particion_a_sacar->tamanio += 1;
 	}
