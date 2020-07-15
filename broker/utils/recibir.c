@@ -54,8 +54,12 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 			log_info(logger, " MENSAJE NUEVO: %s -- ID: %d -- COLA: %s ", id_mensaje, msg_as_string(id_cola,msg), nombres_colas[id_cola]); // LOG 3
 
 			pthread_mutex_lock(&(sem_cola[id_cola]));
-			agregar_a_cola(id_cola,paquete->buffer->size,msg,id_mensaje);
+			agregar_a_cola(id_cola,id_mensaje);
 			pthread_mutex_unlock(&(sem_cola[id_cola]));
+
+			pthread_mutex_lock(&(semaforo_struct_s));
+			almacenar(msg,id_cola,id_mensaje,paquete->buffer->size);
+			pthread_mutex_unlock(&(semaforo_struct_s));
 
 		} else {
 			send(*socket_escucha, &id_mens_en_cola, sizeof(uint32_t), 0);
@@ -119,16 +123,12 @@ uint32_t crear_nuevo_id(){
 	return contador_id;
 }
 
-void agregar_a_cola(uint32_t id_cola, uint32_t size, void* mensaje, uint32_t id_mensaje){
+void agregar_a_cola(uint32_t id_cola, uint32_t id_mensaje){
 
 	t_info_mensaje* info_msg = malloc(sizeof(t_info_mensaje));
 	info_msg->id = id_mensaje;
 	info_msg->quienes_lo_recibieron = list_create();
 	info_msg->a_quienes_fue_enviado = list_create();
-
-	pthread_mutex_lock(&(semaforo_struct_s));
-	almacenar(mensaje,id_cola,id_mensaje,size);
-	pthread_mutex_unlock(&(semaforo_struct_s));
 
 	queue_push(int_a_nombre_cola(id_cola)->cola, info_msg);
 
