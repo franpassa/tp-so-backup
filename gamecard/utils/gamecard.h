@@ -71,15 +71,26 @@ t_fspaths* fspaths;
 // --- Hilos ---
 
 pthread_t hilo_gameboy;
+pthread_t hilo_invocador;
+pthread_t hilo_new;
+pthread_t hilo_catch;
+pthread_t hilo_get;
 
 // --- Semáforos ---
 
 pthread_mutex_t mutex_bitmap;
 pthread_mutex_t mutex_dict;
+pthread_mutex_t mutex_reconexion;
+pthread_mutex_t mutex_espera;
+pthread_cond_t cond_reconectado;
 
 // --- Diccionarios ---
 
 t_dictionary* sem_files;
+
+// --- Sockets suscripciones ---
+
+int socket_new, socket_catch, socket_get;
 
 // -------- Funciones --------
 
@@ -153,6 +164,7 @@ int escuchar_gameboy();
 void esperar_conexion(int socket_sv);
 void manejar_msg_gameboy(int* socket_gameboy);
 void procesar_msg(queue_name tipo_msg, void* msg, uint32_t id_msg);
+void iniciar_hilos_escucha_broker();
 
 
 #endif

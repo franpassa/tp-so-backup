@@ -1,15 +1,21 @@
 #include "utils/gamecard.h"
 
-void asignar_globales(){
+void init_semaforos(){
+	pthread_mutex_init(&mutex_dict, NULL);
+	pthread_mutex_init(&mutex_bitmap, NULL);
+	pthread_mutex_init(&mutex_reconexion, NULL);
+	pthread_cond_init(&cond_reconectado, NULL);
+}
+
+void init_globales(){
 	config = get_config(CONFIG_PATH);
 	logger = crear_log(LOG_PATH);
 	sem_files = dictionary_create();
-	pthread_mutex_init(&mutex_dict, NULL);
-	pthread_mutex_init(&mutex_bitmap, NULL);
+	init_semaforos();
 }
 
 void inicializar(){
-	asignar_globales();
+	init_globales();
 
 	char* punto_montaje = config_get_string_value(config, "PUNTO_MONTAJE_TALLGRASS");
 	fspaths = init_fspaths(punto_montaje);
@@ -27,6 +33,8 @@ int main(){
 	inicializar();
 
 	pthread_t hilo_gameboy;
+	pthread_create(&hilo_invocador, NULL, (void*) iniciar_hilos_escucha_broker, NULL);
+	pthread_detach(hilo_invocador);
 	pthread_create(&hilo_gameboy, NULL, (void*) escuchar_gameboy, NULL);
 	pthread_join(hilo_gameboy, NULL);
 

@@ -2,7 +2,7 @@
 //#define TEAM_H_
 
 #define PROGRAM_NAME "team"
-#define PATH_CONFIG "/home/utnso/workspace/tp-2020-1c-Cuarenteam/team/team.config"
+#define PATH_CONFIG "/home/utnso/workspace/tp-2020-1c-Cuarenteam/team/Default/team.config"
 #define PATH_LOG "/home/utnso/workspace/tp-2020-1c-Cuarenteam/team/team.log"
 
 
@@ -42,7 +42,6 @@ char* PUERTO;
 char** posicionesEntrenadores;
 char** pokesEntrenadores;
 char** pokesObjetivos;
-uint32_t retardoCpu;
 uint32_t tiempo_reconexion;
 uint32_t socket_caught;
 uint32_t socket_localized;
@@ -79,8 +78,6 @@ pthread_t hilo_deadlock;
 sem_t semCaught;
 sem_t semLocalized;
 sem_t semAppeared;
-
-uint32_t ciclosConsumidos;
 
 bool hayEntrenadorProcesando; 	// funcion a futuro, chequear en otro proceso si hay un entrenador
 bool envioGets;								//corriendo porque cuando sale del bloqueo porque ya le

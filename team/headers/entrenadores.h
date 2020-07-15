@@ -23,6 +23,7 @@ typedef struct Entrenador
 	t_pokemon* pokemonAMoverse;
 	motivo motivoBloqueo;
 	double estimacion;
+	uint32_t ciclosAcumulados;
 }t_entrenador;
 
 t_log* logger;
@@ -39,6 +40,9 @@ char* ALGORITMO;
 uint32_t QUANTUM;
 double ESTIMACION_INICIAL;
 double ALPHA;
+uint32_t retardoCpu;
+uint32_t ciclosConsumidos;
+uint32_t cambiosDeContexto;
 
 // posiciones
 uint32_t posicionXEntrenador(int nroEntrenador, char** posicionesEntrenadores);
@@ -57,7 +61,7 @@ uint32_t distanciaEntrenadorPokemon(uint32_t posXEntrenador , uint32_t posYEntre
 void liberarArray(char** posicionesEntrenadores);
 void liberarEntrenador(void* entrenador);
 void mostrarEntrenador(void* entrenador);
-
+void mostrarCiclos(t_entrenador* entrenador);
 
 // listas nuevas / modificar listas
 t_list* insertarPokesEntrenador(uint32_t nroEntrenador, t_list* pokemons, char** pokesEntrenadores);
@@ -80,12 +84,13 @@ t_list* listaALaQuePertenece(t_entrenador* unEntrenador);
 
 bool puedeAtrapar(t_entrenador* entrenador);
 void mostrar_ids(void* id);
-void moverEntrenadorX(t_entrenador* unEntrenador, uint32_t posX,uint32_t retardoCpu);
-void moverEntrenadorY(t_entrenador* unEntrenador, uint32_t posY,uint32_t retardoCpu);
-void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu);
-void moverSinDesalojar(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu);
-void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu);
-void moverConDesalojoPorRR(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu,uint32_t quantum);
+void moverEntrenadorX(t_entrenador* unEntrenador, uint32_t posX);
+void moverEntrenadorY(t_entrenador* unEntrenador, uint32_t posY);
+void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY);
+void moverSinDesalojar(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY);
+void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY);
+void moverConDesalojoPorRR(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY);
+void moverConDesalojoPorSJF(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY);
 
 t_list* pokemonesAlPedo(t_entrenador* unEntrenador);
 t_list* pokemonesQueLeFaltan(t_entrenador* unEntrenador);
@@ -102,6 +107,7 @@ t_list* crearListaObjetivosPosta(t_list* pokesObjetivosGlobal, t_list* entrenado
 void sacar1(char* nombre, t_list* listaDeEspecies);
 void recalcularEstimacion(t_entrenador* entrenador,uint32_t ciclosRecorridos);
 t_entrenador* elDeMenorEstimacion(t_list* entrenadores);
+bool esElDeMenorEstimacion(t_list* entrenadores, t_entrenador* entrenador);
 
 
 

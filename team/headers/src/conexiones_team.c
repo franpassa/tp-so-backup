@@ -79,6 +79,7 @@ void enviar_gets(t_list* objetivos_globales) {
 		get_pokemon_msg* a_enviar = get_msg(mensaje);
 		uint32_t* id_respuesta = malloc(sizeof(uint32_t));
 		*id_respuesta = enviar_mensaje(ip_broker, puerto_broker,GET_POKEMON,a_enviar,0,true);
+		ciclosConsumidos++;
 		if (*id_respuesta == -1) {
 			log_error(logger,"ERROR al enviar el mensaje GET_POKEMON %s.",a_enviar->nombre_pokemon);
 			log_info(logger,"OPERACION DEFAULT: No existen locaciones disponibles para el pokemon %s.",a_enviar->nombre_pokemon);
@@ -163,8 +164,9 @@ void estado_exec()
 void planificacion()
 {
 	t_entrenador* entrenador = NULL;
+	cambiosDeContexto++;
 
-	if(string_equals_ignore_case(ALGORITMO,"SJF-SD")){
+	if(string_equals_ignore_case(ALGORITMO,"SJF-SD") || string_equals_ignore_case(ALGORITMO,"SJF-CD")){
 		pthread_mutex_lock(&mutexEstadoReady);
 		entrenador = elDeMenorEstimacion(estado_ready);
 		pthread_mutex_unlock(&mutexEstadoReady);
@@ -177,7 +179,7 @@ void planificacion()
 	t_pokemon* aMoverse = entrenador->pokemonAMoverse;
 
 	if (aMoverse!= NULL && entrenador != NULL){
-		moverEntrenador(entrenador,aMoverse->posicionX,aMoverse->posicionY,retardoCpu);
+		moverEntrenador(entrenador,aMoverse->posicionX,aMoverse->posicionY);
 	}
 
 	uint32_t distancia = distanciaEntrenadorPokemon(entrenador->posicionX, entrenador->posicionY,aMoverse->posicionX,aMoverse->posicionY);
@@ -192,6 +194,8 @@ void planificacion()
 		uint32_t* idMensajeExec = malloc(sizeof(int)); // no se libera aca porque se libera cuando liberamos  ids enviados
 		*idMensajeExec = enviar_mensaje(ip_broker,puerto_broker,CATCH_POKEMON,mensaje,0,true);
 		log_info(logger,"El entrenador %d envió el mensaje CATCH_POKEMON %s, en la posición (%d,%d).",entrenador->idEntrenador,aMoverse->nombre,aMoverse->posicionX,aMoverse->posicionY);
+		ciclosConsumidos++;
+		cambiosDeContexto++;
 		if (*idMensajeExec == -1){
 			printf("Falló el envio del mensaje CATCH_POKEMON %s.\n",mensaje->nombre_pokemon);
 			log_error(logger,"ERROR al enviar el mensaje CATCH_POKEMON %s.",mensaje->nombre_pokemon);
@@ -435,7 +439,7 @@ void conectarABroker(){
 
 		if(!conexionExitosa){
 
-			printf("Falló la conexion con el Broker. Intento de reconexion numero %d...\n\n", intento);
+			printf("\nFalló la conexion con el Broker. Intento de reconexion numero %d...\n", intento);
 			log_error(logger,"Falló la conexion con el Broker. Intento de reconexion numero %d...", intento);
 			sleep(tiempo_reconexion);
 			intento++;
@@ -457,15 +461,15 @@ void deadlock()
 {
 	t_entrenador* entrenador;
 	bool logueo = false;
+	uint32_t cantidadDeadlocks = 0;
 	while(1)
 	{
-		printf("Chequeando si hay deadlock. \n");
+		printf("\nChequeando si hay deadlock... \n");
 
 		if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && list_all_satisfy(estado_bloqueado,(void*) bloqueadoPorDeadlock))
 		{
-			printf("Hay deadlock. \n");
 
-			if(!logueo)
+			if(!logueo) // se hace esto para que aparezca el inicio de correccion del deadlock 1 sola vez y no se loguee cada vez que entramos aca
 			{
 				logueo = true;
 				log_info(logger,"Inicia el algoritmo de correccion de DEADLOCK.");
@@ -474,6 +478,7 @@ void deadlock()
 			if(!list_is_empty(estado_bloqueado)){
 
 				entrenador = list_remove(estado_bloqueado,0);
+				cambiosDeContexto++;
 
 				t_list* losQueTienenElPokemonQueLeFalta = quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado);
 
@@ -485,32 +490,33 @@ void deadlock()
 				}
 				else
 				{
-					moverEntrenador(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY,retardoCpu);
+					printf("Hay deadlock. Solucionando deadlock... \n\n");
+					moverSinDesalojar(entrenador,entrenadorAMoverse->posicionX,entrenadorAMoverse->posicionY);
 					realizarCambio(entrenador,entrenadorAMoverse);
 					cambiarEstado(entrenador);
+					cantidadDeadlocks++;
 				}
 
 				list_destroy(losQueTienenElPokemonQueLeFalta);
 			}
 		} else {
-			printf("No hay deadlock. \n");
+			printf("No hay deadlock.\n\n");
 		}
 
 		sleep(3); // con esto dejo el proceso corriendo y chequeo
 	}
 
+	printf("No hay deadlock.\n\n");
+
 	log_info(logger,"Finaliza el algoritmo de correccion de DEADLOCK.");
 	log_info(logger,"Se cumplio el OBJETIVO del TEAM.");
 
-	printf("Los entrenadores fueron planificados en su totalidad.\n");
+	printf("\nLos entrenadores fueron planificados en su totalidad.\n\n");
 
-	printf("Los entrenadores en estado exit son: \n");
-
-	list_iterate(estado_exit,mostrarEntrenador);
-
-	printf("Los entrenadores en estado bloqueado son: \n");
-
-	list_iterate(estado_bloqueado,mostrarEntrenador);
+	list_iterate(estado_exit,(void*)mostrarCiclos);
+	printf("\nLa cantidad de deadlocks producidos y resueltos es: %d\n", cantidadDeadlocks);
+	printf("\nLa cantidad de ciclos de CPU totales consumidos es: %d\n",ciclosConsumidos);
+	printf("\nLa cantidad de cambios de contexto realizados es: %d\n\n",cambiosDeContexto);
 
 }
 

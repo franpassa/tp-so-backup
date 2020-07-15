@@ -90,6 +90,7 @@ t_list* crearListaDeEntrenadores(char** posicionesEntrenadores, char** pokesEntr
 		entrenador->motivoBloqueo = MOTIVO_NADA;
 		entrenador->pokemonAMoverse = NULL;
 		entrenador->estimacion = ESTIMACION_INICIAL;
+		entrenador->ciclosAcumulados = 0;
 		list_add(entrenadores,entrenador);
 	}
 
@@ -126,6 +127,7 @@ void mostrarEntrenador(void* entrenador)
 	printf("Los pokemon objetivo del entrenador son: \n");
 	list_iterate((((t_entrenador*)entrenador)->pokesObjetivos),mostrarString);
 	printf("El motivo de bloqueo del entrenador es: %d\n",((t_entrenador*) entrenador)->motivoBloqueo);
+	printf("Los ciclos acumulados del entrenador son: %d\n",((t_entrenador*) entrenador)->ciclosAcumulados);
 	if(((t_entrenador*)entrenador)->pokemonAMoverse != NULL){mostrarPokemon(((t_entrenador*)entrenador)->pokemonAMoverse);}
 
 }
@@ -142,6 +144,7 @@ void igualarEntrenador(t_entrenador* unEntrenador, t_entrenador* otroEntrenador)
 	unEntrenador->posicionX = otroEntrenador->posicionX;
 	unEntrenador->posicionY = otroEntrenador->posicionY;
 	unEntrenador->estimacion = otroEntrenador->estimacion;
+	unEntrenador->ciclosAcumulados = otroEntrenador->ciclosAcumulados;
 }
 
 void setearEnCeroEntrenador (t_entrenador* unEntrenador)
@@ -154,7 +157,7 @@ void setearEnCeroEntrenador (t_entrenador* unEntrenador)
 	unEntrenador->pokesObjetivos = list_create();
 	unEntrenador->posicionX = 0;
 	unEntrenador->posicionY = 0;
-
+	unEntrenador->ciclosAcumulados = 0;
 }
 
 // devuelve el pokemon de la lista que esta mas cerca a un entrenador
@@ -256,7 +259,7 @@ bool puedeAtrapar(t_entrenador* entrenador){
 }
 
 // funcion por si las dudas
-void moverEntrenadorX(t_entrenador* unEntrenador, uint32_t posX,uint32_t retardoCpu)
+void moverEntrenadorX(t_entrenador* unEntrenador, uint32_t posX)
 {
     while(abs(unEntrenador->posicionX - posX) > 0)
     {
@@ -269,14 +272,14 @@ void moverEntrenadorX(t_entrenador* unEntrenador, uint32_t posX,uint32_t retardo
         {
             unEntrenador->posicionX ++;
         }
-        pthread_mutex_lock(&mutexLogEntrenador);
+        ciclosConsumidos++;
+        unEntrenador->ciclosAcumulados ++;
         log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
-        printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
-        pthread_mutex_unlock(&mutexLogEntrenador);
+        printf("El entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
     }
 }
 
-void moverEntrenadorY(t_entrenador* unEntrenador, uint32_t posY,uint32_t retardoCpu)
+void moverEntrenadorY(t_entrenador* unEntrenador, uint32_t posY)
 {
     while(abs(unEntrenador->posicionY - posY) > 0)
     {
@@ -289,63 +292,115 @@ void moverEntrenadorY(t_entrenador* unEntrenador, uint32_t posY,uint32_t retardo
         {
             unEntrenador->posicionY ++;
         }
-        pthread_mutex_lock(&mutexLogEntrenador);
+        ciclosConsumidos++;
+        unEntrenador->ciclosAcumulados ++;
         log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
-        printf("el entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
-        pthread_mutex_unlock(&mutexLogEntrenador);
+        printf("El entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
     }
 }
 
-void moverSinDesalojar(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu)
+void moverSinDesalojar(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY)
 {
-    moverEntrenadorX(unEntrenador,posX,retardoCpu);
-    moverEntrenadorY(unEntrenador,posY,retardoCpu);
+    moverEntrenadorX(unEntrenador,posX);
+    moverEntrenadorY(unEntrenador,posY);
 }
 
-void moverConDesalojoPorRR(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu,uint32_t quantum){
+void moverConDesalojoPorRR(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY){
 
-	while(quantum > 0){
-		if(posX != unEntrenador->posicionX){
+	uint32_t distanciaRecorrida = 0;
 
-			uint32_t posParcial ;
+	while(distanciaRecorrida < QUANTUM && distanciaEntrenadorPokemon(unEntrenador->posicionX, unEntrenador->posicionY,posX,posY)!=0){
 
-			if(posX > unEntrenador->posicionX){
-				posParcial = unEntrenador->posicionX +1;
-			} else {
-				posParcial = unEntrenador->posicionX -1;
-			}
-			moverEntrenadorX(unEntrenador,posParcial,retardoCpu);
-			quantum --;
-		} else {
-			if(posY != unEntrenador->posicionY){
+		if(abs(unEntrenador->posicionX - posX) > 0){
+		        sleep(retardoCpu);
+		        if(unEntrenador->posicionX > posX){
+		            unEntrenador->posicionX --;
+		        } else {
+		            unEntrenador->posicionX ++;
+		        }
+		        log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		        printf("El entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		        distanciaRecorrida++;
+		        ciclosConsumidos++;
+		        unEntrenador->ciclosAcumulados ++;
+		        if(distanciaRecorrida == QUANTUM){cambiosDeContexto++;break;}
+		    }
 
-				uint32_t posParcial2;
-
-				if(posY > unEntrenador->posicionY){
-					posParcial2 = unEntrenador->posicionY +1;
-				} else {
-					posParcial2 = unEntrenador->posicionY -1;
-				}
-
-				moverEntrenadorY(unEntrenador,posParcial2,retardoCpu);
-				quantum --;
-			}
-
-			break;
-		}
+		if(abs(unEntrenador->posicionY - posY) > 0){
+		        sleep(retardoCpu);
+		        if(unEntrenador->posicionY > posY){
+		            unEntrenador->posicionY --;
+		        } else {
+		            unEntrenador->posicionY ++;
+		        }
+		        log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		        printf("El entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		        distanciaRecorrida++;
+		        ciclosConsumidos++;
+		        unEntrenador->ciclosAcumulados ++;
+		        if(distanciaRecorrida == QUANTUM){cambiosDeContexto++;break;}
+		    }
 	}
 }
 
-void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY,uint32_t retardoCpu)
+void moverConDesalojoPorSJF(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY){
+
+	while(distanciaEntrenadorPokemon(unEntrenador->posicionX, unEntrenador->posicionY,posX,posY)!=0){
+
+		if(abs(unEntrenador->posicionX - posX) > 0){
+
+		        if(!esElDeMenorEstimacion(estado_ready,unEntrenador)){
+		        	cambiosDeContexto++;
+		        	break;
+		        }
+
+		        sleep(retardoCpu);
+
+		        if(unEntrenador->posicionX > posX){
+		            unEntrenador->posicionX --;
+		        } else {
+		            unEntrenador->posicionX ++;
+		        }
+		        ciclosConsumidos++;
+		        unEntrenador->ciclosAcumulados ++;
+		        log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		        printf("El entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		    }
+
+		if(abs(unEntrenador->posicionY - posY) > 0){
+
+		        if(!esElDeMenorEstimacion(estado_ready,unEntrenador)){
+		        	cambiosDeContexto++;
+		        	break;
+		        }
+
+		        sleep(retardoCpu);
+
+		        if(unEntrenador->posicionY > posY){
+		            unEntrenador->posicionY --;
+		        } else {
+		            unEntrenador->posicionY ++;
+		        }
+		        ciclosConsumidos++;
+		        unEntrenador->ciclosAcumulados ++;
+		        log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		        printf("El entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		    }
+	}
+}
+
+void moverEntrenador(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY)
 {
-	if(string_equals_ignore_case(ALGORITMO,"FIFO") || string_equals_ignore_case(ALGORITMO,"SJF-SD"))
-	{
-		moverSinDesalojar(unEntrenador,posX,posY,retardoCpu);
+	if(string_equals_ignore_case(ALGORITMO,"FIFO") || string_equals_ignore_case(ALGORITMO,"SJF-SD")){
+		moverSinDesalojar(unEntrenador,posX,posY);
 	}
 
 	if(string_equals_ignore_case(ALGORITMO,"RR")){
+		moverConDesalojoPorRR(unEntrenador,posX,posY);
+	}
 
-		moverConDesalojoPorRR(unEntrenador,posX,posY,retardoCpu,QUANTUM);
+	if(string_equals_ignore_case(ALGORITMO,"SJF-CD")){
+		moverConDesalojoPorSJF(unEntrenador,posX,posY);
 	}
 }
 
@@ -513,9 +568,9 @@ void realizarCambio(t_entrenador* entrenador1, t_entrenador* entrenador2)
 	uint32_t indiceDelPokemonDondeEstaEnElEntrenador2 = retornarIndice(entrenador2->pokesAtrapados,pokemon(entrenador1->pokesObjetivos));
 
 	char* flag = list_remove(entrenador2->pokesAtrapados,indiceDelPokemonDondeEstaEnElEntrenador2);
-	sleep(5);
 	char* flag2 = list_replace(entrenador1->pokesAtrapados,a,flag);
 	sleep(5);
+	ciclosConsumidos+=5;
 	list_add(entrenador2->pokesAtrapados,flag2);
 
 	list_destroy(pokemones);
@@ -587,6 +642,29 @@ t_entrenador* elDeMenorEstimacion(t_list* entrenadores){ //DEVUELVE EL ENTRENADO
 	return list_remove_by_condition(entrenadores,(void*)tieneLaMenor);
 }
 
+bool esElDeMenorEstimacion(t_list* entrenadores, t_entrenador* entrenador){
+
+	double estimacionFlag = entrenador->estimacion;
+
+	void buscarMenor(t_entrenador* unEntrenador){
+		double estimacion = unEntrenador->estimacion;
+		if(estimacion < estimacionFlag){
+			estimacionFlag = unEntrenador->estimacion;
+		}
+	}
+
+	list_iterate(entrenadores,(void*) buscarMenor);
+
+	bool tieneLaMenor(t_entrenador* unEntrenador){
+		return fabs(unEntrenador->estimacion)== fabs(estimacionFlag);
+	}
+
+	return tieneLaMenor(entrenador);
+}
+
+void mostrarCiclos(t_entrenador* entrenador){
+	printf("Los ciclos de CPU consumidos por el entrenador %d son: %d\n",entrenador->idEntrenador,entrenador->ciclosAcumulados);
+}
 
 
 
