@@ -45,6 +45,6 @@ uint32_t send_gamecard(queue_name cola, void* mensaje, uint32_t id_mensaje);
 char* unir_args(char** args, int cant);
 bool es_numerico(char* string);
 uint32_t send_broker(queue_name cola, void* mensaje);
-void recibir_mensajes(suscripcion_t* susc_data);
+void recibir_mensajes(int* socket);
 
 #endif /* GAME_BOY_H_ */

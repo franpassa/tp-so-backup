@@ -29,7 +29,6 @@ int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size)
 
 	// El tamaño total sería: id_cola (4) + buffer_size (4) + stream (buffer_size)
 	int total_bytes = paquete->buffer->size + sizeof(queue_name) + sizeof(uint32_t);
-	//printf("%d\n", total_bytes);
 
 	paquete->buffer->stream = stream;
 	void* a_enviar = serializar_paquete(paquete, total_bytes);
@@ -40,6 +39,8 @@ int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size)
 	}
 
 	send(socket_receptor, &id, sizeof(uint32_t), 0);
+
+	log_info(logger, " MENSAJE:%s -- ID:%d -- ENVIADO A SUSCRIPTOR: %d ",msg_as_string(cola, stream), id, socket_receptor); // LOG 4
 
 	free_paquete(paquete);
 	free(a_enviar);
@@ -112,5 +113,4 @@ bool esta_en_lista(t_list* a_los_que_envie, uint32_t* sub) {
 	}
 	return list_any_satisfy(a_los_que_envie, es_igual);
 }
-
 

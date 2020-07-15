@@ -215,6 +215,7 @@ uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructur
 
 	// El tamaño total sería: stream (buffer_size) + id_cola (4) + buffer_size (4)
 	int total_bytes = paquete->buffer->size + sizeof(queue_name) + sizeof(uint32_t);
+	printf("total = %d\n",total_bytes);
 
 	paquete->buffer->stream = stream;
 	void* a_enviar = serializar_paquete(paquete, total_bytes);
@@ -294,6 +295,8 @@ void* recibir_mensaje(int socket, uint32_t* id, queue_name* tipo_msg) {
 		free(paquete);
 		return NULL;
 	}
+
+	printf("Size = %d\n", paquete->buffer->size);
 	paquete->buffer->stream = malloc(paquete->buffer->size);
 	if (recv(socket, paquete->buffer->stream, paquete->buffer->size, MSG_WAITALL) <= 0) {
 		free_paquete(paquete);

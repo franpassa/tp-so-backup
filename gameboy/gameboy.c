@@ -142,8 +142,6 @@ int main(int argc, char** argv){
 		free(ip_broker);
 		free(puerto_broker);
 
-		suscripcion_t info_suscripcion = init_suscripcion(socket_broker, cola);
-
 		pthread_t listener_thread;
 		pthread_create(&listener_thread, NULL, (void*) recibir_mensajes, (void*) &socket_broker);
 

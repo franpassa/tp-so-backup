@@ -77,8 +77,9 @@ void recibir_mensajes(int* socket){
 		uint32_t id;
 		queue_name tipo_msg;
 		void* msg = recibir_mensaje(*socket, &id, &tipo_msg);
-		printf("id: %d ->", id);
+		printf("id: %d -> ", id);
 		print_msg(tipo_msg, msg);
+		sleep(1);
 	}
 
 }

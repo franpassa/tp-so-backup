@@ -129,7 +129,6 @@ void inicializar(){
 
 	inicializar_memoria();
 
-
 }
 
 void estado_de_queues(){

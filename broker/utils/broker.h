@@ -7,6 +7,7 @@
 #include <commons/string.h>
 #include <commons/log.h>
 #include <commons/config.h>
+#include <commons/txt.h>
 
 // ESTANDAR C
 #include <stdio.h>
@@ -46,10 +47,10 @@ typedef struct {
 	uint32_t auxiliar;
 }t_struct_secundaria;
 
+// Variables globales memoria
 
 void* memoria;
 
-t_struct_secundaria* particion_inicial;
 int flag;
 int entra;
 int tamanio_a_ocupar;
@@ -165,5 +166,7 @@ bool es_potencia_de_dos(int);
 int algoritmo_FIFO(t_struct_secundaria*);
 int algoritmo_LRU(t_struct_secundaria*);
 t_struct_secundaria* encontrar_particion_en_base_a_un_id_mensaje(uint32_t);
+void dump_de_cache();
+void capturar_senial();
 
 #endif /* BROKER_H_ */
