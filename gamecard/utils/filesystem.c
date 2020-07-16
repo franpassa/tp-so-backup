@@ -36,6 +36,7 @@ void free_fspaths(t_fspaths* paths){
 void init_fs(){
 
 	metadata_config = config_create(fspaths->metadata_file);
+	if(!metadata_config) terminar_aplicacion("No se encontro el Metadata del FS. Verificar punto de montaje.");
 	FILE* bitmap_file = fopen(fspaths->bitmap_file, "r");
 
 	if(bitmap_file){

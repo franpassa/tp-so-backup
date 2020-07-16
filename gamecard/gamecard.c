@@ -4,6 +4,7 @@ void init_semaforos(){
 	pthread_mutex_init(&mutex_dict, NULL);
 	pthread_mutex_init(&mutex_bitmap, NULL);
 	pthread_mutex_init(&mutex_reconexion, NULL);
+	pthread_mutex_init(&mutex_espera, NULL);
 	pthread_cond_init(&cond_reconectado, NULL);
 }
 
