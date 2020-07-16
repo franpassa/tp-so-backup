@@ -31,7 +31,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 
 	paquete->buffer = malloc(sizeof(t_buffer));
 	recv(*socket_escucha, &(paquete->buffer->size), sizeof(uint32_t), MSG_WAITALL);
-	//printf("Tamanio buffer recibido = %d\n", paquete->buffer->size);
+	printf("Tamanio buffer recibido = %d\n", paquete->buffer->size);
 
 
 	if (paquete->buffer->size != 0){
@@ -50,8 +50,8 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 
 			send(*socket_escucha, &id_mensaje, sizeof(uint32_t), 0);
 
-			//printf("MENSAJE NUEVO -- ID: %d -- COLA: %s\n",id_mensaje,nombres_colas[id_cola]);
-			log_info(logger, " MENSAJE NUEVO: %s -- ID: %d -- COLA: %s ", id_mensaje, msg_as_string(id_cola,msg), nombres_colas[id_cola]); // LOG 3
+			printf("MENSAJE NUEVO -- ID: %d -- COLA: %s\n",id_mensaje, nombres_colas[id_cola]);
+			log_info(logger, " MENSAJE NUEVO: %s -- ID: %d -- COLA: %s ", msg_as_string(id_cola,msg), id_mensaje, nombres_colas[id_cola]); // LOG 3
 
 			pthread_mutex_lock(&(sem_cola[id_cola]));
 			agregar_a_cola(id_cola,id_mensaje);
