@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <commons/collections/list.h>
 #include <commons/string.h>
+#include <pthread.h>
 
 
 typedef struct Especie{
@@ -18,6 +19,9 @@ typedef struct Pokemon{
 	uint32_t posicionX;
 	uint32_t posicionY;
 }t_pokemon;
+
+pthread_mutex_t mutexPokemonsRecibidosHistoricos;
+pthread_mutex_t mutexPokemonsRecibidos;
 
 t_list* pokemons_recibidos_historicos;
 t_list* objetivos_posta; /*es una lista de especies*/

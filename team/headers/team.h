@@ -55,12 +55,10 @@ t_list* pokemons_recibidos;
 t_list* pokemons_objetivos;
 
 pthread_mutex_t mutexCiclosConsumidos;
-pthread_mutex_t mutexPokemonsRecibidos;
 pthread_mutex_t mutexEstadoReady;
 pthread_mutex_t mutexEstadoBloqueado;
 pthread_mutex_t mutexEstadoNew;
 pthread_mutex_t mutexEstadoExit;
-pthread_mutex_t mutexPokemonsRecibidosHistoricos;
 pthread_mutex_t mutexIdsEnviados;
 pthread_mutex_t mutexReconexion;
 pthread_mutex_t mutexLog;
