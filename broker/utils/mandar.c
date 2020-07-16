@@ -40,7 +40,7 @@ int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size)
 
 	send(socket_receptor, &id, sizeof(uint32_t), 0);
 
-	log_info(logger, " MENSAJE:%s -- ID:%d -- ENVIADO A SUSCRIPTOR: %d ",msg_as_string(cola, stream), id, socket_receptor); // LOG 4
+	//log_info(logger, " MENSAJE:%s -- ID:%d -- ENVIADO A SUSCRIPTOR: %d ", msg_as_string(cola, stream), id, socket_receptor); // LOG 4 tira sigsev en gameboy
 
 	free_paquete(paquete);
 	free(a_enviar);

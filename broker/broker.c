@@ -122,6 +122,8 @@ void inicializar(){
 	pthread_mutex_init(&mutex_productores, NULL);
 	pthread_mutex_init(&semaforo_suscriber,NULL);
 	pthread_mutex_init(&semaforo_id,NULL);
+	pthread_mutex_init(&semaforo_struct_s,NULL);
+	pthread_mutex_init(&semaforo_memoria,NULL);
 
 	for(int i = 0; i <= 5; i++){
 		pthread_mutex_init(&(sem_cola[i]),NULL);

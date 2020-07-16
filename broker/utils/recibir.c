@@ -31,7 +31,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 
 	paquete->buffer = malloc(sizeof(t_buffer));
 	recv(*socket_escucha, &(paquete->buffer->size), sizeof(uint32_t), MSG_WAITALL);
-	//printf("Tamanio buffer recibido = %d\n", paquete->buffer->size);
+	printf("Tamanio buffer recibido = %d\n", paquete->buffer->size);
 
 
 	if (paquete->buffer->size != 0){
@@ -50,12 +50,16 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 
 			send(*socket_escucha, &id_mensaje, sizeof(uint32_t), 0);
 
-			//printf("MENSAJE NUEVO -- ID: %d -- COLA: %s\n",id_mensaje,nombres_colas[id_cola]);
-			log_info(logger, " MENSAJE NUEVO: %s -- ID: %d -- COLA: %s ", id_mensaje, msg_as_string(id_cola,msg), nombres_colas[id_cola]); // LOG 3
+			printf("MENSAJE NUEVO -- ID: %d -- COLA: %s\n",id_mensaje, nombres_colas[id_cola]);
+			log_info(logger, " MENSAJE NUEVO: %s -- ID: %d -- COLA: %s ", msg_as_string(id_cola,msg), id_mensaje, nombres_colas[id_cola]); // LOG 3
 
 			pthread_mutex_lock(&(sem_cola[id_cola]));
-			agregar_a_cola(id_cola,paquete->buffer->size,msg,id_mensaje);
+			agregar_a_cola(id_cola,id_mensaje);
 			pthread_mutex_unlock(&(sem_cola[id_cola]));
+
+			pthread_mutex_lock(&(semaforo_struct_s));
+			almacenar(msg,id_cola,id_mensaje,paquete->buffer->size);
+			pthread_mutex_unlock(&(semaforo_struct_s));
 
 		} else {
 			send(*socket_escucha, &id_mens_en_cola, sizeof(uint32_t), 0);
@@ -96,13 +100,12 @@ void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, int socket_sub) 
 			uint32_t *sub = malloc(sizeof(uint32_t));
 			*sub = socket_sub;
 
-			if (!esta_en_lista(mensaje->quienes_lo_recibieron,sub)) {
-			list_add(mensaje->quienes_lo_recibieron, sub);
+			if (!esta_en_lista(mensaje->quienes_lo_recibieron, sub)) {
+				list_add(mensaje->quienes_lo_recibieron, sub);
 			}
-
+			log_info(logger,"CONFIRMACION DE LLEGADA DE MENSAJE DE SUSCRIPTOR:%d ",sub); // LOG 5
 			if (list_size(mensaje->quienes_lo_recibieron) == list_size(queue->lista_suscriptores)) {
 				free_msg_cola(mensaje);
-
 			}
 
 		} else {
@@ -119,16 +122,12 @@ uint32_t crear_nuevo_id(){
 	return contador_id;
 }
 
-void agregar_a_cola(uint32_t id_cola, uint32_t size, void* mensaje, uint32_t id_mensaje){
+void agregar_a_cola(uint32_t id_cola, uint32_t id_mensaje){
 
 	t_info_mensaje* info_msg = malloc(sizeof(t_info_mensaje));
 	info_msg->id = id_mensaje;
 	info_msg->quienes_lo_recibieron = list_create();
 	info_msg->a_quienes_fue_enviado = list_create();
-
-	pthread_mutex_lock(&(semaforo_struct_s));
-	almacenar(mensaje,id_cola,id_mensaje,size);
-	pthread_mutex_unlock(&(semaforo_struct_s));
 
 	queue_push(int_a_nombre_cola(id_cola)->cola, info_msg);
 

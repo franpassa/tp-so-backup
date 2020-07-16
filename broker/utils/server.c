@@ -48,7 +48,7 @@ void esperar_cliente(int* socket_servidor) {
 		int tam_direccion = sizeof(struct sockaddr_in);
 
 		int socket_cliente = accept(*socket_servidor, (void*) &dir_cliente, (socklen_t*) &tam_direccion);
-		//printf("Nuevo cliente entrante: %d\n", socket_cliente);
+		printf("Nuevo cliente entrante: %d\n", socket_cliente);
 		log_info(logger, "Conexion de cliente %d a Broker", socket_cliente); // LOG 1
 
 		queue_name cola;
@@ -70,7 +70,7 @@ void esperar_cliente(int* socket_servidor) {
 			printf("%d es un codigo invalido\n", cola);
 
 		} else {
-			//printf("el cliente %d se suscribio a la cola %s\n", socket_cliente, nombres_colas[cola]);
+			printf("el cliente %d se suscribio a la cola %s\n", socket_cliente, nombres_colas[cola]);
 			log_info(logger, "El Cliente %d se suscribio la a cola %s", socket_cliente, nombres_colas[cola]); // LOG 2
 			uint32_t codigo_ok = 0;
 			send(socket_cliente, &codigo_ok, sizeof(uint32_t), 0);

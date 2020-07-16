@@ -57,7 +57,8 @@ int tamanio_a_ocupar;
 char* algoritmo_memoria;
 char* algoritmo_remplazo;
 char* algoritmo_part_libre;
-int recuencia_compactacion;
+int frecuencia_compactacion;
+int tamanio_minimo;
 
 int cont_orden;
 
@@ -135,7 +136,7 @@ void loop_productores();
 void recibir_mensajes_para_broker(int*);
 void confirmar_mensaje(queue_name, uint32_t,int);
 uint32_t crear_nuevo_id();
-void agregar_a_cola(uint32_t,uint32_t,void*,uint32_t);
+void agregar_a_cola(uint32_t,uint32_t);
 bool es_el_mismo_mensaje(queue_name, void*,void*);
 int revisar_si_mensaje_no_estaba_en_cola(queue_name, void*);
 void free_msg_cola(t_info_mensaje*);
@@ -174,5 +175,6 @@ int algoritmo_LRU();
 t_struct_secundaria* encontrar_particion_en_base_a_un_id_mensaje(uint32_t);
 void dump_de_cache();
 void capturar_senial();
+int mayor_entre_Min_y_tam(int);
 
 #endif /* BROKER_H_ */
