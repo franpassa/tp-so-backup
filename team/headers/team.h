@@ -72,6 +72,8 @@ pthread_t hilo_recibir_appeared;
 pthread_t hilo_estado_exec;
 pthread_t hilo_pasar_a_ready;
 pthread_t hilo_deadlock;
+pthread_t hilo_resolucion_deadlock;
+
 
 sem_t semCaught;
 sem_t semLocalized;
