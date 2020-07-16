@@ -532,6 +532,13 @@ t_list* quienesTienenElPokeQueMeFalta(t_entrenador* unEntrenador, t_list* lista)
 
 	return resultado;
 }
+t_list* quienesTienenElPokeQueMeFaltaV2(t_entrenador* unEntrenador)
+{
+	t_list* lista1 = quienesTienenElPokeQueMeFalta(unEntrenador,estado_bloqueado);
+	t_list* lista2 = quienesTienenElPokeQueMeFalta(unEntrenador,estado_ready);
+	list_add_all(lista2,lista1);
+	return lista2;
+}
 
 uint32_t retornarIndice(t_list* lista, char* nombre)
 {

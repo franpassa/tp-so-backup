@@ -21,7 +21,6 @@ void deadlock();
 void cambiarAExit(t_entrenador* entrenador);
 void cambiarABlockNada(t_entrenador* entrenador);
 void cambiarABlockDeadlock(t_entrenador* entrenador);
-void resolverDeadlock();
 
 
 #endif /* _CONEXIONES_TEAM_H_*/

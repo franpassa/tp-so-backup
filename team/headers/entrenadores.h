@@ -113,7 +113,7 @@ t_entrenador* elDeMenorEstimacion(t_list* entrenadores);
 bool esElDeMenorEstimacion(t_list* entrenadores, t_entrenador* entrenador);
 
 
-
+t_list* quienesTienenElPokeQueMeFaltaV2(t_entrenador* unEntrenador);
 
 
 #endif /* ENTRENADOR_H_ */

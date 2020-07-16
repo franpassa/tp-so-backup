@@ -52,6 +52,12 @@ void cambiarEstado(t_entrenador* entrenador){
 	{
 		cambiarAExit(entrenador);
 	}
+	else if(entrenador->motivoBloqueo == RESOLVIENDO_DEADLOCK)
+	{
+		pthread_mutex_lock(&mutexEstadoBloqueado);
+		list_add(estado_ready,entrenador);
+		pthread_mutex_unlock(&mutexEstadoBloqueado);
+	}
 	else
 	{
 		cambiarABlockDeadlock(entrenador);
@@ -184,17 +190,23 @@ void planificacion(t_list* lista)
 	}
 	else
 	{
-		t_list* losQueTienenElPokemonQueLeFalta = quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado);
+		t_list* losQueTienenElPokemonQueLeFalta = quienesTienenElPokeQueMeFaltaV2(entrenador);
+
 		entrenadorAMoverse = list_get(losQueTienenElPokemonQueLeFalta,0);
 		entrenador->posXAMoverse = entrenadorAMoverse->posicionX;
-		entrenador->posYAMoverse = entrenadorAMoverse->posicionY;
+		entrenador->posYAMoverse = entrenadorAMoverse->posicionY; //<- muere aca despues del deadlock
 	}
 
-	if (entrenador->pokemonAMoverse!= NULL && entrenador != NULL){
+	if (entrenador->pokemonAMoverse!= NULL && entrenador != NULL)
+	{
 		moverEntrenador(entrenador,entrenador->pokemonAMoverse->posicionX,entrenador->pokemonAMoverse->posicionY);
 	}
+	else if(entrenadorAMoverse != NULL && entrenador != NULL)
+	{
+		moverEntrenador(entrenador,entrenador->posXAMoverse,entrenador->posYAMoverse);
+	}
 
-	uint32_t distancia = distanciaEntrenadorPokemon(entrenador->posicionX,entrenador->posicionY, entrenador->pokemonAMoverse->posicionX,entrenador->pokemonAMoverse->posicionY);
+	uint32_t distancia = distanciaEntrenadorPokemon(entrenador->posicionX,entrenador->posicionY, entrenador->posXAMoverse,entrenador->posYAMoverse);
 
 	if(distancia != 0){
 		pthread_mutex_lock(&mutexEstadoReady);
@@ -202,9 +214,11 @@ void planificacion(t_list* lista)
 		pthread_mutex_unlock(&mutexEstadoReady);
 	} else
 	{
-		if(entrenadorAMoverse != NULL)
+		if(entrenador->motivoBloqueo == RESOLVIENDO_DEADLOCK)
 		{
 			realizarCambio(entrenador,entrenadorAMoverse);
+			cambiarEstado(entrenador);
+			printf("cambio realizado entre el entrenador %d, y el entrenador %d.\n",entrenador->idEntrenador,entrenadorAMoverse->idEntrenador);
 		}
 		else
 		{
@@ -492,16 +506,15 @@ void deadlock()
 				log_info(logger,"Inicia el algoritmo de correccion de DEADLOCK.");
 			}
 
-			if(!list_is_empty(estado_bloqueado)){
+			if(!list_is_empty(estado_bloqueado))
+			{
 
 				entrenador = list_remove(estado_bloqueado,0);
 				cambiosDeContexto++;
-
 				t_list* losQueTienenElPokemonQueLeFalta = quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado);
-
 				t_entrenador* entrenadorAMoverse = list_get(losQueTienenElPokemonQueLeFalta,0);
-
-				if(entrenadorAMoverse == NULL){
+				if(entrenadorAMoverse == NULL)
+				{
 					cambiarEstado(entrenador);
 					if(list_is_empty(estado_bloqueado)){break;}
 				}
@@ -509,8 +522,9 @@ void deadlock()
 				{
 					printf("Hay deadlock. Solucionando deadlock... \n\n");
 					entrenador->motivoBloqueo = RESOLVIENDO_DEADLOCK;
-					resolverDeadlock();
+					cambiarEstado(entrenador);
 					cantidadDeadlocks++;
+
 				}
 
 				list_destroy(losQueTienenElPokemonQueLeFalta);
@@ -520,7 +534,7 @@ void deadlock()
 			if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && list_is_empty(estado_bloqueado)){break;}
 		}
 
-		sleep(3); // con esto dejo el proceso corriendo y chequeo
+		sleep(7); // con esto dejo el proceso corriendo y chequeo
 	}
 
 	log_info(logger,"Finaliza el algoritmo de correccion de DEADLOCK.");
@@ -532,28 +546,6 @@ void deadlock()
 	printf("\nLa cantidad de deadlocks producidos y resueltos es: %d\n", cantidadDeadlocks);
 	printf("\nLa cantidad de ciclos de CPU totales consumidos es: %d\n",ciclosConsumidos);
 	printf("\nLa cantidad de cambios de contexto realizados es: %d\n\n",cambiosDeContexto);
-}
-
-void resolverDeadlock()
-{
-	while (1)
-	{
-		if (!list_is_empty(estado_ready))
-		{
-			if(!hayEntrenadorProcesando)
-			{
-				pthread_mutex_lock(&mutexHayEntrenadorProcesando);
-				hayEntrenadorProcesando = true;
-				pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
-
-				planificacion(estado_bloqueado);
-
-				pthread_mutex_lock(&mutexHayEntrenadorProcesando);
-				hayEntrenadorProcesando = false;
-				pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
-			}
-		}
-	}
 }
 
 
