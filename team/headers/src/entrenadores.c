@@ -91,6 +91,8 @@ t_list* crearListaDeEntrenadores(char** posicionesEntrenadores, char** pokesEntr
 		entrenador->pokemonAMoverse = NULL;
 		entrenador->estimacion = ESTIMACION_INICIAL;
 		entrenador->ciclosAcumulados = 0;
+		entrenador->posXAMoverse = 0;
+		entrenador->posYAMoverse = 0;
 		list_add(entrenadores,entrenador);
 	}
 
@@ -145,6 +147,8 @@ void igualarEntrenador(t_entrenador* unEntrenador, t_entrenador* otroEntrenador)
 	unEntrenador->posicionY = otroEntrenador->posicionY;
 	unEntrenador->estimacion = otroEntrenador->estimacion;
 	unEntrenador->ciclosAcumulados = otroEntrenador->ciclosAcumulados;
+	unEntrenador->posXAMoverse = otroEntrenador->posXAMoverse ;
+	unEntrenador->posYAMoverse = otroEntrenador->posYAMoverse ;
 }
 
 void setearEnCeroEntrenador (t_entrenador* unEntrenador)
@@ -158,6 +162,8 @@ void setearEnCeroEntrenador (t_entrenador* unEntrenador)
 	unEntrenador->posicionX = 0;
 	unEntrenador->posicionY = 0;
 	unEntrenador->ciclosAcumulados = 0;
+	unEntrenador->posXAMoverse = 0;
+	unEntrenador->posYAMoverse = 0;
 }
 
 // devuelve el pokemon de la lista que esta mas cerca a un entrenador

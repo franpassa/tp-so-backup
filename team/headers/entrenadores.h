@@ -10,6 +10,7 @@ typedef enum{
 	MOTIVO_NADA,
 	ESPERA_DEADLOCK,
 	ESTADO_EXIT,
+	RESOLVIENDO_DEADLOCK,
 }motivo;
 
 typedef struct Entrenador
@@ -24,6 +25,8 @@ typedef struct Entrenador
 	motivo motivoBloqueo;
 	double estimacion;
 	uint32_t ciclosAcumulados;
+	uint32_t posXAMoverse;
+	uint32_t posYAMoverse;
 }t_entrenador;
 
 t_log* logger;
