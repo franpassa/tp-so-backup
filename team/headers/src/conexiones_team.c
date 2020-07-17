@@ -219,11 +219,7 @@ void planificacion()
 	{
 		if(entrenador->motivoBloqueo == RESOLVIENDO_DEADLOCK)
 		{
-			mostrarEntrenador(entrenador);
-			mostrarEntrenador(entrenadorAMoverse);
 			realizarCambio(entrenador,entrenadorAMoverse);
-			mostrarEntrenador(entrenador);
-			mostrarEntrenador(entrenadorAMoverse);
 			cambiarEstado(entrenador);
 
 			bool mismo(t_entrenador* unEntrenador){
