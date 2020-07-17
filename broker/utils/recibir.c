@@ -107,7 +107,6 @@ void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, int socket_sub) 
 			log_info(logger,"CONFIRMACION DE LLEGADA DE MENSAJE DE SUSCRIPTOR:%d ",sub); // LOG 5
 			if (list_size(mensaje->quienes_lo_recibieron) == list_size(queue->lista_suscriptores)) {
 				free_msg_cola(mensaje);
-
 				eliminar_mensaje(mensaje->id);
 			}
 

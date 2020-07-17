@@ -4,5 +4,5 @@
 
 USER_OBJS :=
 
-LIBS := -lcuarenteam -lcommons -lpthread
+LIBS := -lpthread -lcuarenteam -lcommons
 
