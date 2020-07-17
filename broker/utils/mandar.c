@@ -40,7 +40,7 @@ int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size)
 
 	send(socket_receptor, &id, sizeof(uint32_t), 0);
 
-	//log_info(logger, " MENSAJE:%s -- ID:%d -- ENVIADO A SUSCRIPTOR: %d ", msg_as_string(cola, stream), id, socket_receptor); // LOG 4 tira sigsev en gameboy
+	//log_info(logger, "MENSAJE CON ID:%d -- ENVIADO A SUSCRIPTOR:%d ", id, socket_receptor);
 
 	free_paquete(paquete);
 	free(a_enviar);
@@ -78,12 +78,12 @@ void recorrer_cola(t_cola_de_mensajes* nombre) {
 							return nro == *sub;
 						}
 
-						list_remove_and_destroy_by_condition(nombre->lista_suscriptores, es_igual_a, free);
+
 
 						uint32_t id_afuera = info_a_sacar->id;
 						do {
-							list_remove_and_destroy_by_condition(info_a_sacar->a_quienes_fue_enviado,es_igual_a,free);
-							list_remove_and_destroy_by_condition(info_a_sacar->quienes_lo_recibieron,es_igual_a,free);
+							list_remove_by_condition(info_a_sacar->a_quienes_fue_enviado,es_igual_a);
+							list_remove_by_condition(info_a_sacar->quienes_lo_recibieron,es_igual_a);
 
 							queue_push(nombre->cola, info_a_sacar);
 							info_a_sacar = queue_pop(nombre->cola);
@@ -91,7 +91,9 @@ void recorrer_cola(t_cola_de_mensajes* nombre) {
 
 						} while (id_afuera != id_siguiente);
 
+						list_remove_and_destroy_by_condition(nombre->lista_suscriptores, es_igual_a, free);
 					}
+
 					if (!esta_en_lista(info_a_sacar->a_quienes_fue_enviado, sub) && sub_suscrito) {
 						list_add(info_a_sacar->a_quienes_fue_enviado, sub);
 					}

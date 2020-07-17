@@ -52,10 +52,10 @@ int main(int argc, char** argv){
 				break;
 
 			case APPEARED_POKEMON:
-				scan_result = sscanf(argumentos_string, "%s %d %d %d", nombre_pokemon, &x, &y, &id_correlativo);
+				scan_result = sscanf(argumentos_string, "%s %d %d", nombre_pokemon, &x, &y);
 				if(scan_result != 4) cortar_ejecucion("Parametros incorrectos");
 
-				appeared_pokemon_msg* appeared_pok = appeared_msg(id_correlativo, nombre_pokemon, x, y);
+				appeared_pokemon_msg* appeared_pok = appeared_msg(0, nombre_pokemon, x, y);
 				id = send_broker(cola, appeared_pok);
 				break;
 

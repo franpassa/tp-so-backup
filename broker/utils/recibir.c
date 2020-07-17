@@ -25,13 +25,12 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 		return;
 	}
 
-
 	t_paquete* paquete= malloc(sizeof(t_paquete));
 	paquete->cola_msg = id_cola;
 
 	paquete->buffer = malloc(sizeof(t_buffer));
 	recv(*socket_escucha, &(paquete->buffer->size), sizeof(uint32_t), MSG_WAITALL);
-
+	//printf("tamanio_buffer:%d ",paquete->buffer->size);
 
 	if (paquete->buffer->size != 0){
 

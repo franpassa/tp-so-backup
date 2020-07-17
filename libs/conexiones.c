@@ -184,7 +184,7 @@ uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructur
 	case CATCH_POKEMON:;
 		catch_pokemon_msg* msg_catch = (catch_pokemon_msg*) estructura_mensaje;
 
-		paquete->buffer->size = sizeof(uint32_t) * 4 + msg_catch->tamanio_nombre;
+		paquete->buffer->size = sizeof(uint32_t) * 3 + msg_catch->tamanio_nombre;
 		stream = malloc(paquete->buffer->size);
 
 		memcpy(stream + offset, &(msg_catch->tamanio_nombre), sizeof(uint32_t));

@@ -71,7 +71,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 
 
         printf("Bit De inicio = %d \n", estructura_memoria->bit_inicio); // Lo hace bien
-        log_info(logger, "MENSAJE ALMACENADO EN PARTICION:%d -- BIT DE INICIO:0x%x", entra, estructura_memoria->bit_inicio); // LOG 6 en HEXA
+        log_info(logger, "MENSAJE ALMACENADO EN PARTICION:%d -- BIT DE INICIO:%d", entra, estructura_memoria->bit_inicio); // LOG 6 en HEXA
 
         pthread_mutex_lock(&(semaforo_reconstruir));
         FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","a");
@@ -108,7 +108,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 		memmove(memoria + particion_a_llenar_con_msg->bit_inicio, mensaje, size);
 		pthread_mutex_unlock(&(semaforo_memoria));
 
-		log_info(logger, "MENSAJE ALMACENADO EN PARTICION:%d -- BIT DE INICIO:0x%x", entra, particion_a_llenar_con_msg->bit_inicio);; // LOG 6 EN HEXA
+		log_info(logger, "MENSAJE ALMACENADO EN PARTICION:%d -- BIT DE INICIO:%d", entra, particion_a_llenar_con_msg->bit_inicio);; // LOG 6 EN HEXA
 
 		pthread_mutex_lock(&(semaforo_reconstruir));
 		FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","a");
@@ -376,7 +376,7 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones() {
 
 	sacar_de__cola(particion_a_sacar->id_mensaje,particion_a_sacar->tipo_mensaje );
 
-	log_info(logger,"ELIMINO PARTICION:%d -- BIT DE INCICIO:0x%x", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
+	log_info(logger,"ELIMINO PARTICION:%d -- BIT DE INCICIO:%d", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
 	particion_a_sacar->id_mensaje = -1;
 	particion_a_sacar->tipo_mensaje= 6;
 
@@ -414,7 +414,7 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 
 	sacar_de__cola(particion_a_sacar->id_mensaje,particion_a_sacar->tipo_mensaje );
 
-	log_info(logger,"ELIMINO PARTICION:%d -- BIT DE INCICIO:0x%x", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
+	log_info(logger,"ELIMINO PARTICION:%d -- BIT DE INCICIO:%d", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
 	particion_a_sacar->id_mensaje = 0;
 	particion_a_sacar->tipo_mensaje = 6;
 
@@ -439,7 +439,8 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 
 int algoritmo_FIFO(){
 	t_struct_secundaria* particion_a_sacar;
-	int orden, orden_menor;
+	int orden = 0;
+	int orden_menor = 0;
 	int a_sacar = -1; // Creo q esta bien esto
 	for(int i = 0; i< list_size(lista_de_particiones); i++ ){
 		particion_a_sacar = list_get(lista_de_particiones,i);
