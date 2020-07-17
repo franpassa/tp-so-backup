@@ -45,9 +45,9 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 			}
 			pthread_mutex_lock(&(semaforo_reconstruir));
 			FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","a");
-			fprintf(reconstruir,"PARTICION VACIA:%d", entra+1);
-			fprintf(reconstruir,"BIT:%d \n",est_nueva->bit_inicio);
-			fprintf(reconstruir,"SIZE:%d \n",est_nueva->tamanio);
+			fprintf(reconstruir,"PARTICION VACIA:%d\n", entra + 1);
+			fprintf(reconstruir,"BIT:%d\n",est_nueva->bit_inicio);
+			fprintf(reconstruir,"SIZE:%d\n",est_nueva->tamanio);
 			fclose(reconstruir);
 			pthread_mutex_unlock(&(semaforo_reconstruir));
 		}
@@ -74,13 +74,13 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 
         pthread_mutex_lock(&(semaforo_reconstruir));
         FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","a");
-        fprintf(reconstruir,"NUEVO MENSAJE:%d \n",id_mensaje);
-        fprintf(reconstruir,"PARTICION:%d \n", entra);
-        fprintf(reconstruir,"MENSAJE:%s \n", msg_as_string(id_cola, mensaje));
-        fprintf(reconstruir,"BIT:%d \n",estructura_memoria->bit_inicio);
-        fprintf(reconstruir,"COLA:%d \n",id_cola);
-        fprintf(reconstruir,"SIZE:%d \n",size);
-        fprintf(reconstruir,"AUX:%d \n",estructura_memoria->auxiliar);
+        fprintf(reconstruir,"NUEVO MENSAJE:%d\n",id_mensaje);
+        fprintf(reconstruir,"PARTICION:%d\n", entra);
+        fprintf(reconstruir,"MENSAJE:%s\n", msg_as_string(id_cola, mensaje));
+        fprintf(reconstruir,"BIT:%d\n",estructura_memoria->bit_inicio);
+        fprintf(reconstruir,"COLA:%d\n",id_cola);
+        fprintf(reconstruir,"SIZE:%d\n",size);
+        fprintf(reconstruir,"AUX:%d\n",estructura_memoria->auxiliar);
         fclose(reconstruir);
         pthread_mutex_unlock(&(semaforo_reconstruir));
 
@@ -111,13 +111,13 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 
 		pthread_mutex_lock(&(semaforo_reconstruir));
 		FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","a");
-		fprintf(reconstruir,"NUEVO MENSAJE: %d \n",id_mensaje);
-		fprintf(reconstruir,"PARTICION:%d \n", entra);
-		fprintf(reconstruir,"MENSAJE: %s \n", msg_as_string(id_cola, mensaje));
-		fprintf(reconstruir,"BIT:%d \n",particion_a_llenar_con_msg->bit_inicio);
-		fprintf(reconstruir,"COLA: %d \n",id_cola);
-		fprintf(reconstruir,"SIZE: %d \n",size);
-		fprintf(reconstruir,"AUX: %d \n",particion_a_llenar_con_msg->auxiliar);
+		fprintf(reconstruir,"NUEVO MENSAJE:%d\n",id_mensaje);
+		fprintf(reconstruir,"PARTICION:%d\n", entra);
+		fprintf(reconstruir,"MENSAJE:%s\n", msg_as_string(id_cola, mensaje));
+		fprintf(reconstruir,"BIT:%d\n",particion_a_llenar_con_msg->bit_inicio);
+		fprintf(reconstruir,"COLA:%d\n",id_cola);
+		fprintf(reconstruir,"SIZE:%d \n",size);
+		fprintf(reconstruir,"AUX:%d \n",particion_a_llenar_con_msg->auxiliar);
 		fclose(reconstruir);
 		pthread_mutex_unlock(&(semaforo_reconstruir));
 
@@ -155,9 +155,9 @@ void buscar_particion_en_bs() {
 
 						pthread_mutex_lock(&(semaforo_reconstruir));
 						FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","a");
-						fprintf(reconstruir,"PARTICION VACIA:%d \n", 1+i);
-						fprintf(reconstruir,"BIT:%d \n",particion_nueva->bit_inicio);
-						fprintf(reconstruir,"SIZE:%d \n",particion_nueva->tamanio);
+						fprintf(reconstruir,"PARTICION VACIA:%d\n", 1+i);
+						fprintf(reconstruir,"BIT:%d\n",particion_nueva->bit_inicio);
+						fprintf(reconstruir,"SIZE:%d\n",particion_nueva->tamanio);
 						fclose(reconstruir);
 						pthread_mutex_unlock(&(semaforo_reconstruir));
 

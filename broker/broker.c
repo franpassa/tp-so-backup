@@ -12,7 +12,7 @@ int main(){
 	pthread_create(&hilo_mensajes, NULL, (void*) loop_productores, NULL);
 	pthread_create(&hilo_enviar_mensaje, NULL, (void*) mandar_mensajes, NULL);
 
-	reconstruir();
+	//reconstruir();
 
 	pthread_join(hilo_estado_queues,NULL);
 	pthread_join(hilo_suscripciones,NULL);
@@ -171,13 +171,11 @@ void recorrer_cola_de_mensajes_para_mostrar(t_cola_de_mensajes* queue_a_mostrar)
 		uint32_t id_siguiente;
 
 		do {
-
 			info = queue_pop(queue_a_mostrar->cola);
 			print_mensaje_de_cola(info);
 			queue_push(queue_a_mostrar->cola,info);
 			info = queue_peek(queue_a_mostrar->cola);
 			id_siguiente = info->id;
-
 		} while(id_primero != id_siguiente);
 
 	}
@@ -199,19 +197,13 @@ void print_list_sockets_ACK_de_un_mensaje(void* numero){
 
 
 void print_mensaje_de_cola(t_info_mensaje* mensaje){
-
 	uint32_t id_mensaje = mensaje->id;
 	printf("ID: %d\n",id_mensaje);
-
 	uint32_t id_cola = de_id_mensaje_a_cola(id_mensaje);
-
 	void* msg = de_id_mensaje_a_mensaje(id_mensaje);
-
 	print_msg(id_cola, msg);
-
 	list_iterate(mensaje->a_quienes_fue_enviado,print_list_sockets_de_un_mensaje);
 	list_iterate(mensaje->quienes_lo_recibieron,print_list_sockets_ACK_de_un_mensaje); // ACK
-
 }
 
 void free_msg_cola(t_info_mensaje* mensaje){
@@ -229,9 +221,12 @@ void free_queue_msgs(t_cola_de_mensajes* cola_de_mensajes){
 
 void reconstruir(){
 	FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","r");
-	rewind(reconstruir);
+	//rewind(reconstruir); No hace falta
+	//int contador_de_linea = 1;
+	//char linea[100];
 	while (!feof(reconstruir)){
-
+		//fgets(linea, 100, reconstruir); // fgets(string_a_guardar,tamanio_string,file)
+		//contador_de_linea++;
 	}
 
 	fclose(reconstruir);

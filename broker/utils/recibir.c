@@ -211,9 +211,7 @@ int revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_en_buffer) {
 	if (!queue_is_empty(queue_a_revisar->cola)) {
 
 		for (int i = 0; i < queue_size(queue_a_revisar->cola); i++) {
-
 			t_info_mensaje* elemento_a_testear = queue_pop(queue_a_revisar->cola);
-
 			void* msg = de_id_mensaje_a_mensaje(elemento_a_testear->id);
 
 			if (es_el_mismo_mensaje(id, msg_en_buffer, msg)) {

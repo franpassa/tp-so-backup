@@ -42,7 +42,7 @@ int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size)
 
 	//log_info(logger, " MENSAJE:%s -- ID:%d -- ENVIADO A SUSCRIPTOR: %d ", msg_as_string(cola, stream), id, socket_receptor); // LOG 4 tira sigsev en gameboy
 
-	free_paquete(paquete);
+	//free_paquete(paquete);
 	free(a_enviar);
 
 	return control;
