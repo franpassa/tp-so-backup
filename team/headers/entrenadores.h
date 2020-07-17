@@ -46,6 +46,7 @@ double ALPHA;
 uint32_t retardoCpu;
 uint32_t ciclosConsumidos;
 uint32_t cambiosDeContexto;
+uint32_t cantidadDeadlocks;
 
 // posiciones
 uint32_t posicionXEntrenador(int nroEntrenador, char** posicionesEntrenadores);

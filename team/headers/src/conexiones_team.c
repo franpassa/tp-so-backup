@@ -54,9 +54,9 @@ void cambiarEstado(t_entrenador* entrenador){
 	}
 	else if(entrenador->motivoBloqueo == RESOLVIENDO_DEADLOCK)
 	{
-		pthread_mutex_lock(&mutexEstadoBloqueado);
+		pthread_mutex_lock(&mutexEstadoReady);
 		list_add(estado_ready,entrenador);
-		pthread_mutex_unlock(&mutexEstadoBloqueado);
+		pthread_mutex_unlock(&mutexEstadoReady);
 	}
 	else
 	{
@@ -157,7 +157,7 @@ void estado_exec()
 				hayEntrenadorProcesando = true;
 				pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
 
-				planificacion(estado_ready);
+				planificacion();
 
 				pthread_mutex_lock(&mutexHayEntrenadorProcesando);
 				hayEntrenadorProcesando = false;
@@ -167,19 +167,22 @@ void estado_exec()
 	}
 }
 
-void planificacion(t_list* lista)
+void planificacion()
 {
 	t_entrenador* entrenador = NULL;
 	t_entrenador* entrenadorAMoverse = NULL;
+
+	pthread_mutex_lock(&mutexCambiosDeContexto);
 	cambiosDeContexto++;
+	pthread_mutex_unlock(&mutexCambiosDeContexto);
 
 	if(string_equals_ignore_case(ALGORITMO,"SJF-SD") || string_equals_ignore_case(ALGORITMO,"SJF-CD")){
 		pthread_mutex_lock(&mutexEstadoReady);
-		entrenador = elDeMenorEstimacion(lista);
+		entrenador = elDeMenorEstimacion(estado_ready);
 		pthread_mutex_unlock(&mutexEstadoReady);
 	} else {
 		pthread_mutex_lock(&mutexEstadoReady);
-		entrenador = (t_entrenador*) list_remove(lista,0);
+		entrenador = (t_entrenador*) list_remove(estado_ready,0);
 		pthread_mutex_unlock(&mutexEstadoReady);
 	}
 
@@ -190,7 +193,7 @@ void planificacion(t_list* lista)
 	}
 	else
 	{
-		t_list* losQueTienenElPokemonQueLeFalta = quienesTienenElPokeQueMeFaltaV2(entrenador);
+		t_list* losQueTienenElPokemonQueLeFalta = quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado);
 
 		entrenadorAMoverse = list_get(losQueTienenElPokemonQueLeFalta,0);
 		entrenador->posXAMoverse = entrenadorAMoverse->posicionX;
@@ -210,14 +213,28 @@ void planificacion(t_list* lista)
 
 	if(distancia != 0){
 		pthread_mutex_lock(&mutexEstadoReady);
-		list_add(lista,entrenador);
+		list_add(estado_ready,entrenador);
 		pthread_mutex_unlock(&mutexEstadoReady);
 	} else
 	{
 		if(entrenador->motivoBloqueo == RESOLVIENDO_DEADLOCK)
 		{
+			mostrarEntrenador(entrenador);
+			mostrarEntrenador(entrenadorAMoverse);
 			realizarCambio(entrenador,entrenadorAMoverse);
+			mostrarEntrenador(entrenador);
+			mostrarEntrenador(entrenadorAMoverse);
 			cambiarEstado(entrenador);
+
+			bool mismo(t_entrenador* unEntrenador){
+				return unEntrenador->idEntrenador == entrenadorAMoverse->idEntrenador;
+			}
+
+			pthread_mutex_lock(&mutexEstadoBloqueado);
+			list_remove_by_condition(estado_bloqueado,(void*) mismo);
+			pthread_mutex_unlock(&mutexEstadoBloqueado);
+
+			cambiarEstado(entrenadorAMoverse);
 			printf("cambio realizado entre el entrenador %d, y el entrenador %d.\n",entrenador->idEntrenador,entrenadorAMoverse->idEntrenador);
 		}
 		else
@@ -227,8 +244,12 @@ void planificacion(t_list* lista)
 			uint32_t* idMensajeExec = malloc(sizeof(int)); // no se libera aca porque se libera cuando liberamos  ids enviados
 			*idMensajeExec = enviar_mensaje(ip_broker,puerto_broker,CATCH_POKEMON,mensaje,0,true);
 			log_info(logger,"El entrenador %d envió el mensaje CATCH_POKEMON %s, en la posición (%d,%d).",entrenador->idEntrenador,entrenador->pokemonAMoverse->nombre,entrenador->pokemonAMoverse->posicionX,entrenador->pokemonAMoverse->posicionY);
+			pthread_mutex_lock(&mutexCiclosConsumidos);
 			ciclosConsumidos++;
+			pthread_mutex_unlock(&mutexCiclosConsumidos);
+			pthread_mutex_lock(&mutexCambiosDeContexto);
 			cambiosDeContexto++;
+			pthread_mutex_unlock(&mutexCambiosDeContexto);
 			if (*idMensajeExec == -1){
 				printf("Falló el envio del mensaje CATCH_POKEMON %s.\n",mensaje->nombre_pokemon);
 				log_error(logger,"ERROR al enviar el mensaje CATCH_POKEMON %s.",mensaje->nombre_pokemon);
@@ -258,7 +279,9 @@ void pasar_a_ready(){
 
 		if(list_size(pokemons_recibidos)>0 && list_size(entrenadoresAPlanificar)>0){
 
+			pthread_mutex_lock(&mutexPokemonsRecibidos);
 			t_entrenador* entrenadorTemporal = entrenadorAReady(entrenadoresAPlanificar,pokemons_recibidos);
+			pthread_mutex_unlock(&mutexPokemonsRecibidos);
 
 			log_info(logger,"El entrenador con id %d paso a la cola READY.", entrenadorTemporal->idEntrenador);
 
@@ -492,7 +515,7 @@ void deadlock()
 {
 	t_entrenador* entrenador;
 	bool logueo = false;
-	uint32_t cantidadDeadlocks = 0;
+
 	while(1)
 	{
 		printf("\nChequeando si hay deadlock... \n");
@@ -508,30 +531,43 @@ void deadlock()
 
 			if(!list_is_empty(estado_bloqueado))
 			{
+				if(string_equals_ignore_case(ALGORITMO,"SJF-SD") || string_equals_ignore_case(ALGORITMO,"SJF-SD")){
 
-				entrenador = list_remove(estado_bloqueado,0);
+					bool esElDeMenor(t_entrenador* unEntrenador){
+						return esElDeMenorEstimacion(estado_bloqueado,unEntrenador);
+					}
+
+					entrenador = list_remove_by_condition(estado_bloqueado,(void*) esElDeMenor);
+
+				} else {
+					entrenador = list_remove(estado_bloqueado,0);
+				}
+
+				pthread_mutex_lock(&mutexCambiosDeContexto);
 				cambiosDeContexto++;
+				pthread_mutex_unlock(&mutexCambiosDeContexto);
 				t_list* losQueTienenElPokemonQueLeFalta = quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado);
 				t_entrenador* entrenadorAMoverse = list_get(losQueTienenElPokemonQueLeFalta,0);
 				if(entrenadorAMoverse == NULL)
 				{
 					cambiarEstado(entrenador);
-					if(list_is_empty(estado_bloqueado)){break;}
+					if(list_is_empty(estado_bloqueado))break;
 				}
 				else
 				{
 					printf("Hay deadlock. Solucionando deadlock... \n\n");
 					entrenador->motivoBloqueo = RESOLVIENDO_DEADLOCK;
 					cambiarEstado(entrenador);
+					pthread_mutex_lock(&mutexCantidadDeadlocks);
 					cantidadDeadlocks++;
-
+					pthread_mutex_unlock(&mutexCantidadDeadlocks);
 				}
 
 				list_destroy(losQueTienenElPokemonQueLeFalta);
 			}
 		} else {
 			printf("No hay deadlock.\n\n");
-			if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && list_is_empty(estado_bloqueado)){break;}
+			if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && list_is_empty(estado_bloqueado))break;
 		}
 
 		sleep(7); // con esto dejo el proceso corriendo y chequeo

@@ -95,6 +95,8 @@ void inicializarVariables(){
 	pthread_mutex_init(&mutexPokemonsRecibidosHistoricos, NULL);
 	pthread_mutex_init(&mutexLog, NULL);
 	pthread_mutex_init(&mutexLogEntrenador, NULL);
+	pthread_mutex_init(&mutexCambiosDeContexto, NULL);
+	pthread_mutex_init(&mutexCantidadDeadlocks, NULL);
 	sem_init(&semCaught, 0, 1);
 	sem_init(&semLocalized, 0, 1);
 	sem_init(&semAppeared, 0, 1);
@@ -120,6 +122,7 @@ void inicializarVariables(){
 	hayEntrenadorProcesando = false;
 	ciclosConsumidos = 0;
 	cambiosDeContexto = 0;
+	cantidadDeadlocks = 0;
 }
 
 void liberarVariables()

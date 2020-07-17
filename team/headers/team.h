@@ -63,6 +63,8 @@ pthread_mutex_t mutexIdsEnviados;
 pthread_mutex_t mutexReconexion;
 pthread_mutex_t mutexLog;
 pthread_mutex_t mutexHayEntrenadorProcesando;
+pthread_mutex_t mutexCantidadDeadlocks;
+pthread_mutex_t mutexCambiosDeContexto;
 
 pthread_t hiloReconexion;
 pthread_t hilo_escucha;
