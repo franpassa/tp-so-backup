@@ -69,6 +69,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
         memmove(memoria + estructura_memoria->bit_inicio, mensaje, size);
         pthread_mutex_unlock(&(semaforo_memoria));
 
+
         printf("Bit De inicio = %d \n", estructura_memoria->bit_inicio); // Lo hace bien
         log_info(logger, "MENSAJE ALMACENADO EN PARTICION:%d -- BIT DE INICIO:0x%x", entra, estructura_memoria->bit_inicio); // LOG 6 en HEXA
 
@@ -113,7 +114,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 		FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","a");
 		fprintf(reconstruir,"NUEVO MENSAJE:%d\n",id_mensaje);
 		fprintf(reconstruir,"PARTICION:%d\n", entra);
-		fprintf(reconstruir,"MENSAJE:%s\n", msg_as_string(id_cola, mensaje));
+		//fprintf(reconstruir,"MENSAJE:%s\n", msg_as_string(id_cola, mensaje));
 		fprintf(reconstruir,"BIT:%d\n",particion_a_llenar_con_msg->bit_inicio);
 		fprintf(reconstruir,"COLA:%d\n",id_cola);
 		fprintf(reconstruir,"SIZE:%d \n",size);
@@ -124,7 +125,6 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 		} else {
 			printf("Error en broker.config ALGORITMO_MEMORIA no valido");
 		}
-
 }
 
 t_struct_secundaria* duplicar_estructura(t_struct_secundaria* estructura){

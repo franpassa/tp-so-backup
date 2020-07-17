@@ -39,8 +39,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 		paquete->buffer->stream = malloc(paquete->buffer->size);
 		recv(*socket_escucha, paquete->buffer->stream, paquete->buffer->size, MSG_WAITALL);
 
-		void* msg = deserializar_buffer(id_cola, paquete->buffer);
-		int id_mens_en_cola = revisar_si_mensaje_no_estaba_en_cola(id_cola, msg);
+		int id_mens_en_cola = revisar_si_mensaje_no_estaba_en_cola(id_cola, paquete->buffer->stream);
 
 		if (id_mens_en_cola == 0){ // Si es 0 no esta en la cola el msg
 
@@ -51,7 +50,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 			send(*socket_escucha, &id_mensaje, sizeof(uint32_t), 0);
 
 			printf("MENSAJE NUEVO -- ID: %d -- COLA: %s\n",id_mensaje, nombres_colas[id_cola]);
-			log_info(logger, " MENSAJE NUEVO: %s -- ID: %d -- COLA: %s ", msg_as_string(id_cola,msg), id_mensaje, nombres_colas[id_cola]); // LOG 3
+			//log_info(logger, " MENSAJE NUEVO: %s -- ID: %d -- COLA: %s ", msg_as_string(id_cola,msg), id_mensaje, nombres_colas[id_cola]); // LOG 3
 
 
 			pthread_mutex_lock(&(sem_cola[id_cola]));
@@ -59,7 +58,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 			pthread_mutex_unlock(&(sem_cola[id_cola]));
 
 			pthread_mutex_lock(&(semaforo_struct_s));
-			almacenar(msg,id_cola,id_mensaje,paquete->buffer->size);
+			almacenar(paquete->buffer->stream, id_cola, id_mensaje, paquete->buffer->size);
 			pthread_mutex_unlock(&(semaforo_struct_s));
 
 		} else {
@@ -201,7 +200,7 @@ bool es_el_mismo_mensaje(queue_name id, void* mensaje,void* otro_mensaje) {
 
 }
 
-int revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_en_buffer) {
+int revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido) {
 
 	t_cola_de_mensajes* queue_a_revisar = int_a_nombre_cola(id);
 
@@ -213,8 +212,8 @@ int revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_en_buffer) {
 		for (int i = 0; i < queue_size(queue_a_revisar->cola); i++) {
 			t_info_mensaje* elemento_a_testear = queue_pop(queue_a_revisar->cola);
 			void* msg = de_id_mensaje_a_mensaje(elemento_a_testear->id);
-
-			if (es_el_mismo_mensaje(id, msg_en_buffer, msg)) {
+			void* msg_a_comparar = deserializar_buffer(id,msg_recibido);
+			if (es_el_mismo_mensaje(id, msg_a_comparar, msg)) {
 				mensaje_nuevo = elemento_a_testear->id; // asignas el id del que ya esta en la cola y se lo das al sub
 			}
 			queue_push(queue_a_revisar->cola, elemento_a_testear);
