@@ -59,6 +59,7 @@ char* algoritmo_remplazo;
 char* algoritmo_part_libre;
 int frecuencia_compactacion;
 int tamanio_minimo;
+void eliminar_mensaje(uint32_t);
 
 int cont_orden;
 
@@ -93,6 +94,7 @@ pthread_mutex_t mutex_productores;
 sem_t contenido_cola[6];
 pthread_mutex_t semaforo_struct_s;
 pthread_mutex_t semaforo_memoria;
+pthread_mutex_t semaforo_reconstruir;
 
 // HILOS
 
@@ -176,5 +178,9 @@ t_struct_secundaria* encontrar_particion_en_base_a_un_id_mensaje(uint32_t);
 void dump_de_cache();
 void capturar_senial();
 int mayor_entre_Min_y_tam(int);
+
+// otras
+void reconstruir();
+void sacar_de__cola(uint32_t,int);
 
 #endif /* BROKER_H_ */
