@@ -114,7 +114,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 		FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","a");
 		fprintf(reconstruir,"NUEVO MENSAJE:%d\n",id_mensaje);
 		fprintf(reconstruir,"PARTICION:%d\n", entra);
-		//fprintf(reconstruir,"MENSAJE:%s\n", msg_as_string(id_cola, mensaje));
+		//fprintf(reconstruir,"MENSAJE:%s\n", msg_as_string(id_cola, mensaje)); ver esto
 		fprintf(reconstruir,"BIT:%d\n",particion_a_llenar_con_msg->bit_inicio);
 		fprintf(reconstruir,"COLA:%d\n",id_cola);
 		fprintf(reconstruir,"SIZE:%d \n",size);

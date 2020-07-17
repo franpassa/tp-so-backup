@@ -31,7 +31,6 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 
 	paquete->buffer = malloc(sizeof(t_buffer));
 	recv(*socket_escucha, &(paquete->buffer->size), sizeof(uint32_t), MSG_WAITALL);
-	printf("Tamanio buffer recibido = %d\n", paquete->buffer->size);
 
 
 	if (paquete->buffer->size != 0){
@@ -134,7 +133,7 @@ void agregar_a_cola(uint32_t id_cola, uint32_t id_mensaje){
 
 }
 
-bool es_el_mismo_mensaje(queue_name id, void* mensaje,void* otro_mensaje) {
+bool es_el_mismo_mensaje(queue_name id, void* mensaje, void* otro_mensaje) {
 
 	switch(id){
 
@@ -212,8 +211,9 @@ int revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido) {
 		for (int i = 0; i < queue_size(queue_a_revisar->cola); i++) {
 			t_info_mensaje* elemento_a_testear = queue_pop(queue_a_revisar->cola);
 			void* msg = de_id_mensaje_a_mensaje(elemento_a_testear->id);
-			void* msg_a_comparar = deserializar_buffer(id,msg_recibido);
-			if (es_el_mismo_mensaje(id, msg_a_comparar, msg)) {
+			//void* msg2 = deserializar_buffer(id, msg);
+			//void* msg_a_comparar = deserializar_buffer(id, msg_recibido);
+			if (es_el_mismo_mensaje(id, msg, msg_recibido)) {
 				mensaje_nuevo = elemento_a_testear->id; // asignas el id del que ya esta en la cola y se lo das al sub
 			}
 			queue_push(queue_a_revisar->cola, elemento_a_testear);
