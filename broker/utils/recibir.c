@@ -53,6 +53,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 			printf("MENSAJE NUEVO -- ID: %d -- COLA: %s\n",id_mensaje, nombres_colas[id_cola]);
 			log_info(logger, " MENSAJE NUEVO: %s -- ID: %d -- COLA: %s ", msg_as_string(id_cola,msg), id_mensaje, nombres_colas[id_cola]); // LOG 3
 
+
 			pthread_mutex_lock(&(sem_cola[id_cola]));
 			agregar_a_cola(id_cola,id_mensaje);
 			pthread_mutex_unlock(&(sem_cola[id_cola]));
@@ -106,6 +107,7 @@ void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, int socket_sub) 
 			log_info(logger,"CONFIRMACION DE LLEGADA DE MENSAJE DE SUSCRIPTOR:%d ",sub); // LOG 5
 			if (list_size(mensaje->quienes_lo_recibieron) == list_size(queue->lista_suscriptores)) {
 				free_msg_cola(mensaje);
+				eliminar_mensaje(mensaje->id);
 			}
 
 		} else {

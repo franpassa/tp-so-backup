@@ -12,6 +12,8 @@ int main(){
 	pthread_create(&hilo_mensajes, NULL, (void*) loop_productores, NULL);
 	pthread_create(&hilo_enviar_mensaje, NULL, (void*) mandar_mensajes, NULL);
 
+	reconstruir();
+
 	pthread_join(hilo_estado_queues,NULL);
 	pthread_join(hilo_suscripciones,NULL);
 	pthread_join(hilo_mensajes,NULL);
@@ -124,6 +126,7 @@ void inicializar(){
 	pthread_mutex_init(&semaforo_id,NULL);
 	pthread_mutex_init(&semaforo_struct_s,NULL);
 	pthread_mutex_init(&semaforo_memoria,NULL);
+	pthread_mutex_init(&semaforo_reconstruir,NULL);
 
 	for(int i = 0; i <= 5; i++){
 		pthread_mutex_init(&(sem_cola[i]),NULL);
@@ -223,3 +226,34 @@ void free_queue_msgs(t_cola_de_mensajes* cola_de_mensajes){
 	list_destroy_and_destroy_elements(cola_de_mensajes->lista_suscriptores,free);
 	free(cola_de_mensajes);
 }
+
+void reconstruir(){
+	FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","r");
+	rewind(reconstruir);
+	while (!feof(reconstruir)){
+
+	}
+
+	fclose(reconstruir);
+}
+
+void sacar_de__cola(uint32_t id, int cola) {
+	pthread_mutex_lock(&(sem_cola[cola]));
+	t_cola_de_mensajes* queue = int_a_nombre_cola(cola);
+	t_info_mensaje* mensaje = queue_peek(queue->cola);
+
+	int control = 0;
+
+	do {
+		mensaje = queue_pop(queue->cola);
+
+		if (mensaje->id == id) {
+			control = 1;
+
+			free_msg_cola(mensaje);
+		}
+
+	} while (control == 0);
+	pthread_mutex_lock(&(sem_cola[cola]));
+}
+
