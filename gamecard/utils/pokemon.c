@@ -79,9 +79,10 @@ void agregar_bloques_metadata(t_list* nuevos_bloques, char* nombre_pokemon){
 
 void get_pokemon_blocks_and_coordenadas(char* nombre_pokemon, t_list** blocks, t_list** coordenadas){
 	*blocks = get_pokemon_blocks(nombre_pokemon);
+	if(*blocks == NULL) return;
+
 	char* contenido_bloques = get_blocks_content(*blocks);
 	*coordenadas = string_to_coordenadas(contenido_bloques);
-
 	free(contenido_bloques);
 }
 
@@ -216,10 +217,16 @@ uint32_t catch_pokemon(t_pokemon pokemon){
 	if(existe_pokemon(pokemon.nombre)){
 		pthread_mutex_t* mutex_file = esperar_acceso(pokemon.nombre);
 		get_pokemon_blocks_and_coordenadas(pokemon.nombre, &bloques, &coordenadas);
-		resultado = restar_coordenada(coordenadas, pokemon.posicion);
-		bytes_file = escribir_en_filesystem(bloques, coordenadas);
-		esperar_tiempo_retardo();
-		actualizar_metadata_y_ceder_acceso(pokemon.nombre, bytes_file, bloques, mutex_file);
+		if(bloques == NULL) {
+			esperar_tiempo_retardo();
+			ceder_acceso(pokemon.nombre, mutex_file);
+			resultado = 0;
+		} else {
+			resultado = restar_coordenada(coordenadas, pokemon.posicion);
+			bytes_file = escribir_en_filesystem(bloques, coordenadas);
+			esperar_tiempo_retardo();
+			actualizar_metadata_y_ceder_acceso(pokemon.nombre, bytes_file, bloques, mutex_file);
+		}
 	} else {
 		resultado = 0;
 	}
@@ -234,11 +241,17 @@ uint32_t* get_pokemon(char* nombre_pokemon, uint32_t* cant_posiciones){
 	if(existe_pokemon(nombre_pokemon)){
 		pthread_mutex_t* mutex_file = esperar_acceso(nombre_pokemon);
 		get_pokemon_blocks_and_coordenadas(nombre_pokemon, &bloques, &coordenadas);
-		posiciones = obtener_coordenadas(coordenadas, cant_posiciones);
+		if(bloques == NULL && coordenadas == NULL){
+			posiciones = NULL;
+			*cant_posiciones = 0;
+		} else {
+			posiciones = obtener_coordenadas(coordenadas, cant_posiciones);
+		}
 		esperar_tiempo_retardo();
 		ceder_acceso(nombre_pokemon, mutex_file);
 	} else {
 		posiciones = NULL;
+		*cant_posiciones = 0;
 	}
 	return posiciones;
 }

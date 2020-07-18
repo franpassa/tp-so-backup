@@ -281,6 +281,11 @@ t_list* get_pokemon_blocks(char* nombre_pokemon){
 	config_destroy(pokemon_metadata);
 	free(metadata_path);
 
+	if(list_size(blocks_list) == 0){
+		list_destroy(blocks_list);
+		blocks_list = NULL;
+	}
+
 	return blocks_list;
 }
 

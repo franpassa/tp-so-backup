@@ -103,19 +103,26 @@ void procesar_msg(queue_name tipo_msg, void* msg, uint32_t id_msg){
 	if(msg_string) printf("%s\n", msg_string);
 	free(msg_string);
 
+	char* ip_broker = config_get_string_value(config, "IP_BROKER");
+	char* puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
+
 	t_pokemon pokemon;
 	switch(tipo_msg){
 		case NEW_POKEMON:;
 			new_pokemon_msg* new_pok = (new_pokemon_msg*) msg;
 			pokemon = init_pokemon(new_pok->nombre_pokemon, new_pok->coordenada_X, new_pok->coordenada_Y, new_pok->cantidad_pokemon);
 			new_pokemon(pokemon);
+			appeared_pokemon_msg* appeared_pok = appeared_msg(0, new_pok->nombre_pokemon, new_pok->coordenada_X, new_pok->coordenada_Y);
+			enviar_mensaje(ip_broker, puerto_broker, APPEARED_POKEMON, (void*) appeared_pok, 0, false);
 			break;
 
 		case CATCH_POKEMON:;
 			catch_pokemon_msg* catch_pok = (catch_pokemon_msg*) msg;
 			pokemon = init_pokemon(catch_pok->nombre_pokemon, catch_pok->coordenada_X, catch_pok->coordenada_Y, 1); // Lo inicializo con cantidad en uno ya que es lo que va a restar
 			uint32_t resultado = catch_pokemon(pokemon);
-			// caught_pokemon_msg* response_caught = caught_msg(id_msg, resultado);
+			caught_pokemon_msg* caught_pok = caught_msg(id_msg, resultado);
+			enviar_mensaje(ip_broker, puerto_broker, CAUGHT_POKEMON, (void*) caught_pok, 0, false);
+
 			break;
 
 		case GET_POKEMON:;
@@ -124,10 +131,11 @@ void procesar_msg(queue_name tipo_msg, void* msg, uint32_t id_msg){
 			uint32_t cant_posiciones;
 			uint32_t* posiciones = get_pokemon(pokemon.nombre, &cant_posiciones);
 			localized_pokemon_msg* loc_msg = localized_msg(id_msg, get_pok->nombre_pokemon, cant_posiciones, posiciones);
-			print_msg(LOCALIZED_POKEMON, (void*) loc_msg);
+			enviar_mensaje(ip_broker, puerto_broker, LOCALIZED_POKEMON, (void*) loc_msg, 0, false);
+
 			break;
 
 		default:
-			printf("Todavia no se maneja el tipo de msg %s\n", enum_to_string(tipo_msg));
+			printf("msg erroneo\n");
 	}
 }
