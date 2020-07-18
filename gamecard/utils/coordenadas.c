@@ -87,7 +87,9 @@ void remover_coordenada(t_list* lista_coordenadas, t_coordenada coordenada){
 
 uint32_t* obtener_coordenadas(t_list* coordenadas, uint32_t* cant_coordenadas){
 	*cant_coordenadas = list_size(coordenadas)*2; // Cada coordenada tiene X e Y => la cant total de valores es 2 veces la cant de coordenadas
+	if(*cant_coordenadas == 0) return NULL;
 	uint32_t* posiciones_diferentes = malloc(sizeof(uint32_t) * (*cant_coordenadas));
+
 	int index = -1;
 
 	void obtener_pos_diferentes(t_coordenada* coordenada){
