@@ -4,7 +4,7 @@
 void loop_productores(){
 
 	while(1){
-		if(list_size(sockets_productores) > 0){
+		if(!list_is_empty(sockets_productores)){
 			list_iterate(sockets_productores, (void*) recibir_mensajes_para_broker);
 			sleep(2);
 		}
@@ -52,7 +52,6 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 			printf("MENSAJE NUEVO -- ID: %d -- COLA: %s\n",id_mensaje, nombres_colas[id_cola]);
 			//log_info(logger, " MENSAJE NUEVO: %s -- ID: %d -- COLA: %s ", msg_as_string(id_cola,msg), id_mensaje, nombres_colas[id_cola]); // LOG 3
 
-
 			pthread_mutex_lock(&(sem_cola[id_cola]));
 			agregar_a_cola(id_cola,id_mensaje);
 			pthread_mutex_unlock(&(sem_cola[id_cola]));
@@ -64,27 +63,26 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 		} else {
 			send(*socket_escucha, &id_mens_en_cola, sizeof(uint32_t), 0);
 		}
-		//free(stream_a_comparar);
+
 	} else {
 
 		uint32_t id_correlativo;
 		recv(*socket_escucha, &id_correlativo, sizeof(uint32_t), MSG_WAITALL);
 
-		uint32_t socket_sub;
+		uint32_t socket_sub; // Falta que me manden el socket_sub
 		recv(*socket_escucha, &socket_sub, sizeof(uint32_t), MSG_WAITALL);
 
 		pthread_mutex_lock(&(sem_cola[id_cola]));
-		confirmar_mensaje(id_cola , id_correlativo, socket_sub);
+		confirmar_mensaje(id_cola, id_correlativo, socket_sub);
 		pthread_mutex_unlock(&(sem_cola[id_cola]));
 
 	}
 	list_remove_and_destroy_element(sockets_productores,0,free);
-	//free_paquete(paquete);
 
 }
 
 
-void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, int socket_sub) {
+void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, int socket_sub) { // Revisarlo
 
 	t_cola_de_mensajes* queue = int_a_nombre_cola(id_cola);
 	t_info_mensaje* mensaje = queue_peek(queue->cola);
@@ -108,7 +106,7 @@ void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, int socket_sub) 
 			log_info(logger,"CONFIRMACION DE LLEGADA DE MENSAJE DE SUSCRIPTOR:%d ",sub); // LOG 5
 			if (list_size(mensaje->quienes_lo_recibieron) == list_size(queue->lista_suscriptores)) {
 				free_msg_cola(mensaje);
-				eliminar_mensaje(mensaje->id);
+				//eliminar_mensaje(mensaje->id);
 			}
 
 		} else {
@@ -142,7 +140,7 @@ bool es_el_mismo_mensaje(queue_name id, void* mensaje, void* otro_mensaje) {
 
 		new_pokemon_msg* msg_new = (new_pokemon_msg*) mensaje;
 		new_pokemon_msg* otro_msg_new = (new_pokemon_msg*) otro_mensaje;
-		return (msg_new->cantidad_pokemon = otro_msg_new->cantidad_pokemon && msg_new->coordenada_X == otro_msg_new->coordenada_X
+		return (msg_new->cantidad_pokemon == otro_msg_new->cantidad_pokemon && msg_new->coordenada_X == otro_msg_new->coordenada_X
 				&& msg_new->coordenada_Y == otro_msg_new->coordenada_Y && string_equals_ignore_case(msg_new->nombre_pokemon,otro_msg_new->nombre_pokemon)
 				&& msg_new->tamanio_nombre == otro_msg_new->tamanio_nombre);
 
@@ -213,8 +211,6 @@ int revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido, uint
 	void* msg;
 	void* msg2;
 	t_info_mensaje* elemento_a_testear;
-
-
 
 	pthread_mutex_lock(&(sem_cola[id]));
 	if (!queue_is_empty(queue_a_revisar->cola)) {
