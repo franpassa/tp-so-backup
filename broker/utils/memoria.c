@@ -506,13 +506,12 @@ int cont_orden_f(){
 }
 
 void actualizar_bit_inicio(int a_sacar){ // actualiza el bit de inicio y lo elimina de la lista de particiones a la particion a sacar // Creo que asi esta perfecto
-	t_struct_secundaria* particion_actual; // a sacar + 1
-	t_struct_secundaria* particion_anterior;
+	t_struct_secundaria* particion_actual; // en donde estoy parado ahora
+	t_struct_secundaria* particion_a_sacar = list_get(lista_de_particiones,a_sacar);
 
 	for (int f = a_sacar + 1; f < list_size(lista_de_particiones); f++) { // Siempre haces que el bit inicio siguiente se mueva para atras
 		particion_actual = list_get(lista_de_particiones, f);
-		particion_anterior = list_get(lista_de_particiones, f-1); // el primer for va a ser el a_sacar
-		particion_actual->bit_inicio = particion_actual->bit_inicio - mayor_entre_Min_y_tam(particion_anterior->tamanio);// bit de inicio del siguinte le resta el tamanio del a sacar
+		particion_actual->bit_inicio = particion_actual->bit_inicio - mayor_entre_Min_y_tam(particion_a_sacar->tamanio);// bit de inicio del siguinte le resta el tamanio del a sacar
 	}
 }
 
