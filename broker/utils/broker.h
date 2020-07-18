@@ -69,12 +69,12 @@ t_list* lista_de_particiones;
 
 // VARIABLES GLOBALES
 
-t_cola_de_mensajes* QUEUE_NEW_POKEMON;
-t_cola_de_mensajes* QUEUE_APPEARED_POKEMON;
-t_cola_de_mensajes* QUEUE_CATCH_POKEMON;
-t_cola_de_mensajes* QUEUE_CAUGHT_POKEMON;
-t_cola_de_mensajes* QUEUE_GET_POKEMON;
-t_cola_de_mensajes* QUEUE_LOCALIZED_POKEMON;
+t_cola_de_mensajes* queue_new_pokemon;
+t_cola_de_mensajes* queue_appeared_pokemon;
+t_cola_de_mensajes* queue_catch_pokemon;
+t_cola_de_mensajes* queue_caught_pokemon;
+t_cola_de_mensajes* queue_get_pokemon;
+t_cola_de_mensajes* queue_localized_pokemon;
 
 t_list* sockets_productores;
 
@@ -91,7 +91,6 @@ pthread_mutex_t semaforo_id;
 pthread_mutex_t semaforo_suscriber;
 pthread_mutex_t sem_cola[6];
 pthread_mutex_t mutex_productores;
-sem_t contenido_cola[6];
 pthread_mutex_t semaforo_struct_s;
 pthread_mutex_t semaforo_memoria;
 pthread_mutex_t semaforo_reconstruir;

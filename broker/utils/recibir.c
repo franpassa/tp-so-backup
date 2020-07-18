@@ -50,15 +50,13 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 			send(*socket_escucha, &id_mensaje, sizeof(uint32_t), 0);
 
 			printf("MENSAJE NUEVO -- ID: %d -- COLA: %s\n",id_mensaje, nombres_colas[id_cola]);
-			//log_info(logger, " MENSAJE NUEVO: %s -- ID: %d -- COLA: %s ", msg_as_string(id_cola,msg), id_mensaje, nombres_colas[id_cola]); // LOG 3
+			//log_info(logger, " MENSAJE NUEVO: %s -- ID: %d -- COLA: %s ", msg_as_string(id_cola, msg), id_mensaje, nombres_colas[id_cola]); // LOG 3 hay que deserializarlo para mostrarlo
 
 			pthread_mutex_lock(&(sem_cola[id_cola]));
-			agregar_a_cola(id_cola,id_mensaje);
+			agregar_a_cola(id_cola, id_mensaje);
 			pthread_mutex_unlock(&(sem_cola[id_cola]));
 
-			pthread_mutex_lock(&(semaforo_struct_s));
 			almacenar(paquete->buffer->stream, id_cola, id_mensaje, paquete->buffer->size);
-			pthread_mutex_unlock(&(semaforo_struct_s));
 
 		} else {
 			send(*socket_escucha, &id_mens_en_cola, sizeof(uint32_t), 0);
@@ -124,12 +122,12 @@ uint32_t crear_nuevo_id(){
 }
 
 void agregar_a_cola(uint32_t id_cola, uint32_t id_mensaje){
-
 	t_info_mensaje* info_msg = malloc(sizeof(t_info_mensaje));
 	info_msg->id = id_mensaje;
 	info_msg->quienes_lo_recibieron = list_create();
 	info_msg->a_quienes_fue_enviado = list_create();
-	queue_push(int_a_nombre_cola(id_cola)->cola, info_msg);
+	t_cola_de_mensajes* queue_del_mensaje_a_pushear = int_a_nombre_cola(id_cola);
+	queue_push(queue_del_mensaje_a_pushear->cola, info_msg);
 }
 
 bool es_el_mismo_mensaje(queue_name id, void* mensaje, void* otro_mensaje) {
