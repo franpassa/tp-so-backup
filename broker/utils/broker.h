@@ -180,6 +180,6 @@ int mayor_entre_Min_y_tam(int);
 
 // otras
 void reconstruir();
-void sacar_de__cola(uint32_t,int);
+void sacar_de_cola(uint32_t,int);
 
 #endif /* BROKER_H_ */
