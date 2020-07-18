@@ -77,7 +77,7 @@ void mostrar_ids(void* id){
 	printf("ID %d\n",*(int*)id);
 }
 
-void enviar_gets(t_list* objetivos_globales) {
+void enviar_gets(t_list* objetivos_globales){
 
 	void enviar(void* especie) {
 		/*CREO EL MENSAJE Y LO ENVIO*/
@@ -85,7 +85,9 @@ void enviar_gets(t_list* objetivos_globales) {
 		get_pokemon_msg* a_enviar = get_msg(mensaje);
 		uint32_t* id_respuesta = malloc(sizeof(uint32_t));
 		*id_respuesta = enviar_mensaje(ip_broker, puerto_broker,GET_POKEMON,a_enviar,0,true);
+		pthread_mutex_lock(&mutexCiclosConsumidos);
 		ciclosConsumidos++;
+		pthread_mutex_unlock(&mutexCiclosConsumidos);
 		if (*id_respuesta == -1) {
 			log_error(logger,"ERROR al enviar el mensaje GET_POKEMON %s.",a_enviar->nombre_pokemon);
 			log_info(logger,"OPERACION DEFAULT: No existen locaciones disponibles para el pokemon %s.",a_enviar->nombre_pokemon);
@@ -105,7 +107,7 @@ void enviar_gets(t_list* objetivos_globales) {
 	list_iterate(objetivos_globales, enviar);
 }
 
-void esperar_cliente(int* socket_servidor) {
+void esperar_cliente(int* socket_servidor){
 
 	uint32_t id;
 
@@ -145,8 +147,7 @@ void esperar_cliente(int* socket_servidor) {
 	}
 }
 
-void estado_exec()
-{
+void estado_exec(){
 	while (1){
 
 		if (!list_is_empty(estado_ready)){
@@ -313,15 +314,14 @@ void pasar_a_ready(){
 	}
 }
 
-void recibirAppeared() {
+void recibirAppeared(){
 	uint32_t idRecibido;
+	queue_name colaMensaje;
 
 	while(1){
 
-		sem_wait(&semAppeared);
-		queue_name colaMensaje;
 		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_appeared,&idRecibido,&colaMensaje);
-		sem_post(&semAppeared);
+		//confirmar_recepcion();
 
 		if (mensaje_recibido_appeared != NULL) {
 			log_info(logger,"Nuevo mensaje recibido: APPEARED_POKEMON %s, en la posicion (%d,%d).",mensaje_recibido_appeared->nombre_pokemon,mensaje_recibido_appeared->coordenada_X,mensaje_recibido_appeared->coordenada_Y);
@@ -336,22 +336,26 @@ void recibirAppeared() {
 				pthread_mutex_unlock(&mutexPokemonsRecibidos);
 			}
 		} else {
-			if(socket_appeared > 0) close(socket_appeared);
-			invocarHiloReconexion();
+			if(pthread_mutex_trylock(&mutexReconexion)==0){
+				suscripcion_a_colas();
+				pthread_cond_broadcast(&cond_reconectado);
+				pthread_mutex_unlock(&mutexReconexion);
+			} else {
+				pthread_mutex_lock(&mutexEspera);
+				pthread_cond_wait(&cond_reconectado, &mutexEspera);
+				pthread_mutex_unlock(&mutexEspera);
+			}
 		}
 	}
 }
 
-void recibirLocalized() { // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
-
+void recibirLocalized(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 	uint32_t id;
+	queue_name colaMensaje;
 
 	while (1) {
 
-		sem_wait(&semLocalized);
-		queue_name colaMensaje;
 		localized_pokemon_msg* mensaje_recibido_localized = recibir_mensaje(socket_localized,&id,&colaMensaje); //Devuelve NULL si falla, falta manejar eso para que vuelva a reintentar la conexion.
-		sem_post(&semLocalized);
 
 		if (mensaje_recibido_localized != NULL) {
 			log_info(logger,"Nuevo mensaje recibido: LOCALIZED_POKEMON %s, en %d posiciones.",mensaje_recibido_localized->nombre_pokemon,mensaje_recibido_localized->cantidad_posiciones);
@@ -368,22 +372,26 @@ void recibirLocalized() { // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 				pthread_mutex_unlock(&mutexPokemonsRecibidos);
 			}
 		} else {
-			if(socket_localized > 0) close(socket_localized);
-			invocarHiloReconexion();
+			if(pthread_mutex_trylock(&mutexReconexion)==0){
+				suscripcion_a_colas();
+				pthread_cond_broadcast(&cond_reconectado);
+				pthread_mutex_unlock(&mutexReconexion);
+			} else {
+				pthread_mutex_lock(&mutexEspera);
+				pthread_cond_wait(&cond_reconectado, &mutexEspera);
+				pthread_mutex_unlock(&mutexEspera);
+			}
 		}
 	}
 }
 
 void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
-
 	uint32_t idRecibido;
+	queue_name colaMensaje;
 
 	while(1){
 
-		sem_wait(&semCaught);
-		queue_name colaMensaje;
 		caught_pokemon_msg* mensaje_recibido = recibir_mensaje(socket_caught,&idRecibido,&colaMensaje);
-		sem_post(&semCaught);
 
 		if(mensaje_recibido != NULL){ //Verifico si recibo el mensaje.
 			if(mensaje_recibido->resultado){log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: Atrapado.");}else{log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: No Atrapado.");}
@@ -445,8 +453,15 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 				}
 			}
 		} else {
-			if(socket_caught > 0) close(socket_caught);
-			invocarHiloReconexion();
+			if(pthread_mutex_trylock(&mutexReconexion)==0){
+				suscripcion_a_colas();
+				pthread_cond_broadcast(&cond_reconectado);
+				pthread_mutex_unlock(&mutexReconexion);
+			} else {
+				pthread_mutex_lock(&mutexEspera);
+				pthread_cond_wait(&cond_reconectado, &mutexEspera);
+				pthread_mutex_unlock(&mutexEspera);
+			}
 		}
 	}
 }
@@ -460,51 +475,34 @@ void* buscarEntrenador(uint32_t id){
 	return list_find(estado_bloqueado, tieneId);
 }
 
-void invocarHiloReconexion(){
+void iniciar_hilos_escucha(){
+	suscripcion_a_colas();
 
-	pthread_create(&hiloReconexion, NULL,(void*) conectarABroker, NULL);
-
-	pthread_detach(hiloReconexion);
+	pthread_create(&hilo_recibir_localized, NULL, (void*) recibirLocalized, NULL);
+	pthread_detach(hilo_recibir_localized);
+	pthread_create(&hilo_recibir_caught, NULL, (void*) recibirCaught, NULL);
+	pthread_detach(hilo_recibir_caught);
+	pthread_create(&hilo_recibir_appeared, NULL, (void*) recibirAppeared, NULL);
+	pthread_detach(hilo_recibir_appeared);
 }
 
-void conectarABroker(){
+void suscripcion_a_colas(){
 
-	if(pthread_mutex_trylock(&mutexReconexion)!=0){
-		return;
-	}
+	bool conexion_exitosa = false;
 
-	int intento = 1;
+	while(!conexion_exitosa){
+		socket_appeared = suscribirse_a_cola(APPEARED_POKEMON, ip_broker, puerto_broker);
+		socket_localized = suscribirse_a_cola(LOCALIZED_POKEMON, ip_broker, puerto_broker);
+		socket_caught = suscribirse_a_cola(CAUGHT_POKEMON, ip_broker, puerto_broker);
 
-	sem_wait(&semCaught);
-	sem_wait(&semLocalized);
-	sem_wait(&semAppeared);
-
-	while (1){
-
-		socket_caught = suscribirse_a_cola(CAUGHT_POKEMON,ip_broker,puerto_broker);
-		socket_localized = suscribirse_a_cola(LOCALIZED_POKEMON,ip_broker,puerto_broker);
-		socket_appeared = suscribirse_a_cola(APPEARED_POKEMON,ip_broker,puerto_broker);
-
-		bool conexionExitosa = socket_caught != -1 && socket_localized != -1 && socket_appeared != -1;
-
-		if(!conexionExitosa){
-
-			printf("\nFalló la conexion con el Broker. Intento de reconexion numero %d...\n", intento);
-			log_error(logger,"Falló la conexion con el Broker. Intento de reconexion numero %d...", intento);
-			sleep(tiempo_reconexion);
-			intento++;
+		if(socket_appeared != -1 && socket_appeared != -1 && socket_appeared != -1){
+			printf("Conexión con el Broker exitosa.\n\n");
+			conexion_exitosa = true;
 		} else {
-
-			printf("Suscripciones exitosas!\n\n");
-			log_info(logger,"Suscripciones con el broker exitosas!");
-			sem_post(&semCaught);
-			sem_post(&semLocalized);
-			sem_post(&semAppeared);
-			break;
+			printf("Falló la conexión con el Broker, reintentando en %d segundos...\n", tiempo_reconexion);
+			sleep(tiempo_reconexion);
 		}
 	}
-
-	pthread_mutex_unlock(&mutexReconexion);
 }
 
 void deadlock()

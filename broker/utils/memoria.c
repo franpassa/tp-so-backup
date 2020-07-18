@@ -19,7 +19,7 @@ void inicializar_memoria() {
 	particion_inicial->tamanio = tamanio_memoria;
 	particion_inicial->id_mensaje = 0;
 	particion_inicial->bit_inicio = 0;
-
+	particion_inicial->auxiliar = -1;
 	list_add(lista_de_particiones, particion_inicial);
 }
 
@@ -31,8 +31,9 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 	if(string_equals_ignore_case(algoritmo_memoria,"PARTICIONES")){
 
 		buscar_particion_en_particiones_dinamicas();
-
+		pthread_mutex_lock(&(semaforo_struct_s));
 		t_struct_secundaria* estructura_memoria = (t_struct_secundaria*) list_get(lista_de_particiones, entra); // en lista
+
 
 		if (estructura_memoria->tamanio > mayor_entre_Min_y_tam(size) && estructura_memoria->tamanio - mayor_entre_Min_y_tam(size) >= tamanio_minimo ){
 			t_struct_secundaria* est_nueva = duplicar_estructura(estructura_memoria);
@@ -43,13 +44,13 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 			} else {
 				list_add_in_index(lista_de_particiones, (entra + 1), est_nueva);
 			}
-			pthread_mutex_lock(&(semaforo_reconstruir));
+			/*pthread_mutex_lock(&(semaforo_reconstruir));
 			FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","a");
 			fprintf(reconstruir,"PARTICION VACIA:%d\n", entra + 1);
 			fprintf(reconstruir,"BIT:%d\n",est_nueva->bit_inicio);
 			fprintf(reconstruir,"SIZE:%d\n",est_nueva->tamanio);
 			fclose(reconstruir);
-			pthread_mutex_unlock(&(semaforo_reconstruir));
+			pthread_mutex_unlock(&(semaforo_reconstruir));*/
 		}
 
 		if(string_equals_ignore_case(algoritmo_remplazo,"FIFO")) {
@@ -73,7 +74,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
         printf("Bit De inicio = %d \n", estructura_memoria->bit_inicio); // Lo hace bien
         log_info(logger, "MENSAJE ALMACENADO EN PARTICION:%d -- BIT DE INICIO:%d", entra, estructura_memoria->bit_inicio); // LOG 6 en HEXA
 
-        pthread_mutex_lock(&(semaforo_reconstruir));
+        /*pthread_mutex_lock(&(semaforo_reconstruir));
         FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","a");
         fprintf(reconstruir,"NUEVO MENSAJE:%d\n",id_mensaje);
         fprintf(reconstruir,"PARTICION:%d\n", entra);
@@ -83,13 +84,16 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
         fprintf(reconstruir,"SIZE:%d\n",size);
         fprintf(reconstruir,"AUX:%d\n",estructura_memoria->auxiliar);
         fclose(reconstruir);
-        pthread_mutex_unlock(&(semaforo_reconstruir));
+        pthread_mutex_unlock(&(semaforo_reconstruir));*/
 
+        pthread_mutex_unlock(&(semaforo_struct_s));
 
 	} else if(string_equals_ignore_case(algoritmo_memoria,"BS")) {
 
 		buscar_particion_en_bs(); // la lista de particiones va a tener mas de 1 elemento al hacer esto
+		pthread_mutex_lock(&(semaforo_struct_s));
 		t_struct_secundaria* particion_a_llenar_con_msg = (t_struct_secundaria*) list_get(lista_de_particiones,entra);
+
 
 		particion_a_llenar_con_msg->tamanio = size;
 		particion_a_llenar_con_msg->id_mensaje = id_mensaje;
@@ -110,7 +114,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 
 		log_info(logger, "MENSAJE ALMACENADO EN PARTICION:%d -- BIT DE INICIO:%d", entra, particion_a_llenar_con_msg->bit_inicio);; // LOG 6 EN HEXA
 
-		pthread_mutex_lock(&(semaforo_reconstruir));
+		/*pthread_mutex_lock(&(semaforo_reconstruir));
 		FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","a");
 		fprintf(reconstruir,"NUEVO MENSAJE:%d\n",id_mensaje);
 		fprintf(reconstruir,"PARTICION:%d\n", entra);
@@ -120,8 +124,9 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 		fprintf(reconstruir,"SIZE:%d \n",size);
 		fprintf(reconstruir,"AUX:%d \n",particion_a_llenar_con_msg->auxiliar);
 		fclose(reconstruir);
-		pthread_mutex_unlock(&(semaforo_reconstruir));
+		pthread_mutex_unlock(&(semaforo_reconstruir));*/
 
+		pthread_mutex_unlock(&(semaforo_struct_s));
 		} else {
 			printf("Error en broker.config ALGORITMO_MEMORIA no valido");
 		}
@@ -143,6 +148,7 @@ void buscar_particion_en_bs() {
 	int tamanio_lista = list_size(lista_de_particiones);
 	if (string_equals_ignore_case(algoritmo_part_libre, "FF")) {
 		for (int i = 0; i < tamanio_lista; i++) { // list_iterate podemos usar por ahi (despues verlo)
+			pthread_mutex_lock(&(semaforo_struct_s));
 			particion = list_get(lista_de_particiones, i);
 			if (particion->tipo_mensaje == 6) {
 				while (particion->tamanio >= mayor_entre_Min_y_tam(tamanio_a_ocupar) && encontro_particion != 0) { // divide las particiones (64 -- 32 32 -- 16 16 32 ..)
@@ -153,13 +159,13 @@ void buscar_particion_en_bs() {
 						particion_nueva->bit_inicio = particion->bit_inicio + particion->tamanio;
 						list_add_in_index(lista_de_particiones, i + 1, particion_nueva);
 
-						pthread_mutex_lock(&(semaforo_reconstruir));
+						/*pthread_mutex_lock(&(semaforo_reconstruir));
 						FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","a");
 						fprintf(reconstruir,"PARTICION VACIA:%d\n", 1+i);
 						fprintf(reconstruir,"BIT:%d\n",particion_nueva->bit_inicio);
 						fprintf(reconstruir,"SIZE:%d\n",particion_nueva->tamanio);
 						fclose(reconstruir);
-						pthread_mutex_unlock(&(semaforo_reconstruir));
+						pthread_mutex_unlock(&(semaforo_reconstruir));*/
 
 					} else {
 						encontro_particion = 0;
@@ -167,6 +173,7 @@ void buscar_particion_en_bs() {
 					}
 				}
 			}
+			pthread_mutex_unlock(&(semaforo_struct_s));
 		}
 		if (entra == -1) {
 			elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs(); // Como esta en BS entonces elimino y veo si puedo consolidar
@@ -175,6 +182,7 @@ void buscar_particion_en_bs() {
 		int sobra;
 		int sobra_menor = tamanio_memoria;
 		for (int i = 0; i < list_size(lista_de_particiones); i++) {
+			pthread_mutex_lock(&(semaforo_struct_s));
 			particion = list_get(lista_de_particiones, i);
 			if (particion->tipo_mensaje == 6) {
 				flag++;
@@ -186,8 +194,10 @@ void buscar_particion_en_bs() {
 					}
 				}
 			}
+			pthread_mutex_unlock(&(semaforo_struct_s));
 		}
 		// termina de recorrer la lista, encuentra la particion mediante "BF" y luego hace bs para asignarle el tamanio justo a "entra"
+		pthread_mutex_lock(&(semaforo_struct_s));
 		particion = list_get(lista_de_particiones, entra);
 		while (particion->tamanio >= mayor_entre_Min_y_tam(tamanio_a_ocupar) && encontro_particion != 0) {
 			if (particion->tamanio / 2 >= mayor_entre_Min_y_tam(tamanio_a_ocupar)) {
@@ -198,19 +208,20 @@ void buscar_particion_en_bs() {
 
 				list_add_in_index(lista_de_particiones, entra + 1, particion_nueva);
 
-				pthread_mutex_lock(&(semaforo_reconstruir));
+				/*pthread_mutex_lock(&(semaforo_reconstruir));
 				FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","a");
 				fprintf(reconstruir,"PARTICION VACIA:%d \n", entra + 1);
 				fprintf(reconstruir,"BIT:%d \n",particion_nueva->bit_inicio);
 				fprintf(reconstruir,"SIZE:%d \n",particion_nueva->tamanio);
 				fclose(reconstruir);
-				pthread_mutex_unlock(&(semaforo_reconstruir));
+				pthread_mutex_unlock(&(semaforo_reconstruir));*/
 
 			} else {
 				encontro_particion = 0;
 			}
-		}
 
+		}
+		pthread_mutex_unlock(&(semaforo_struct_s));
 		if (entra == -1) {
 			if (flag > 1) {
 				elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs(); // Como esta en BS entonces elimino y consolido
@@ -232,6 +243,7 @@ bool es_potencia_de_dos(int numero){
 }
 
 void consolidar_particiones_en_bs(int posicion_a_liberar) { // Consolido cada vez que se libera una particion y sigo consolidando hasta que no pueda mas
+	pthread_mutex_lock(&(semaforo_struct_s));
 	t_struct_secundaria* particion_a_consolidar = list_get(lista_de_particiones, posicion_a_liberar);
 
 	for (int i = 0; i < list_size(lista_de_particiones); i++) {
@@ -245,14 +257,15 @@ void consolidar_particiones_en_bs(int posicion_a_liberar) { // Consolido cada ve
 
 			list_remove_and_destroy_element(lista_de_particiones, posicion_a_liberar, free);
 
-			pthread_mutex_lock(&(semaforo_reconstruir));
+			/*pthread_mutex_lock(&(semaforo_reconstruir));
 			FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","a");
 			fprintf(reconstruir,"CONSOLIDO BS:%d \n", posicion_a_liberar );
 			fclose(reconstruir);
-			pthread_mutex_unlock(&(semaforo_reconstruir));
+			pthread_mutex_unlock(&(semaforo_reconstruir));*/
 
 		}
 	}
+	pthread_mutex_unlock(&(semaforo_struct_s));
 }
 
 void buscar_particion_en_particiones_dinamicas(){
@@ -260,13 +273,16 @@ void buscar_particion_en_particiones_dinamicas(){
 
 	if(string_equals_ignore_case(algoritmo_part_libre,"FF")){
 		for (int i = 0; i < list_size(lista_de_particiones); i++ ){
+			pthread_mutex_lock(&(semaforo_struct_s));
 			nueva_est = list_get(lista_de_particiones, i);
 			if (nueva_est->tipo_mensaje == 6){
 				if(nueva_est->tamanio >= mayor_entre_Min_y_tam(tamanio_a_ocupar) ){
 					entra = i;
 				}
 			}
+			pthread_mutex_unlock(&(semaforo_struct_s));
 		}
+
 		if (entra == -1){
 			if (flag == frecuencia_compactacion){
 				compactar();
@@ -282,6 +298,7 @@ void buscar_particion_en_particiones_dinamicas(){
 		int sobra;
 		int sobra_menor = tamanio_memoria;
 		for (int i = 0; i< list_size(lista_de_particiones); i++ ){
+			pthread_mutex_lock(&(semaforo_struct_s));
 			nueva_est = list_get(lista_de_particiones,i);
 			if (nueva_est->tipo_mensaje == 6){
 				if(nueva_est->tamanio >= mayor_entre_Min_y_tam(tamanio_a_ocupar) ){
@@ -292,6 +309,7 @@ void buscar_particion_en_particiones_dinamicas(){
 					}
 				}
 			}
+			pthread_mutex_unlock(&(semaforo_struct_s));
 		}
 		if (entra == -1){
 			if (flag == frecuencia_compactacion){
@@ -314,6 +332,7 @@ void compactar(){
 	t_struct_secundaria* estructura2;
 	int tamanio_lista_actual = list_size(lista_de_particiones);
 	for (int i = 0; i < tamanio_lista_actual; i++ ){
+		pthread_mutex_lock(&(semaforo_struct_s));
 		estructura1 = list_get(lista_de_particiones,i);
 		if (estructura1->tipo_mensaje == 6 && i+1 < tamanio_lista_actual){
 			estructura2 = list_get(lista_de_particiones,(i+1));
@@ -326,11 +345,11 @@ void compactar(){
 
 				list_remove_and_destroy_element(lista_de_particiones,(i+1),free);
 
-				pthread_mutex_lock(&(semaforo_reconstruir));
+				/*pthread_mutex_lock(&(semaforo_reconstruir));
 				FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","a");
 				fprintf(reconstruir,"COMPACTO:%d \n",i);
 				fclose(reconstruir);
-				pthread_mutex_unlock(&(semaforo_reconstruir));
+				pthread_mutex_unlock(&(semaforo_reconstruir));*/
 
 				tamanio_lista_actual -= 1;
 				i -= 1;
@@ -340,11 +359,11 @@ void compactar(){
 
 				actualizar_bit_inicio(i);
 
-				pthread_mutex_lock(&(semaforo_reconstruir));
+				/*pthread_mutex_lock(&(semaforo_reconstruir));
 				FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","a");
 				fprintf(reconstruir,"ACTUALIZO BIT:%d",i);
 				fclose(reconstruir);
-				pthread_mutex_unlock(&(semaforo_reconstruir));
+				pthread_mutex_unlock(&(semaforo_reconstruir));*/
 
 				t_struct_secundaria* nueva = duplicar_estructura(estructura1);
 				nueva->bit_inicio = tamanio_memoria - estructura1->tamanio;
@@ -357,6 +376,7 @@ void compactar(){
 				i -= 1;
 			}
 		}
+		pthread_mutex_unlock(&(semaforo_struct_s));
 	}
 	buscar_particion_en_particiones_dinamicas();
 }
@@ -380,11 +400,11 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones() {
 	particion_a_sacar->id_mensaje = -1;
 	particion_a_sacar->tipo_mensaje= 6;
 
-	pthread_mutex_lock(&(semaforo_reconstruir));
+	/*pthread_mutex_lock(&(semaforo_reconstruir));
 	FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","a");
 	fprintf(reconstruir,"ELIMINO PARTICION:%d \n",a_sacar);
 	fclose(reconstruir);
-	pthread_mutex_unlock(&(semaforo_reconstruir));
+	pthread_mutex_unlock(&(semaforo_reconstruir));*/
 
 	bool esVacio(void* una_particion){
 		t_struct_secundaria* particion_a_comparar =  (t_struct_secundaria*) una_particion;
@@ -425,11 +445,11 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 	particion_a_sacar->tamanio = mayor_entre_Min_y_tam(particion_a_sacar->tamanio);
 	particion_a_sacar->auxiliar = 0;
 
-	pthread_mutex_lock(&(semaforo_reconstruir));
+	/*pthread_mutex_lock(&(semaforo_reconstruir));
 	FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","a");
 	fprintf(reconstruir,"ELIMINO PARTICION:%d /n",a_sacar);
 	fclose(reconstruir);
-	pthread_mutex_unlock(&(semaforo_reconstruir));
+	pthread_mutex_unlock(&(semaforo_reconstruir));*/
 
 	// quedaria msg_a_sacar -> [6, tamanio_potencia_de_2, 0, bit de inicio, 0] y en memoria si elimino 2do msg => memoria=hola----andas
 
@@ -486,13 +506,12 @@ int cont_orden_f(){
 }
 
 void actualizar_bit_inicio(int a_sacar){ // actualiza el bit de inicio y lo elimina de la lista de particiones a la particion a sacar // Creo que asi esta perfecto
-	t_struct_secundaria* particion_actual; // a sacar + 1
-	t_struct_secundaria* particion_anterior;
+	t_struct_secundaria* particion_actual; // en donde estoy parado ahora
+	t_struct_secundaria* particion_a_sacar = list_get(lista_de_particiones,a_sacar);
 
 	for (int f = a_sacar + 1; f < list_size(lista_de_particiones); f++) { // Siempre haces que el bit inicio siguiente se mueva para atras
 		particion_actual = list_get(lista_de_particiones, f);
-		particion_anterior = list_get(lista_de_particiones, f-1); // el primer for va a ser el a_sacar
-		particion_actual->bit_inicio = particion_actual->bit_inicio - mayor_entre_Min_y_tam(particion_anterior->tamanio);// bit de inicio del siguinte le resta el tamanio del a sacar
+		particion_actual->bit_inicio = particion_actual->bit_inicio - mayor_entre_Min_y_tam(particion_a_sacar->tamanio);// bit de inicio del siguinte le resta el tamanio del a sacar
 	}
 }
 
@@ -537,7 +556,7 @@ t_struct_secundaria* encontrar_particion_en_base_a_un_id_mensaje(uint32_t id_men
 		return particion_a_comparar->id_mensaje == id_mensaje;
 	}
 	pthread_mutex_lock(&(semaforo_struct_s));
-	particion_de_donde_voy_a_sacar_el_tipo_de_cola = list_find(lista_de_particiones,mismo_id);
+	particion_de_donde_voy_a_sacar_el_tipo_de_cola = list_find(lista_de_particiones, mismo_id);
 	pthread_mutex_unlock(&(semaforo_struct_s));
 	return particion_de_donde_voy_a_sacar_el_tipo_de_cola;
 }
@@ -587,7 +606,7 @@ int mayor_entre_Min_y_tam(int tamanio){
 	}
 
 }
-void eliminar_mensaje(uint32_t id){
+/*void eliminar_mensaje(uint32_t id){
 
 	t_struct_secundaria* particion = encontrar_particion_en_base_a_un_id_mensaje(id);
 	particion->id_mensaje = 0;
@@ -599,5 +618,5 @@ void eliminar_mensaje(uint32_t id){
 	fclose(reconstruir);
 	pthread_mutex_unlock(&(semaforo_reconstruir));
 
-}
+}*/
 

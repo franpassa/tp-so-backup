@@ -65,8 +65,9 @@ pthread_mutex_t mutexLog;
 pthread_mutex_t mutexHayEntrenadorProcesando;
 pthread_mutex_t mutexCantidadDeadlocks;
 pthread_mutex_t mutexCambiosDeContexto;
+pthread_mutex_t mutexEspera;
+pthread_cond_t cond_reconectado;
 
-pthread_t hiloReconexion;
 pthread_t hilo_escucha;
 pthread_t hilo_recibir_localized;
 pthread_t hilo_recibir_caught;
@@ -74,12 +75,7 @@ pthread_t hilo_recibir_appeared;
 pthread_t hilo_estado_exec;
 pthread_t hilo_pasar_a_ready;
 pthread_t hilo_deadlock;
-pthread_t hilo_resolucion_deadlock;
-
-
-sem_t semCaught;
-sem_t semLocalized;
-sem_t semAppeared;
+pthread_t hilo_invocador_escucha;
 
 bool hayEntrenadorProcesando; 	// funcion a futuro, chequear en otro proceso si hay un entrenador
 bool envioGets;								//corriendo porque cuando sale del bloqueo porque ya le

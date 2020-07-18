@@ -10,6 +10,8 @@ int main()
 	printf("\n");
 	if (socket_escucha == -1) abort(); //FINALIZA EL PROGRAMA EN CASO DE QUE FALLE LA INICIALIZACION DEL SERVIDOR
 
+	pthread_create(&hilo_invocador_escucha, NULL, (void*) iniciar_hilos_escucha, NULL);
+
 	enviar_gets(objetivos_globales); // ENVIO MENSAJES GET_POKEMON AL BROKER.
 
 	pthread_create(&hilo_pasar_a_ready,NULL,(void*) pasar_a_ready, NULL);
@@ -18,20 +20,12 @@ int main()
 
 	pthread_create(&hilo_estado_exec, NULL, (void*) estado_exec, NULL);
 
-	pthread_create(&hilo_recibir_localized, NULL, (void*) recibirLocalized, NULL);
-
-	pthread_create(&hilo_recibir_caught, NULL, (void*) recibirCaught, NULL);
-
-	pthread_create(&hilo_recibir_appeared, NULL, (void*) recibirAppeared, NULL);
-
 	pthread_create(&hilo_deadlock,NULL,(void*) deadlock,NULL);
 
 	pthread_detach(hilo_escucha);
 	pthread_detach(hilo_estado_exec);
 	pthread_detach(hilo_pasar_a_ready);
-	pthread_detach(hilo_recibir_localized);
-	pthread_detach(hilo_recibir_appeared);
-	pthread_detach(hilo_recibir_caught);
+	pthread_detach(hilo_invocador_escucha);
 	pthread_join(hilo_deadlock, NULL);
 
 	close(socket_escucha);
@@ -97,9 +91,8 @@ void inicializarVariables(){
 	pthread_mutex_init(&mutexLogEntrenador, NULL);
 	pthread_mutex_init(&mutexCambiosDeContexto, NULL);
 	pthread_mutex_init(&mutexCantidadDeadlocks, NULL);
-	sem_init(&semCaught, 0, 1);
-	sem_init(&semLocalized, 0, 1);
-	sem_init(&semAppeared, 0, 1);
+	pthread_mutex_init(&mutexEspera, NULL);
+	pthread_cond_init(&cond_reconectado, NULL);
 
 	posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
 	pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
@@ -150,7 +143,6 @@ void liberarVariables()
 	pthread_mutex_destroy(&mutexPokemonsRecibidos);
 	pthread_mutex_destroy(&mutexPokemonsRecibidosHistoricos);
 	pthread_mutex_destroy(&mutexReconexion);
-	sem_destroy(&semAppeared);
-	sem_destroy(&semCaught);
-	sem_destroy(&semLocalized);
+	pthread_mutex_destroy(&mutexEspera);
+	pthread_cond_destroy(&cond_reconectado);
 }

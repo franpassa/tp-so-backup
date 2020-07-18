@@ -8,7 +8,7 @@ int main(){
 	int socket_servidor = iniciar_servidor_broker();
 
 	pthread_create(&hilo_suscripciones, NULL, (void*) esperar_cliente, &socket_servidor);
-	pthread_create(&hilo_estado_queues,NULL,(void*) estado_de_queues,&socket_servidor);
+	pthread_create(&hilo_estado_queues,NULL,(void*) estado_de_queues, &socket_servidor);
 	pthread_create(&hilo_mensajes, NULL, (void*) loop_productores, NULL);
 	pthread_create(&hilo_enviar_mensaje, NULL, (void*) mandar_mensajes, NULL);
 
@@ -17,7 +17,7 @@ int main(){
 	pthread_join(hilo_estado_queues,NULL);
 	pthread_join(hilo_suscripciones,NULL);
 	pthread_join(hilo_mensajes,NULL);
-	pthread_join(hilo_enviar_mensaje, NULL);
+	pthread_join(hilo_enviar_mensaje,NULL);
 
 	close(socket_servidor);
 	//terminar_programa(logger,config);
@@ -27,12 +27,12 @@ int main(){
 }
 
 void inicializar_colas(){
-	inicializar_cola(&QUEUE_NEW_POKEMON, NEW_POKEMON);
-	inicializar_cola(&QUEUE_APPEARED_POKEMON, APPEARED_POKEMON);
-	inicializar_cola(&QUEUE_CATCH_POKEMON, CATCH_POKEMON);
-	inicializar_cola(&QUEUE_CAUGHT_POKEMON, CAUGHT_POKEMON);
-	inicializar_cola(&QUEUE_GET_POKEMON, GET_POKEMON);
-	inicializar_cola(&QUEUE_LOCALIZED_POKEMON, LOCALIZED_POKEMON);
+	inicializar_cola(&queue_new_pokemon, NEW_POKEMON);
+	inicializar_cola(&queue_appeared_pokemon, APPEARED_POKEMON);
+	inicializar_cola(&queue_catch_pokemon, CATCH_POKEMON);
+	inicializar_cola(&queue_caught_pokemon, CAUGHT_POKEMON);
+	inicializar_cola(&queue_get_pokemon, GET_POKEMON);
+	inicializar_cola(&queue_localized_pokemon, LOCALIZED_POKEMON);
 }
 
 t_log* iniciar_logger(){
@@ -58,18 +58,17 @@ t_config* leer_config(){
 }
 
 void terminar_programa(t_log* logger, t_config* config){
-		log_destroy(logger);
-		config_destroy(config);
+	log_destroy(logger);
+	config_destroy(config);
 }
 
 
-void inicializar_cola(t_cola_de_mensajes** nombre_cola, queue_name id_cola){
+void inicializar_cola(t_cola_de_mensajes** nombre_cola, queue_name id_cola){ // Esta bien inicializado?
 
-	*nombre_cola = malloc(sizeof(t_cola_de_mensajes));
+	(*nombre_cola) = malloc(sizeof(t_cola_de_mensajes));
 	(*nombre_cola)->cola = queue_create();
 	(*nombre_cola)->lista_suscriptores = list_create();
 	(*nombre_cola)->tipo_cola = id_cola;
-
 }
 
 t_cola_de_mensajes* int_a_nombre_cola(queue_name id){
@@ -78,27 +77,27 @@ t_cola_de_mensajes* int_a_nombre_cola(queue_name id){
 
 	switch (id){
 		case NEW_POKEMON:
-			cola = QUEUE_NEW_POKEMON;
+			cola = queue_new_pokemon;
 			break;
 
 		case APPEARED_POKEMON:
-			cola = QUEUE_APPEARED_POKEMON;
+			cola = queue_appeared_pokemon;
 			break;
 
 		case CATCH_POKEMON:
-			cola = QUEUE_CATCH_POKEMON;
+			cola = queue_catch_pokemon;
 			break;
 
 		case CAUGHT_POKEMON:
-			cola = QUEUE_CAUGHT_POKEMON;
+			cola = queue_caught_pokemon;
 			break;
 
 		case GET_POKEMON:
-			cola = QUEUE_GET_POKEMON;
+			cola = queue_get_pokemon;
 			break;
 
 		case LOCALIZED_POKEMON:
-			cola = QUEUE_LOCALIZED_POKEMON;
+			cola = queue_localized_pokemon;
 			break;
 
 		default:
@@ -109,7 +108,7 @@ t_cola_de_mensajes* int_a_nombre_cola(queue_name id){
 
 void inicializar(){
 
-	signal(SIGPIPE,SIG_IGN);
+	//signal(SIGPIPE, SIG_IGN); decomentar despues
 
 	config = leer_config();
 	logger = iniciar_logger();
@@ -122,14 +121,14 @@ void inicializar(){
 
 	sockets_productores = list_create();
 	pthread_mutex_init(&mutex_productores, NULL);
-	pthread_mutex_init(&semaforo_suscriber,NULL);
-	pthread_mutex_init(&semaforo_id,NULL);
-	pthread_mutex_init(&semaforo_struct_s,NULL);
-	pthread_mutex_init(&semaforo_memoria,NULL);
-	pthread_mutex_init(&semaforo_reconstruir,NULL);
+	pthread_mutex_init(&semaforo_suscriber, NULL);
+	pthread_mutex_init(&semaforo_id, NULL);
+	pthread_mutex_init(&semaforo_struct_s, NULL);
+	pthread_mutex_init(&semaforo_memoria, NULL);
+	pthread_mutex_init(&semaforo_reconstruir, NULL);
 
 	for(int i = 0; i <= 5; i++){
-		pthread_mutex_init(&(sem_cola[i]),NULL);
+		pthread_mutex_init(&(sem_cola[i]), NULL);
 	}
 
 	inicializar_memoria();
@@ -139,13 +138,13 @@ void inicializar(){
 void estado_de_queues(){
 
 	while(1){
-		mostrar_estado_de_una_queue(QUEUE_NEW_POKEMON);
-		mostrar_estado_de_una_queue(QUEUE_APPEARED_POKEMON);
-		mostrar_estado_de_una_queue(QUEUE_CATCH_POKEMON);
-		mostrar_estado_de_una_queue(QUEUE_CAUGHT_POKEMON);
-		mostrar_estado_de_una_queue(QUEUE_GET_POKEMON);
-		mostrar_estado_de_una_queue(QUEUE_LOCALIZED_POKEMON);
-		sleep(6);
+		mostrar_estado_de_una_queue(queue_new_pokemon);
+		mostrar_estado_de_una_queue(queue_appeared_pokemon);
+		mostrar_estado_de_una_queue(queue_catch_pokemon);
+		mostrar_estado_de_una_queue(queue_caught_pokemon);
+		mostrar_estado_de_una_queue(queue_get_pokemon);
+		mostrar_estado_de_una_queue(queue_localized_pokemon);
+		sleep(4);
 	}
 }
 
@@ -153,8 +152,7 @@ void mostrar_estado_de_una_queue(t_cola_de_mensajes* cola){
 	printf("%s\n", enum_to_string(cola->tipo_cola));
 	printf("MENSAJES\n");
 	recorrer_cola_de_mensajes_para_mostrar(cola);
-	printf("\n");
-	list_iterate(cola->lista_suscriptores,print_list_sockets);
+	list_iterate(cola->lista_suscriptores, print_list_sockets);
 	printf("\n");
 }
 

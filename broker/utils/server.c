@@ -93,27 +93,27 @@ int suscribir_a_cola(int socket_cliente, queue_name cola) {
 	switch(cola){
 
 		case NEW_POKEMON:
-			list_add(QUEUE_NEW_POKEMON->lista_suscriptores,socket_cola);
+			list_add(queue_new_pokemon->lista_suscriptores,socket_cola);
 			break;
 
 		case APPEARED_POKEMON:
-			list_add(QUEUE_APPEARED_POKEMON->lista_suscriptores,socket_cola);
+			list_add(queue_appeared_pokemon->lista_suscriptores,socket_cola);
 			break;
 
 		case CATCH_POKEMON:
-			list_add(QUEUE_CATCH_POKEMON->lista_suscriptores,socket_cola);
+			list_add(queue_catch_pokemon->lista_suscriptores,socket_cola);
 			break;
 
 		case CAUGHT_POKEMON:
-			list_add(QUEUE_CAUGHT_POKEMON->lista_suscriptores,socket_cola);
+			list_add(queue_caught_pokemon->lista_suscriptores,socket_cola);
 			break;
 
 		case GET_POKEMON:
-			list_add(QUEUE_GET_POKEMON->lista_suscriptores,socket_cola);
+			list_add(queue_get_pokemon->lista_suscriptores,socket_cola);
 			break;
 
 		case LOCALIZED_POKEMON:
-			list_add(QUEUE_LOCALIZED_POKEMON->lista_suscriptores,socket_cola);
+			list_add(queue_localized_pokemon->lista_suscriptores,socket_cola);
 			break;
 
 		default:

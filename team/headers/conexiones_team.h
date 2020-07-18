@@ -14,13 +14,12 @@ void planificacion();
 bool necesitoElMensaje(uint32_t id); // Chequea si el id esta en la lista de ids_recibidos;
 void* buscarEntrenador(uint32_t id); // Buscar el entrenador que tiene ese idRecibido;
 void cambiarEstado(t_entrenador* entrenador);
-void invocarHiloReconexion();
-void conectarABroker();
-bool todasLasColasEstanVacias();
+void suscripcion_a_colas();
 void deadlock();
 void cambiarAExit(t_entrenador* entrenador);
 void cambiarABlockNada(t_entrenador* entrenador);
 void cambiarABlockDeadlock(t_entrenador* entrenador);
+void iniciar_hilos_escucha();
 
 
 #endif /* _CONEXIONES_TEAM_H_*/

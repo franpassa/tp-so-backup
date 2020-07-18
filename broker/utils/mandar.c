@@ -40,7 +40,7 @@ int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size)
 
 	send(socket_receptor, &id, sizeof(uint32_t), 0);
 
-	//log_info(logger, "MENSAJE CON ID:%d -- ENVIADO A SUSCRIPTOR:%d ", id, socket_receptor);
+	//log_info(logger, "MENSAJE CON ID:%d -- ENVIADO A SUSCRIPTOR:%d ", id, socket_receptor); LOG
 
 	free_paquete(paquete);
 	free(a_enviar);
@@ -77,8 +77,6 @@ void recorrer_cola(t_cola_de_mensajes* nombre) {
 							uint32_t nro = *(uint32_t*) uno;
 							return nro == *sub;
 						}
-
-
 
 						uint32_t id_afuera = info_a_sacar->id;
 						do {

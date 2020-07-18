@@ -474,11 +474,11 @@ t_list* pokemonesQueLeFaltan(t_entrenador* unEntrenador)
 {
 	bool noEstaEnLista(char* pokemon)
 	{
-		bool esIgual(char* otroPokemon)
+		bool noEsIgual(char* otroPokemon)
 		{
-			return string_equals_ignore_case(otroPokemon,pokemon);
+			return !string_equals_ignore_case(otroPokemon,pokemon);
 		}
-		return !list_all_satisfy(unEntrenador->pokesAtrapados,(void*)esIgual);
+		return list_all_satisfy(unEntrenador->pokesAtrapados,(void*)noEsIgual);
 	}
 	return list_filter(unEntrenador->pokesObjetivos,(void*)noEstaEnLista);
 }
@@ -572,7 +572,8 @@ void realizarCambio(t_entrenador* entrenador1, t_entrenador* entrenador2)
 
 	t_list* pokemones = pokemonesAlPedo(entrenador1);
 	uint32_t a = retornarIndice(entrenador1->pokesAtrapados,list_get(pokemones,0));
-	uint32_t indiceDelPokemonDondeEstaEnElEntrenador2 = retornarIndice(entrenador2->pokesAtrapados,pokemon(entrenador1->pokesObjetivos));
+
+	uint32_t indiceDelPokemonDondeEstaEnElEntrenador2 = retornarIndice(entrenador2->pokesAtrapados,pokemon(pokemonesQueLeFaltan(entrenador1)));
 
 	char* flag = list_remove(entrenador2->pokesAtrapados,indiceDelPokemonDondeEstaEnElEntrenador2);
 	char* flag2 = list_replace(entrenador1->pokesAtrapados,a,flag);
