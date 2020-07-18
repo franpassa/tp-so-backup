@@ -85,7 +85,9 @@ void enviar_gets(t_list* objetivos_globales) {
 		get_pokemon_msg* a_enviar = get_msg(mensaje);
 		uint32_t* id_respuesta = malloc(sizeof(uint32_t));
 		*id_respuesta = enviar_mensaje(ip_broker, puerto_broker,GET_POKEMON,a_enviar,0,true);
+		pthread_mutex_lock(&mutexCiclosConsumidos);
 		ciclosConsumidos++;
+		pthread_mutex_unlock(&mutexCiclosConsumidos);
 		if (*id_respuesta == -1) {
 			log_error(logger,"ERROR al enviar el mensaje GET_POKEMON %s.",a_enviar->nombre_pokemon);
 			log_info(logger,"OPERACION DEFAULT: No existen locaciones disponibles para el pokemon %s.",a_enviar->nombre_pokemon);
