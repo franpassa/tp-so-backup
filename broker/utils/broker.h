@@ -140,7 +140,7 @@ void confirmar_mensaje(queue_name, uint32_t,int);
 uint32_t crear_nuevo_id();
 void agregar_a_cola(uint32_t,uint32_t);
 bool es_el_mismo_mensaje(queue_name, void*,void*);
-int revisar_si_mensaje_no_estaba_en_cola(queue_name, void*);
+int revisar_si_mensaje_no_estaba_en_cola(queue_name, void*, uint32_t);
 void free_msg_cola(t_info_mensaje*);
 
 // Mandar
