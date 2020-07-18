@@ -392,14 +392,16 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones() {
 	} else {
 		printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 	}
+	pthread_mutex_lock(&(semaforo_struct_s));
 	t_struct_secundaria* particion_a_sacar = list_get(lista_de_particiones,a_sacar);
 
-	sacar_de__cola(particion_a_sacar->id_mensaje,particion_a_sacar->tipo_mensaje );
+	sacar_de_cola(particion_a_sacar->id_mensaje,particion_a_sacar->tipo_mensaje );
 
 	log_info(logger,"ELIMINO PARTICION:%d -- BIT DE INCICIO:%d", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
 	particion_a_sacar->id_mensaje = -1;
 	particion_a_sacar->tipo_mensaje= 6;
 
+	pthread_mutex_unlock(&(semaforo_struct_s));
 	/*pthread_mutex_lock(&(semaforo_reconstruir));
 	FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","a");
 	fprintf(reconstruir,"ELIMINO PARTICION:%d \n",a_sacar);
@@ -410,10 +412,11 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones() {
 		t_struct_secundaria* particion_a_comparar =  (t_struct_secundaria*) una_particion;
 		return particion_a_comparar->tipo_mensaje == 6;
 	}
-
-	if (list_all_satisfy(lista_de_particiones,esVacio)){
+	pthread_mutex_lock(&(semaforo_struct_s));
+	if (list_all_satisfy(lista_de_particiones, esVacio)){
 		flag = -1;
 	}
+	pthread_mutex_unlock(&(semaforo_struct_s));
 
 	buscar_particion_en_particiones_dinamicas();
 }
@@ -430,9 +433,10 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 		printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 	}
 
+	pthread_mutex_lock(&(semaforo_struct_s));
 	t_struct_secundaria* particion_a_sacar = list_get(lista_de_particiones, a_sacar);
 
-	sacar_de__cola(particion_a_sacar->id_mensaje,particion_a_sacar->tipo_mensaje );
+	sacar_de_cola(particion_a_sacar->id_mensaje,particion_a_sacar->tipo_mensaje );
 
 	log_info(logger,"ELIMINO PARTICION:%d -- BIT DE INCICIO:%d", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
 	particion_a_sacar->id_mensaje = 0;
@@ -444,7 +448,7 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 	}
 	particion_a_sacar->tamanio = mayor_entre_Min_y_tam(particion_a_sacar->tamanio);
 	particion_a_sacar->auxiliar = 0;
-
+	pthread_mutex_unlock(&(semaforo_struct_s));
 	/*pthread_mutex_lock(&(semaforo_reconstruir));
 	FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","a");
 	fprintf(reconstruir,"ELIMINO PARTICION:%d /n",a_sacar);
@@ -463,6 +467,7 @@ int algoritmo_FIFO(){
 	int orden_menor = 0;
 	int a_sacar = -1; // Creo q esta bien esto
 	for(int i = 0; i< list_size(lista_de_particiones); i++ ){
+		pthread_mutex_lock(&(semaforo_struct_s));
 		particion_a_sacar = list_get(lista_de_particiones,i);
 		if(i == 0){
 			orden = particion_a_sacar->auxiliar;
@@ -473,6 +478,7 @@ int algoritmo_FIFO(){
 			orden_menor = orden;
 			a_sacar = i;
 		}
+		pthread_mutex_unlock(&(semaforo_struct_s));
 	}
 	return a_sacar;
 }
@@ -486,6 +492,7 @@ int algoritmo_LRU(){
 		if (contador == list_size(lista_de_particiones)){
 			contador = 0;
 		}
+		pthread_mutex_lock(&(semaforo_struct_s));
 		particion_a_sacar = list_get(lista_de_particiones,contador);
 		if (particion_a_sacar->auxiliar == 0 ){
 			a_sacar = contador;
@@ -494,6 +501,7 @@ int algoritmo_LRU(){
 			particion_a_sacar->auxiliar = 0;
 
 		}
+		pthread_mutex_unlock(&(semaforo_struct_s));
 		contador ++;
 	} while(flag_2 == 0);
 

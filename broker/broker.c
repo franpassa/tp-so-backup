@@ -236,7 +236,7 @@ void reconstruir(){
 	fclose(reconstruir);
 }
 
-void sacar_de__cola(uint32_t id, int cola) {
+void sacar_de_cola(uint32_t id, int cola) {
 	pthread_mutex_lock(&(sem_cola[cola]));
 	t_cola_de_mensajes* queue = int_a_nombre_cola(cola);
 	t_info_mensaje* mensaje = queue_peek(queue->cola);
@@ -252,6 +252,6 @@ void sacar_de__cola(uint32_t id, int cola) {
 		}
 
 	} while (control == 0);
-	pthread_mutex_lock(&(sem_cola[cola]));
+	pthread_mutex_unlock(&(sem_cola[cola]));
 }
 
