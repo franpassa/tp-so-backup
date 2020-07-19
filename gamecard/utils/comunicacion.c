@@ -65,12 +65,16 @@ void suscribir_a_colas(){
 }
 
 void escuchar_socket(int* socket){
+	//char* ip_broker = config_get_string_value(config, "IP_BROKER");
+	//char* puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
+
 	uint32_t id;
 	queue_name cola;
 
 	while(1){
 		void* msg = recibir_mensaje(*socket, &id, &cola);
 		if(msg != NULL){
+			//confirmar_recepcion(ip_broker, puerto_broker, cola, id, mi_socket);
 			procesar_msg(cola, msg, id);
 		} else {
 			if(pthread_mutex_trylock(&mutex_reconexion) == 0){

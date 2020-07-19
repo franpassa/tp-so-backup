@@ -51,7 +51,11 @@ void init_fs(){
 		int cantidad_bloques = config_get_int_value(metadata_config, "BLOCKS");
 		if(create_bitmap(cantidad_bloques) == -1) terminar_aplicacion("Error creando bitmap");
 		if(create_blocks(cantidad_bloques) == -1) terminar_aplicacion("Error creando bloques");
-		eliminar_files();
+		if(files_folder_exists()) {
+			eliminar_files();
+		} else {
+			create_files_folder();
+		}
 
 		printf("Se crearon %d bloques\n", cantidad_bloques);
 	}
@@ -394,6 +398,18 @@ void eliminar_files(){
 	}
 
 	closedir(dir);
+}
+
+bool files_folder_exists(){
+	char* path = fspaths->files_folder;
+	struct stat st = {0};
+
+	return stat(path, &st) != -1;
+}
+
+void create_files_folder(){
+	char* path = fspaths->files_folder;
+	mkdir(path, 0700);
 }
 
 // Leer contenido de los bloques a un string.

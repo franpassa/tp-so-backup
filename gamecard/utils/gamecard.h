@@ -136,6 +136,8 @@ void obtener_bloques_necesarios(t_list* bloques_actuales, t_list* coordenadas);
 t_list* obtener_strings_por_bloque(t_list* coordenadas);
 int escribir_bloques(t_list* strings_por_bloque, t_list* blocks);
 int crear_file(char* nombre_pokemon, bool bloquear);
+bool files_folder_exists();
+void create_files_folder();
 
 // --- Pokemons ---
 t_coordenada init_coordenada(uint32_t x, uint32_t y, uint32_t cantidad);
