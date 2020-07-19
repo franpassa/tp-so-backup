@@ -173,7 +173,9 @@ bool noSuperaElMaximoQuePuedoRecibir(char* pokemon){
 		return string_equals_ignore_case(unPokemon->nombre, pokemon);
 	}
 
+	pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
 	uint32_t cantidadQueRecibi = list_count_satisfying(pokemons_recibidos_historicos,(void*) esIgualPokemon);
+	pthread_mutex_unlock(&mutexPokemonsRecibidosHistoricos);
 
 	bool esIgualEspecie(t_especie* unPokemon){
 		return string_equals_ignore_case(unPokemon->especie, pokemon);

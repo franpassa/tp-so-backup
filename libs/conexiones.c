@@ -259,7 +259,10 @@ void* serializar_paquete(t_paquete* paquete, int bytes) {
 	return a_enviar;
 }
 
-void confirmar_recepcion(queue_name cola, uint32_t id_mensaje, uint32_t socket_suscripcion, uint32_t socket_broker) {
+void confirmar_recepcion(char* ip, char* puerto, queue_name cola, uint32_t id_mensaje, uint32_t mi_socket) {
+
+	int socket_broker = conectar_como_productor(ip, puerto);
+
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
 	paquete->cola_msg = cola;
@@ -270,15 +273,16 @@ void confirmar_recepcion(queue_name cola, uint32_t id_mensaje, uint32_t socket_s
 	int offset = 0;
 	memcpy(paquete->buffer->stream, &id_mensaje, sizeof(uint32_t));
 	offset += sizeof(uint32_t);
-	memcpy(paquete->buffer->stream + offset, &socket_suscripcion, sizeof(uint32_t));
+	memcpy(paquete->buffer->stream + offset, &mi_socket, sizeof(uint32_t));
 
 	int bytes = sizeof(queue_name) + sizeof(uint32_t)*3;
 	void* a_enviar = serializar_paquete(paquete, bytes);
 
 	send(socket_broker, a_enviar, bytes, 0);
+	close(socket_broker); // Chequear, seguramente no envie la info si lo cierro inmediatamente dsp del send.
 }
 
-void* recibir_mensaje(int socket, uint32_t* id, queue_name* tipo_msg) {
+void* recibir_mensaje(int socket, uint32_t* id, queue_name* tipo_msg, uint32_t* mi_socket) {
 
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
@@ -302,7 +306,9 @@ void* recibir_mensaje(int socket, uint32_t* id, queue_name* tipo_msg) {
 	}
 
 	if (recv(socket, id, sizeof(uint32_t), MSG_WAITALL) <= 0) {
-		*id = 0; // No se envio o hubo un error recibiendo el ID.
+		*id = NULL; // No se envio o hubo un error recibiendo el ID.
+	} else if(recv(socket, mi_socket, sizeof(uint32_t), MSG_WAITALL) <= 0) {
+		*mi_socket = NULL;
 	}
 
 	void* msg = deserializar_buffer(*tipo_msg, paquete->buffer);
