@@ -24,7 +24,7 @@ void inicializar_memoria() {
 }
 
 void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t size){
-
+	printf("Almacenar\n");
 	entra = -1;
 	tamanio_a_ocupar = size;
 
@@ -133,6 +133,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 }
 
 t_struct_secundaria* duplicar_estructura(t_struct_secundaria* estructura){
+
 	t_struct_secundaria* duplicado = malloc(sizeof(t_struct_secundaria));
 	duplicado->bit_inicio = estructura->bit_inicio;
 	duplicado->auxiliar = estructura->auxiliar;
@@ -143,6 +144,7 @@ t_struct_secundaria* duplicar_estructura(t_struct_secundaria* estructura){
 }
 
 void buscar_particion_en_bs() {
+	printf("Buscar en bs\n");
 	t_struct_secundaria* particion;
 	int encontro_particion = 1;
 	int tamanio_lista = list_size(lista_de_particiones);
@@ -233,16 +235,19 @@ void buscar_particion_en_bs() {
 }
 
 bool son_buddies(t_struct_secundaria* particion_A, t_struct_secundaria* particion_B) {
+	printf("Son buddies\n");
 	int operacion_xorA_B = particion_B->bit_inicio ^ particion_A->tamanio;
 	bool xorA_B = particion_A->bit_inicio == operacion_xorA_B;
 	return particion_A->tamanio == particion_B->tamanio && xorA_B;
 }
 
 bool es_potencia_de_dos(int numero){
+	printf("Es potencia\n");
 	return ((numero!=0) && ((numero & (numero-1)) == 0)); // & = OPERACION LOGICA AND
 }
 
 void consolidar_particiones_en_bs(int posicion_a_liberar) { // Consolido cada vez que se libera una particion y sigo consolidando hasta que no pueda mas
+	printf("Consolidar particiones\n");
 	pthread_mutex_lock(&(semaforo_struct_s));
 	t_struct_secundaria* particion_a_consolidar = list_get(lista_de_particiones, posicion_a_liberar);
 
@@ -422,7 +427,7 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones() {
 }
 
 void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
-
+	printf("ELIMINAR VICTIMA\n");
 	int a_sacar = 0;
 
 	if (string_equals_ignore_case(algoritmo_remplazo, "FIFO")) {
@@ -436,7 +441,7 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 	pthread_mutex_lock(&(semaforo_struct_s));
 	t_struct_secundaria* particion_a_sacar = list_get(lista_de_particiones, a_sacar);
 
-	sacar_de_cola(particion_a_sacar->id_mensaje,particion_a_sacar->tipo_mensaje );
+	sacar_de_cola(particion_a_sacar->id_mensaje, particion_a_sacar->tipo_mensaje);
 
 	log_info(logger,"ELIMINO PARTICION:%d -- BIT DE INCICIO:%d", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
 	particion_a_sacar->id_mensaje = 0;
@@ -449,6 +454,7 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 	particion_a_sacar->tamanio = mayor_entre_Min_y_tam(particion_a_sacar->tamanio);
 	particion_a_sacar->auxiliar = 0;
 	pthread_mutex_unlock(&(semaforo_struct_s));
+
 	/*pthread_mutex_lock(&(semaforo_reconstruir));
 	FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","a");
 	fprintf(reconstruir,"ELIMINO PARTICION:%d /n",a_sacar);
@@ -462,6 +468,7 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 }
 
 int algoritmo_FIFO(){
+	printf("FIFO\n");
 	t_struct_secundaria* particion_a_sacar;
 	int orden = 0;
 	int orden_menor = 0;
@@ -484,6 +491,7 @@ int algoritmo_FIFO(){
 }
 
 int algoritmo_LRU(){
+	printf("LRU\n");
 	t_struct_secundaria* particion_a_sacar;
 	int contador = 0;
 	int flag_2 = 0;
@@ -514,6 +522,7 @@ int cont_orden_f(){
 }
 
 void actualizar_bit_inicio(int a_sacar){ // actualiza el bit de inicio y lo elimina de la lista de particiones a la particion a sacar // Creo que asi esta perfecto
+	printf("Actualizar bit\n");
 	t_struct_secundaria* particion_actual; // en donde estoy parado ahora
 	t_struct_secundaria* particion_a_sacar = list_get(lista_de_particiones,a_sacar);
 
@@ -524,6 +533,7 @@ void actualizar_bit_inicio(int a_sacar){ // actualiza el bit de inicio y lo elim
 }
 
 void mover_memoria(int a_sacar) {
+	printf("Mover memoria\n");
 	t_struct_secundaria* particion_a_mover_memoria;
 	particion_a_mover_memoria = list_get(lista_de_particiones, a_sacar);
 	int tamanio_a_mover = tamanio_memoria - (particion_a_mover_memoria->bit_inicio + mayor_entre_Min_y_tam(particion_a_mover_memoria->tamanio));
@@ -538,6 +548,7 @@ void mover_memoria(int a_sacar) {
 }
 
 void* de_id_mensaje_a_mensaje(uint32_t id_mensaje){
+	printf("id mensaje a mensaje\n");
 	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola = encontrar_particion_en_base_a_un_id_mensaje(id_mensaje);
 	void* mensaje = malloc(particion_de_donde_voy_a_sacar_el_tipo_de_cola->tamanio);
 	pthread_mutex_lock(&(semaforo_memoria));
@@ -547,25 +558,31 @@ void* de_id_mensaje_a_mensaje(uint32_t id_mensaje){
 }
 
 uint32_t de_id_mensaje_a_cola(uint32_t id_mensaje){
+	printf("id mensaje a cola\n");
 	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola = encontrar_particion_en_base_a_un_id_mensaje(id_mensaje);
 	return particion_de_donde_voy_a_sacar_el_tipo_de_cola->tipo_mensaje;
 }
 
 
 uint32_t de_id_mensaje_a_size(uint32_t id_mensaje){
+	printf("id mensaje a size\n");
 	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola = encontrar_particion_en_base_a_un_id_mensaje(id_mensaje);
 	return particion_de_donde_voy_a_sacar_el_tipo_de_cola->tamanio;
 }
 
 t_struct_secundaria* encontrar_particion_en_base_a_un_id_mensaje(uint32_t id_mensaje){
+	printf("Encontrar particion\n");
 	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola;
 	bool mismo_id(void* una_particion){
 		t_struct_secundaria* particion_a_comparar =  (t_struct_secundaria*) una_particion;
 		return particion_a_comparar->id_mensaje == id_mensaje;
 	}
+	printf("MISMO ID LO HACE\n");
 	pthread_mutex_lock(&(semaforo_struct_s));
+	printf("LOCK\n");
 	particion_de_donde_voy_a_sacar_el_tipo_de_cola = list_find(lista_de_particiones, mismo_id);
 	pthread_mutex_unlock(&(semaforo_struct_s));
+	printf("UNLOCK\n");
 	return particion_de_donde_voy_a_sacar_el_tipo_de_cola;
 }
 
@@ -606,7 +623,7 @@ void capturar_senial(){
 }
 
 int mayor_entre_Min_y_tam(int tamanio){
-
+	printf("mayor entre min y tam\n");
 	if( tamanio_minimo > tamanio){
 		return tamanio_minimo;
 	}else{
