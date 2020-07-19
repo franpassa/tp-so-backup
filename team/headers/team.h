@@ -51,13 +51,8 @@ uint32_t socket_appeared;
 t_list* estado_exit; /*lista de entrenadores*/
 t_list* objetivos_globales;/*es una lista de especies*/
 t_list* ids_enviados;
-t_list* pokemons_recibidos;
 t_list* pokemons_objetivos;
 
-pthread_mutex_t mutexCiclosConsumidos;
-pthread_mutex_t mutexEstadoReady;
-pthread_mutex_t mutexEstadoBloqueado;
-pthread_mutex_t mutexEstadoNew;
 pthread_mutex_t mutexEstadoExit;
 pthread_mutex_t mutexIdsEnviados;
 pthread_mutex_t mutexReconexion;
@@ -78,8 +73,7 @@ pthread_t hilo_deadlock;
 pthread_t hilo_invocador_escucha;
 
 bool hayEntrenadorProcesando; 	// funcion a futuro, chequear en otro proceso si hay un entrenador
-bool envioGets;								//corriendo porque cuando sale del bloqueo porque ya le
-								// mandaron el caught
+bool envioGets;								//corriendo porque cuando sale del bloqueo porque ya le							// mandaron el caught
 
 //FUNCIONES
 

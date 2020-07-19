@@ -36,8 +36,12 @@ t_list* estado_new;
 // entrenadores en block
 t_list* estado_bloqueado;
 t_list* estado_ready;
+t_list* pokemons_recibidos;
 
-pthread_mutex_t mutexLogEntrenador;
+pthread_mutex_t mutexCiclosConsumidos;
+pthread_mutex_t mutexEstadoNew;
+pthread_mutex_t mutexEstadoBloqueado;
+pthread_mutex_t mutexEstadoReady;
 
 char* ALGORITMO;
 uint32_t QUANTUM;
@@ -84,7 +88,7 @@ t_list* todosLosEntrenadoresAPlanificar();
 bool bloqueadoPorNada(void* unEntrenador);
 bool bloqueadoPorDeadlock(t_entrenador* unEntrenador);
 bool estaEnLista(t_list* lista, t_entrenador* unEntrenador);
-t_list* listaALaQuePertenece(t_entrenador* unEntrenador);
+t_list* listaALaQuePertenece(t_entrenador* unEntrenador, pthread_mutex_t* mutexLista);
 
 bool puedeAtrapar(t_entrenador* entrenador);
 void mostrar_ids(void* id);

@@ -132,13 +132,13 @@ void esperar_cliente(int* socket_servidor){
 			log_info(logger,"Nuevo mensaje APPEARED_POKEMON %s, en la posicion (%d,%d).",mensaje_recibido_appeared->nombre_pokemon,mensaje_recibido_appeared->coordenada_X,mensaje_recibido_appeared->coordenada_Y);
 			if (estaEnListaEspecie(mensaje_recibido_appeared->nombre_pokemon,objetivos_posta) && noSuperaElMaximoQuePuedoRecibir(mensaje_recibido_appeared->nombre_pokemon)) {
 
-				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
-				agregarAppearedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_appeared);
-				pthread_mutex_unlock(&mutexPokemonsRecibidosHistoricos);
-
 				pthread_mutex_lock(&mutexPokemonsRecibidos);
 				agregarAppearedRecibidoALista(pokemons_recibidos,mensaje_recibido_appeared);
 				pthread_mutex_unlock(&mutexPokemonsRecibidos);
+
+				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
+				agregarAppearedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_appeared);
+				pthread_mutex_unlock(&mutexPokemonsRecibidosHistoricos);
 			}
 		}
 
@@ -187,28 +187,17 @@ void planificacion()
 		pthread_mutex_unlock(&mutexEstadoReady);
 	}
 
-	if(entrenador->motivoBloqueo != RESOLVIENDO_DEADLOCK)
+	if(entrenador->motivoBloqueo == RESOLVIENDO_DEADLOCK)
 	{
-		entrenador->posXAMoverse = entrenador->pokemonAMoverse->posicionX;
-		entrenador->posYAMoverse = entrenador->pokemonAMoverse->posicionY;
-	}
-	else
-	{
+		pthread_mutex_lock(&mutexEstadoBloqueado);
 		t_list* losQueTienenElPokemonQueLeFalta = quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado);
-
+		pthread_mutex_unlock(&mutexEstadoBloqueado);
 		entrenadorAMoverse = list_get(losQueTienenElPokemonQueLeFalta,0);
 		entrenador->posXAMoverse = entrenadorAMoverse->posicionX;
 		entrenador->posYAMoverse = entrenadorAMoverse->posicionY; //<- muere aca despues del deadlock
 	}
 
-	if (entrenador->pokemonAMoverse!= NULL && entrenador != NULL)
-	{
-		moverEntrenador(entrenador,entrenador->pokemonAMoverse->posicionX,entrenador->pokemonAMoverse->posicionY);
-	}
-	else if(entrenadorAMoverse != NULL && entrenador != NULL)
-	{
-		moverEntrenador(entrenador,entrenador->posXAMoverse,entrenador->posYAMoverse);
-	}
+	moverEntrenador(entrenador,entrenador->posXAMoverse,entrenador->posYAMoverse);
 
 	uint32_t distancia = distanciaEntrenadorPokemon(entrenador->posicionX,entrenador->posicionY, entrenador->posXAMoverse,entrenador->posYAMoverse);
 
@@ -257,7 +246,9 @@ void planificacion()
 				printf("Envio mensaje catch %s, posicion: (%d,%d), id: %d.\n",mensaje->nombre_pokemon,mensaje->coordenada_X,mensaje->coordenada_Y,*idMensajeExec);
 				entrenador->idRecibido = *idMensajeExec;
 				entrenador->motivoBloqueo = ESPERA_CAUGHT;
+				pthread_mutex_lock(&mutexIdsEnviados);
 				list_add(ids_enviados, idMensajeExec);
+				pthread_mutex_unlock(&mutexIdsEnviados);
 				pthread_mutex_lock(&mutexEstadoBloqueado);
 				list_add(estado_bloqueado, entrenador);
 				pthread_mutex_unlock(&mutexEstadoBloqueado);
@@ -280,26 +271,33 @@ void pasar_a_ready(){
 			t_entrenador* entrenadorTemporal = entrenadorAReady(entrenadoresAPlanificar,pokemons_recibidos);
 			pthread_mutex_unlock(&mutexPokemonsRecibidos);
 
-			log_info(logger,"El entrenador con id %d paso a la cola READY.", entrenadorTemporal->idEntrenador);
+			entrenadorTemporal->posXAMoverse = (entrenadorTemporal->pokemonAMoverse)->posicionX;
+			entrenadorTemporal->posYAMoverse = (entrenadorTemporal->pokemonAMoverse)->posicionY;
+
+			if(string_equals_ignore_case(ALGORITMO,"SJF-SD") || string_equals_ignore_case(ALGORITMO,"SJF-CD")){
+				uint32_t distancia = distanciaEntrenadorPokemon(entrenadorTemporal->posicionX, entrenadorTemporal->posicionY,entrenadorTemporal->posXAMoverse,entrenadorTemporal->posYAMoverse);
+				if(fabs(entrenadorTemporal->estimacion) != fabs(config_get_double_value(config,"ESTIMACION_INICIAL"))){
+					recalcularEstimacion(entrenadorTemporal,distancia);
+				}
+			}
 
 			bool es_el_mismo_entrenador(t_entrenador* unEntrenador){
 				return unEntrenador->idEntrenador == entrenadorTemporal->idEntrenador;
 			}
 
 			//Aca tengo que poner mutex??
-			t_list* lista = listaALaQuePertenece(entrenadorTemporal);
+			pthread_mutex_t mutexLista;
+			t_list* lista = listaALaQuePertenece(entrenadorTemporal, &mutexLista);
 
+			pthread_mutex_lock(&mutexLista);
 			list_remove_and_destroy_by_condition(lista,(void*) es_el_mismo_entrenador,free);
-
-			uint32_t distancia = distanciaEntrenadorPokemon(entrenadorTemporal->posicionX, entrenadorTemporal->posicionY,(entrenadorTemporal->pokemonAMoverse)->posicionX,(entrenadorTemporal->pokemonAMoverse)->posicionY);
-
-			if(string_equals_ignore_case(ALGORITMO,"SJF-SD") || string_equals_ignore_case(ALGORITMO,"SJF-CD")){
-				recalcularEstimacion(entrenadorTemporal,distancia);
-			}
+			pthread_mutex_unlock(&mutexLista);
 
 			pthread_mutex_lock(&mutexEstadoReady);
 			list_add(estado_ready,entrenadorTemporal);
 			pthread_mutex_unlock(&mutexEstadoReady);
+
+			log_info(logger,"El entrenador con id %d paso a la cola READY.", entrenadorTemporal->idEntrenador);
 
 			bool es_el_mismo_pokemon(t_pokemon* pokemon){
 				return string_equals_ignore_case(pokemon->nombre, (entrenadorTemporal->pokemonAMoverse)->nombre);
@@ -327,13 +325,13 @@ void recibirAppeared(){
 			log_info(logger,"Nuevo mensaje recibido: APPEARED_POKEMON %s, en la posicion (%d,%d).",mensaje_recibido_appeared->nombre_pokemon,mensaje_recibido_appeared->coordenada_X,mensaje_recibido_appeared->coordenada_Y);
 			if (estaEnLaLista(mensaje_recibido_appeared->nombre_pokemon,objetivos_posta) && noSuperaElMaximoQuePuedoRecibir(mensaje_recibido_appeared->nombre_pokemon)) {
 
-				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
-				agregarAppearedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_appeared);
-				pthread_mutex_unlock(&mutexPokemonsRecibidosHistoricos);
-
 				pthread_mutex_lock(&mutexPokemonsRecibidos);
 				agregarAppearedRecibidoALista(pokemons_recibidos,mensaje_recibido_appeared);
 				pthread_mutex_unlock(&mutexPokemonsRecibidos);
+
+				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
+				agregarAppearedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_appeared);
+				pthread_mutex_unlock(&mutexPokemonsRecibidosHistoricos);
 			}
 		} else {
 			if(pthread_mutex_trylock(&mutexReconexion)==0){
@@ -531,10 +529,14 @@ void deadlock()
 						return esElDeMenorEstimacion(estado_bloqueado,unEntrenador);
 					}
 
+					pthread_mutex_lock(&mutexEstadoBloqueado);
 					entrenador = list_remove_by_condition(estado_bloqueado,(void*) esElDeMenor);
+					pthread_mutex_unlock(&mutexEstadoBloqueado);
 
 				} else {
+					pthread_mutex_lock(&mutexEstadoBloqueado);
 					entrenador = list_remove(estado_bloqueado,0);
+					pthread_mutex_unlock(&mutexEstadoBloqueado);
 				}
 
 				pthread_mutex_lock(&mutexCambiosDeContexto);

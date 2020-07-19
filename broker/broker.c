@@ -8,16 +8,16 @@ int main(){
 	int socket_servidor = iniciar_servidor_broker();
 
 	pthread_create(&hilo_suscripciones, NULL, (void*) esperar_cliente, &socket_servidor);
-	pthread_create(&hilo_estado_queues,NULL,(void*) estado_de_queues, &socket_servidor);
+	//pthread_create(&hilo_estado_queues,NULL,(void*) estado_de_queues, &socket_servidor);
 	pthread_create(&hilo_mensajes, NULL, (void*) loop_productores, NULL);
-	pthread_create(&hilo_enviar_mensaje, NULL, (void*) mandar_mensajes, NULL);
+	//pthread_create(&hilo_enviar_mensaje, NULL, (void*) mandar_mensajes, NULL);
 
 	//reconstruir();
 
-	pthread_join(hilo_estado_queues,NULL);
+	//pthread_join(hilo_estado_queues,NULL);
 	pthread_join(hilo_suscripciones,NULL);
 	pthread_join(hilo_mensajes,NULL);
-	pthread_join(hilo_enviar_mensaje,NULL);
+	//pthread_join(hilo_enviar_mensaje,NULL);
 
 	close(socket_servidor);
 	//terminar_programa(logger,config);
@@ -108,7 +108,7 @@ t_cola_de_mensajes* int_a_nombre_cola(queue_name id){
 
 void inicializar(){
 
-	//signal(SIGPIPE, SIG_IGN); decomentar despues
+	signal(SIGPIPE, SIG_IGN);
 
 	config = leer_config();
 	logger = iniciar_logger();
@@ -237,21 +237,38 @@ void reconstruir(){
 }
 
 void sacar_de_cola(uint32_t id, int cola) {
-	pthread_mutex_lock(&(sem_cola[cola]));
+	printf("Sacar_de_cola\n");
+	pthread_mutex_t mutex_cola = sem_cola[cola];
+
+
+	pthread_mutex_lock(&mutex_cola);
+	printf("Entra al lock\n");
 	t_cola_de_mensajes* queue = int_a_nombre_cola(cola);
+
 	t_info_mensaje* mensaje = queue_peek(queue->cola);
 
 	int control = 0;
-
+	uint32_t id_primero = mensaje->id;
+	uint32_t id_siguiente;
+	printf("Entra al DO While\n");
 	do {
 		mensaje = queue_pop(queue->cola);
 
 		if (mensaje->id == id) {
 			control = 1;
 			free_msg_cola(mensaje);
+		} else {
+			queue_push(queue->cola, mensaje);
+			mensaje = queue_peek(queue->cola);
+			id_siguiente = mensaje->id;
 		}
+		printf("control = %d\n",control);
+		printf("id_primero= %d\n",id_primero);
+		printf("Id_siguiente= %d\n",id_siguiente);
+	} while (control == 0 && id_primero!= id_siguiente);
 
-	} while (control == 0);
-	pthread_mutex_unlock(&(sem_cola[cola]));
+	printf("SALE DO While\n");
+	pthread_mutex_unlock(&mutex_cola);
+	printf("Termina todo el Sacar COLA\n");
 }
 

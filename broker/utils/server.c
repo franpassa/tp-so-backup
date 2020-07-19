@@ -60,9 +60,9 @@ void esperar_cliente(int* socket_servidor) {
 		}
 
 		if(cola == PRODUCTOR){
-			pthread_mutex_lock(&mutex_productores);
 			int* socket_productor = malloc(sizeof(int));
 			*socket_productor = socket_cliente;
+			pthread_mutex_lock(&mutex_productores);
 			list_add(sockets_productores, socket_productor);
 			pthread_mutex_unlock(&mutex_productores);
 
