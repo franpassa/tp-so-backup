@@ -367,7 +367,10 @@ void moverConDesalojoPorSJF(t_entrenador* unEntrenador, uint32_t posX, uint32_t 
 			pthread_mutex_unlock(&mutexCambiosDeContexto);
 			break;
 		}
+
+
 		if(abs(unEntrenador->posicionX - posX) > 0){
+
 			sleep(retardoCpu);
 
 			if(unEntrenador->posicionX > posX){
@@ -384,7 +387,9 @@ void moverConDesalojoPorSJF(t_entrenador* unEntrenador, uint32_t posX, uint32_t 
 		}
 
 		if(abs(unEntrenador->posicionY - posY) > 0){
+
 			sleep(retardoCpu);
+
 			if(unEntrenador->posicionY > posY){
 				unEntrenador->posicionY --;
 			} else {

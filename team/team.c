@@ -115,14 +115,10 @@ void inicializarVariables(){
 	ciclosConsumidos = 0;
 	cambiosDeContexto = 0;
 	cantidadDeadlocks = 0;
-	sem_init(&semaforo,0,1);
-	sem_init(&semaforo2,0,1);
 }
 
 void liberarVariables()
 {
-	sem_destroy(&semaforo);
-	sem_destroy(&semaforo2);
 	liberarArray(posicionesEntrenadores);
 	liberarArray(pokesEntrenadores);
 	liberarArray(pokesObjetivos);
