@@ -122,6 +122,7 @@ void inicializar(){
 	pthread_mutex_init(&semaforo_id, NULL);
 	pthread_mutex_init(&semaforo_struct_s, NULL);
 	pthread_mutex_init(&semaforo_memoria, NULL);
+	pthread_mutex_init(&sem_lru, NULL);
 
 	for(int i = 0; i <= 5; i++){
 		pthread_mutex_init(&(sem_cola[i]), NULL);
@@ -194,7 +195,7 @@ void print_mensaje_de_cola(t_info_mensaje* mensaje){
 	uint32_t id_mensaje = mensaje->id;
 	printf("ID: %d\n",id_mensaje);
 	queue_name id_cola = de_id_mensaje_a_cola(id_mensaje);
-	void* msg = de_id_mensaje_a_mensaje(id_mensaje);
+	void* msg = de_id_mensaje_a_mensaje(id_mensaje,0);
 	t_buffer* mensaje_en_buffer = malloc(sizeof(t_buffer));
 	mensaje_en_buffer->stream = msg;
 	mensaje_en_buffer->size = de_id_mensaje_a_size(id_mensaje);

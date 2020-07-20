@@ -60,6 +60,7 @@ char* algoritmo_part_libre;
 int frecuencia_compactacion;
 int tamanio_minimo;
 int cont_orden;
+int cont_lru;
 
 uint32_t tamanio_memoria;
 
@@ -90,6 +91,7 @@ pthread_mutex_t sem_cola[6];
 pthread_mutex_t mutex_productores;
 pthread_mutex_t semaforo_struct_s;
 pthread_mutex_t semaforo_memoria;
+pthread_mutex_t sem_lru;
 
 // HILOS
 
@@ -153,12 +155,13 @@ t_struct_secundaria* duplicar_estructura(t_struct_secundaria*);
 void llenar_estructura(t_struct_secundaria*, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
 void buscar_particion_en_particiones_dinamicas();
 void compactar();
+void consolidar();
 void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones();
 void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs();
 void liberar_memoria_interna();
 void actualizar_bit_inicio(int);
 void mover_memoria(int);
-void* de_id_mensaje_a_mensaje(uint32_t);
+void* de_id_mensaje_a_mensaje(uint32_t,int);
 uint32_t de_id_mensaje_a_cola(uint32_t);
 uint32_t de_id_mensaje_a_size(uint32_t);
 
@@ -168,10 +171,11 @@ bool son_buddies(t_struct_secundaria*, t_struct_secundaria*);
 bool es_potencia_de_dos(int);
 int algoritmo_FIFO();
 int algoritmo_LRU();
-t_struct_secundaria* encontrar_particion_en_base_a_un_id_mensaje(uint32_t);
+t_struct_secundaria* encontrar_particion_en_base_a_un_id_mensaje(uint32_t,int);
 void dump_de_cache();
 void capturar_senial();
 int mayor_entre_Min_y_tam(int);
+int f_cont_lru();
 
 // otras
 void reconstruir();

@@ -68,7 +68,7 @@ void recorrer_cola(t_cola_de_mensajes* nombre) {
 				uint32_t* sub = (uint32_t*) list_get(nombre->lista_suscriptores,i);
 				if (!esta_en_lista(info_a_sacar->quienes_lo_recibieron, sub)) {
 
-					void* mensaje = de_id_mensaje_a_mensaje(info_a_sacar->id);
+					void* mensaje = de_id_mensaje_a_mensaje(info_a_sacar->id,1);
 
 					if (mandar(nombre->tipo_cola, mensaje, info_a_sacar->id, *sub, de_id_mensaje_a_size(info_a_sacar->id)) == -1) {
 

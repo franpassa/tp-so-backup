@@ -50,8 +50,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 			cont_orden ++;
 			estructura_memoria->auxiliar = cont_orden;
 		} else if(string_equals_ignore_case(algoritmo_remplazo,"LRU")) {
-			//de alguna forma poner la hora
-			estructura_memoria->auxiliar = 1;
+			estructura_memoria->auxiliar = f_cont_lru();
 		} else {
 			printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 		}
@@ -287,6 +286,7 @@ void buscar_particion_en_particiones_dinamicas(){
 			}
 			pthread_mutex_unlock(&(semaforo_struct_s));
 		}
+
 		if (entra == -1){
 			if (flag == frecuencia_compactacion){
 				compactar();
@@ -305,43 +305,50 @@ void buscar_particion_en_particiones_dinamicas(){
 
 void compactar(){
 	t_struct_secundaria* estructura1;
+	int tamanio_lista_actual = list_size(lista_de_particiones);
+	pthread_mutex_lock(&(semaforo_struct_s));
+	for (int i = 0; i < tamanio_lista_actual; i++ ){
+		estructura1 = list_get(lista_de_particiones,i);
+		if (estructura1->tipo_mensaje == 6 && i+1 < tamanio_lista_actual){
+
+			log_info(logger, "COMPACTACION DE PARTICION:%d -- BIT DE INCICIO:%d", i, estructura1->bit_inicio); // LOG 8
+
+			mover_memoria(i);
+
+			actualizar_bit_inicio(i);
+
+			estructura1->bit_inicio = tamanio_memoria - estructura1->tamanio;
+
+			list_remove(lista_de_particiones,i);
+			list_add(lista_de_particiones, estructura1);
+			}
+	}
+	pthread_mutex_unlock(&(semaforo_struct_s));
+
+	consolidar();
+
+	buscar_particion_en_particiones_dinamicas();
+}
+void consolidar(){
+	t_struct_secundaria* estructura1;
 	t_struct_secundaria* estructura2;
 	int tamanio_lista_actual = list_size(lista_de_particiones);
+	pthread_mutex_lock(&(semaforo_struct_s));
 	for (int i = 0; i < tamanio_lista_actual; i++ ){
-		pthread_mutex_lock(&(semaforo_struct_s));
 		estructura1 = list_get(lista_de_particiones,i);
 		if (estructura1->tipo_mensaje == 6 && i+1 < tamanio_lista_actual){
 			estructura2 = list_get(lista_de_particiones,(i+1));
 			if(estructura2->tipo_mensaje == 6){
-				log_info(logger, "COMPACTACION DE PARTICION:%d -- BIT DE INCICIO:0x%x y PARTICION:%d -- BIT DE INCICIO:0x%x ",
-								i, estructura1->bit_inicio, (i+1),
-								estructura2->bit_inicio); // LOG 8
 
 				estructura1->tamanio += estructura2->tamanio;
 
 				list_remove_and_destroy_element(lista_de_particiones,(i+1),free);
 				tamanio_lista_actual -= 1;
 				i -= 1;
-			} else {
-
-				mover_memoria(i);
-
-				actualizar_bit_inicio(i);
-
-				t_struct_secundaria* nueva = duplicar_estructura(estructura1);
-				nueva->bit_inicio = tamanio_memoria - estructura1->tamanio;
-				nueva->id_mensaje = 0;
-				nueva->tamanio = estructura1->tamanio;
-				nueva->tipo_mensaje = 6;
-
-				list_add(lista_de_particiones, nueva);
-				list_remove_and_destroy_element(lista_de_particiones,i,free);
-				i -= 1;
 			}
 		}
-		pthread_mutex_unlock(&(semaforo_struct_s));
 	}
-	buscar_particion_en_particiones_dinamicas();
+	pthread_mutex_unlock(&(semaforo_struct_s));
 }
 
 void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones() {
@@ -376,6 +383,8 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones() {
 		flag = -1;
 	}
 	pthread_mutex_unlock(&(semaforo_struct_s));
+
+	consolidar();
 
 	buscar_particion_en_particiones_dinamicas();
 }
@@ -421,8 +430,8 @@ int algoritmo_FIFO(){
 	int orden_menor = 0;
 	int a_sacar = -1; // Creo q esta bien esto
 	int a = 0;
+	pthread_mutex_lock(&(semaforo_struct_s));
 	for(int i = 0; i< list_size(lista_de_particiones); i++ ){
-		pthread_mutex_lock(&(semaforo_struct_s));
 		particion_a_sacar = list_get(lista_de_particiones,i);
 		if(i == a && particion_a_sacar->tipo_mensaje != 6 ){
 			orden_menor = particion_a_sacar->auxiliar;
@@ -439,36 +448,34 @@ int algoritmo_FIFO(){
 			a_sacar = i;
 			printf("A SACAR EN IF=%d\n",a_sacar);
 		}
-		pthread_mutex_unlock(&(semaforo_struct_s));
 	}
 	printf("A SACAR REAL =%d\n",a_sacar);
+	pthread_mutex_unlock(&(semaforo_struct_s));
 	return a_sacar;
 }
 
-int algoritmo_LRU(){ //arreglar cuando haga lo de la hora
-
-	printf("LRU\n");
+int algoritmo_LRU(){
+	int a_sacar = -1;
+	int a = 0;
 	t_struct_secundaria* particion_a_sacar;
-	int contador = 0;
-	int flag_2 = 0;
-	int a_sacar = 0 ;
-	do {
-		if (contador == list_size(lista_de_particiones)){
-			contador = 0;
-		}
-		pthread_mutex_lock(&(semaforo_struct_s));
-		particion_a_sacar = list_get(lista_de_particiones,contador);
-		if (particion_a_sacar->auxiliar == 0 ){
-			a_sacar = contador;
-			flag_2 = 1;
+	int lru = 0;
+	int lru_menor = 0;
+	pthread_mutex_lock(&(semaforo_struct_s));
+	for(int i = 0; i< list_size(lista_de_particiones); i++ ){
+		particion_a_sacar = list_get(lista_de_particiones,i);
+		if(i == a && particion_a_sacar->tipo_mensaje != 6 ){
+			lru_menor = particion_a_sacar->auxiliar;
+			a_sacar = i;
 		} else {
-			particion_a_sacar->auxiliar = 0;
-
+			a += 1;
 		}
-		pthread_mutex_unlock(&(semaforo_struct_s));
-		contador ++;
-	} while(flag_2 == 0);
-
+		lru = particion_a_sacar->auxiliar;
+		if (lru_menor > lru && particion_a_sacar->tipo_mensaje != 6){
+			lru_menor = lru;
+			a_sacar = i;
+			}
+		}
+	pthread_mutex_unlock(&(semaforo_struct_s));
 	return a_sacar;
 }
 
@@ -498,9 +505,9 @@ void mover_memoria(int a_sacar) {
 
 }
 
-void* de_id_mensaje_a_mensaje(uint32_t id_mensaje){
+void* de_id_mensaje_a_mensaje(uint32_t id_mensaje,int control){
 	printf("id mensaje a mensaje\n");
-	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola = encontrar_particion_en_base_a_un_id_mensaje(id_mensaje);
+	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola = encontrar_particion_en_base_a_un_id_mensaje(id_mensaje,1);
 	void* mensaje = malloc(particion_de_donde_voy_a_sacar_el_tipo_de_cola->tamanio);
 	pthread_mutex_lock(&(semaforo_memoria));
 	memcpy(mensaje, memoria + particion_de_donde_voy_a_sacar_el_tipo_de_cola->bit_inicio, particion_de_donde_voy_a_sacar_el_tipo_de_cola->tamanio);
@@ -511,7 +518,7 @@ void* de_id_mensaje_a_mensaje(uint32_t id_mensaje){
 
 uint32_t de_id_mensaje_a_cola(uint32_t id_mensaje){
 	printf("id mensaje a cola\n");
-	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola = encontrar_particion_en_base_a_un_id_mensaje(id_mensaje);
+	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola = encontrar_particion_en_base_a_un_id_mensaje(id_mensaje,0);
 	uint32_t cola = particion_de_donde_voy_a_sacar_el_tipo_de_cola->tipo_mensaje;
 	free(particion_de_donde_voy_a_sacar_el_tipo_de_cola);
 	return cola;
@@ -520,13 +527,13 @@ uint32_t de_id_mensaje_a_cola(uint32_t id_mensaje){
 
 uint32_t de_id_mensaje_a_size(uint32_t id_mensaje){ //revisar
 	printf("id mensaje a size\n");
-	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola = encontrar_particion_en_base_a_un_id_mensaje(id_mensaje);
+	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola = encontrar_particion_en_base_a_un_id_mensaje(id_mensaje,0);
 	uint32_t size = particion_de_donde_voy_a_sacar_el_tipo_de_cola->tamanio;
 	free(particion_de_donde_voy_a_sacar_el_tipo_de_cola);
 	return size;
 }
 
-t_struct_secundaria* encontrar_particion_en_base_a_un_id_mensaje(uint32_t id_mensaje){
+t_struct_secundaria* encontrar_particion_en_base_a_un_id_mensaje(uint32_t id_mensaje, int control){
 	printf("Encontrar particion\n");
 	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola;
 	bool mismo_id(void* una_particion){
@@ -537,6 +544,9 @@ t_struct_secundaria* encontrar_particion_en_base_a_un_id_mensaje(uint32_t id_men
 	pthread_mutex_lock(&(semaforo_struct_s));
 	printf("LOCK\n");
 	particion_de_donde_voy_a_sacar_el_tipo_de_cola = list_find(lista_de_particiones, mismo_id);
+	if (control == 1 && string_equals_ignore_case(algoritmo_remplazo,"LRU")){
+		particion_de_donde_voy_a_sacar_el_tipo_de_cola->auxiliar = f_cont_lru();
+	}
 	t_struct_secundaria* particion = duplicar_estructura(particion_de_donde_voy_a_sacar_el_tipo_de_cola);
 	pthread_mutex_unlock(&(semaforo_struct_s));
 	printf("UNLOCK\n");
@@ -587,4 +597,10 @@ int mayor_entre_Min_y_tam(int tamanio){
 		return tamanio;
 	}
 
+}
+int f_cont_lru(){
+	pthread_mutex_lock(&(sem_lru));
+	cont_lru ++;
+	pthread_mutex_unlock(&(sem_lru));
+	return cont_lru;
 }

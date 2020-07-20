@@ -218,7 +218,7 @@ int revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido, uint
 		for (int i = 0; i < queue_size(queue_a_revisar->cola); i++) {
 			elemento_a_testear = queue_pop(queue_a_revisar->cola);
 			t_buffer* mensaje_en_cola_buffer = malloc(sizeof(t_buffer));
-			msg = de_id_mensaje_a_mensaje(elemento_a_testear->id);
+			msg = de_id_mensaje_a_mensaje(elemento_a_testear->id,0);
 			mensaje_en_cola_buffer->stream = msg;
 			mensaje_en_cola_buffer->size = de_id_mensaje_a_size(elemento_a_testear->id);
 			msg2 = deserializar_buffer(id, mensaje_en_cola_buffer);
