@@ -94,6 +94,7 @@ t_list* crearListaDeEntrenadores(char** posicionesEntrenadores, char** pokesEntr
 		entrenador->posXAMoverse = 0;
 		entrenador->posYAMoverse = 0;
 		list_add(entrenadores,entrenador);
+		sem_post(&semEntrenadoresAPlanificar);
 	}
 
 	return entrenadores;

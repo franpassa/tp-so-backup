@@ -46,6 +46,8 @@ pthread_mutex_t mutexEstadoReady;
 pthread_mutex_t mutexCambiosDeContexto;
 
 sem_t semEstadoExec;
+sem_t semPokemonsRecibidos;
+sem_t semEntrenadoresAPlanificar;
 
 char* ALGORITMO;
 uint32_t QUANTUM;

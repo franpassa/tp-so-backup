@@ -94,6 +94,8 @@ void inicializarVariables(){
 	pthread_cond_init(&cond_reconectado, NULL);
 
 	sem_init(&semEstadoExec,0,0);
+	sem_init(&semPokemonsRecibidos,0,0);
+	sem_init(&semEntrenadoresAPlanificar,0,0);
 
 	posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
 	pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
@@ -146,4 +148,6 @@ void liberarVariables()
 	pthread_mutex_destroy(&mutexEspera);
 	pthread_cond_destroy(&cond_reconectado);
 	sem_destroy(&semEstadoExec);
+	sem_destroy(&semPokemonsRecibidos);
+	sem_destroy(&semEntrenadoresAPlanificar);
 }
