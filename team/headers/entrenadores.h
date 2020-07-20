@@ -4,6 +4,7 @@
 #include "pokemon.h"
 #include <math.h>
 #include <pthread.h>
+#include <semaphore.h>
 
 typedef enum{
 	ESPERA_CAUGHT,
@@ -43,6 +44,8 @@ pthread_mutex_t mutexEstadoNew;
 pthread_mutex_t mutexEstadoBloqueado;
 pthread_mutex_t mutexEstadoReady;
 pthread_mutex_t mutexCambiosDeContexto;
+
+sem_t semEstadoExec;
 
 char* ALGORITMO;
 uint32_t QUANTUM;

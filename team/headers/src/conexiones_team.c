@@ -57,6 +57,7 @@ void cambiarEstado(t_entrenador* entrenador){
 		pthread_mutex_lock(&mutexEstadoReady);
 		list_add(estado_ready,entrenador);
 		pthread_mutex_unlock(&mutexEstadoReady);
+		sem_post(&semEstadoExec);
 	}
 	else
 	{
@@ -126,7 +127,9 @@ void esperar_cliente(int* socket_servidor){
 
 		queue_name colaMensaje;
 
-		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_cliente,&id,&colaMensaje);
+		uint32_t mi_socket;
+
+		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_cliente,&id,&colaMensaje,&mi_socket);
 
 		if (mensaje_recibido_appeared != NULL) {
 			log_info(logger,"Nuevo mensaje APPEARED_POKEMON %s, en la posicion (%d,%d).",mensaje_recibido_appeared->nombre_pokemon,mensaje_recibido_appeared->coordenada_X,mensaje_recibido_appeared->coordenada_Y);
@@ -150,20 +153,19 @@ void esperar_cliente(int* socket_servidor){
 void estado_exec(){
 	while (1){
 
-		if (!list_is_empty(estado_ready)){
+		sem_wait(&semEstadoExec);
 
-			if(!hayEntrenadorProcesando){
+		if(!hayEntrenadorProcesando){
 
-				pthread_mutex_lock(&mutexHayEntrenadorProcesando);
-				hayEntrenadorProcesando = true;
-				pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
+			pthread_mutex_lock(&mutexHayEntrenadorProcesando);
+			hayEntrenadorProcesando = true;
+			pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
 
-				planificacion();
+			planificacion();
 
-				pthread_mutex_lock(&mutexHayEntrenadorProcesando);
-				hayEntrenadorProcesando = false;
-				pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
-			}
+			pthread_mutex_lock(&mutexHayEntrenadorProcesando);
+			hayEntrenadorProcesando = false;
+			pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
 		}
 	}
 }
@@ -205,6 +207,8 @@ void planificacion()
 		pthread_mutex_lock(&mutexEstadoReady);
 		list_add(estado_ready,entrenador);
 		pthread_mutex_unlock(&mutexEstadoReady);
+
+		sem_post(&semEstadoExec);
 	} else
 	{
 		if(entrenador->motivoBloqueo == RESOLVIENDO_DEADLOCK)
@@ -296,6 +300,8 @@ void pasar_a_ready(){
 			list_add(estado_ready,entrenadorTemporal);
 			pthread_mutex_unlock(&mutexEstadoReady);
 
+			sem_post(&semEstadoExec);
+
 			log_info(logger,"El entrenador con id %d paso a la cola READY.", entrenadorTemporal->idEntrenador);
 
 			bool es_el_mismo_pokemon(t_pokemon* pokemon){
@@ -314,10 +320,11 @@ void pasar_a_ready(){
 void recibirAppeared(){
 	uint32_t idRecibido;
 	queue_name colaMensaje;
+	uint32_t mi_socket;
 
 	while(1){
 
-		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_appeared,&idRecibido,&colaMensaje);
+		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_appeared,&idRecibido,&colaMensaje,&mi_socket);
 		//confirmar_recepcion();
 
 		if (mensaje_recibido_appeared != NULL) {
@@ -349,10 +356,11 @@ void recibirAppeared(){
 void recibirLocalized(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 	uint32_t id;
 	queue_name colaMensaje;
+	uint32_t mi_socket;
 
 	while (1) {
 
-		localized_pokemon_msg* mensaje_recibido_localized = recibir_mensaje(socket_localized,&id,&colaMensaje); //Devuelve NULL si falla, falta manejar eso para que vuelva a reintentar la conexion.
+		localized_pokemon_msg* mensaje_recibido_localized = recibir_mensaje(socket_localized,&id,&colaMensaje,&mi_socket); //Devuelve NULL si falla, falta manejar eso para que vuelva a reintentar la conexion.
 
 		if (mensaje_recibido_localized != NULL) {
 			log_info(logger,"Nuevo mensaje recibido: LOCALIZED_POKEMON %s, en %d posiciones.",mensaje_recibido_localized->nombre_pokemon,mensaje_recibido_localized->cantidad_posiciones);
@@ -385,10 +393,11 @@ void recibirLocalized(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 	uint32_t idRecibido;
 	queue_name colaMensaje;
+	uint32_t mi_socket;
 
 	while(1){
 
-		caught_pokemon_msg* mensaje_recibido = recibir_mensaje(socket_caught,&idRecibido,&colaMensaje);
+		caught_pokemon_msg* mensaje_recibido = recibir_mensaje(socket_caught,&idRecibido,&colaMensaje,&mi_socket);
 
 		if(mensaje_recibido != NULL){ //Verifico si recibo el mensaje.
 			if(mensaje_recibido->resultado){log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: Atrapado.");}else{log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: No Atrapado.");}
