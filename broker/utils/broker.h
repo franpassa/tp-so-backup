@@ -59,8 +59,6 @@ char* algoritmo_remplazo;
 char* algoritmo_part_libre;
 int frecuencia_compactacion;
 int tamanio_minimo;
-void eliminar_mensaje(uint32_t);
-
 int cont_orden;
 
 uint32_t tamanio_memoria;
@@ -87,13 +85,11 @@ char* nombres_colas[7];
 
 // SEMAFOROS
 
-pthread_mutex_t semaforo_id;
-pthread_mutex_t semaforo_suscriber;
-pthread_mutex_t sem_cola[6];
-pthread_mutex_t mutex_productores;
-pthread_mutex_t semaforo_struct_s;
-pthread_mutex_t semaforo_memoria;
-pthread_mutex_t semaforo_reconstruir;
+pthread_mutex_t semaforo_id; //estan bien
+pthread_mutex_t sem_cola[6]; // no estoy seguro
+pthread_mutex_t mutex_productores;//esta bien
+pthread_mutex_t semaforo_struct_s;//esta bien
+pthread_mutex_t semaforo_memoria;// esta bien
 
 // HILOS
 
@@ -160,7 +156,6 @@ void compactar();
 void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones();
 void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs();
 void liberar_memoria_interna();
-int cont_orden_f();
 void actualizar_bit_inicio(int);
 void mover_memoria(int);
 void* de_id_mensaje_a_mensaje(uint32_t);

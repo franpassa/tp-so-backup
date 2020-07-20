@@ -73,8 +73,9 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 		pthread_mutex_unlock(&(sem_cola[id_cola]));
 
 	}
+	pthread_mutex_lock(&mutex_productores);
 	list_remove_and_destroy_element(sockets_productores,0,free);
-
+	pthread_mutex_unlock(&mutex_productores);
 }
 
 
@@ -128,7 +129,7 @@ void agregar_a_cola(uint32_t id_cola, uint32_t id_mensaje){
 	t_cola_de_mensajes* queue_del_mensaje_a_pushear = int_a_nombre_cola(id_cola);
 	pthread_mutex_lock(&(sem_cola[id_cola]));
 	queue_push(queue_del_mensaje_a_pushear->cola, info_msg);
-	pthread_mutex_lock(&(sem_cola[id_cola]));
+	pthread_mutex_unlock(&(sem_cola[id_cola]));
 }
 
 bool es_el_mismo_mensaje(queue_name id, void* mensaje, void* otro_mensaje) {
