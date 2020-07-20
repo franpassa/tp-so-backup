@@ -361,42 +361,54 @@ void moverConDesalojoPorRR(t_entrenador* unEntrenador, uint32_t posX, uint32_t p
 void moverConDesalojoPorSJF(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY){
 
 	while(distanciaEntrenadorPokemon(unEntrenador->posicionX, unEntrenador->posicionY,posX,posY)!=0){
-		if(!esElDeMenorEstimacion(estado_ready,unEntrenador)){
-			pthread_mutex_lock(&mutexCambiosDeContexto);
-			cambiosDeContexto++;
-			pthread_mutex_unlock(&mutexCambiosDeContexto);
-			break;
-		}
-		if(abs(unEntrenador->posicionX - posX) > 0){
-			sleep(retardoCpu);
 
-			if(unEntrenador->posicionX > posX){
-				unEntrenador->posicionX --;
-			} else {
-				unEntrenador->posicionX ++;
-			}
-			pthread_mutex_lock(&mutexCiclosConsumidos);
-			ciclosConsumidos++;
-			pthread_mutex_unlock(&mutexCiclosConsumidos);
-			unEntrenador->ciclosAcumulados ++;
-			log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
-			printf("El entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
-		}
+		if(abs(unEntrenador->posicionX - posX) > 0){
+
+		        if(!esElDeMenorEstimacion(estado_ready,unEntrenador)){
+			        pthread_mutex_lock(&mutexCiclosConsumidos);
+			        ciclosConsumidos++;
+			        pthread_mutex_unlock(&mutexCiclosConsumidos);
+		        	break;
+		        }
+
+		        sleep(retardoCpu);
+
+		        if(unEntrenador->posicionX > posX){
+		            unEntrenador->posicionX --;
+		        } else {
+		            unEntrenador->posicionX ++;
+		        }
+		        pthread_mutex_lock(&mutexCiclosConsumidos);
+		        ciclosConsumidos++;
+		        pthread_mutex_unlock(&mutexCiclosConsumidos);
+		        unEntrenador->ciclosAcumulados ++;
+		        log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		        printf("El entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		    }
 
 		if(abs(unEntrenador->posicionY - posY) > 0){
-			sleep(retardoCpu);
-			if(unEntrenador->posicionY > posY){
-				unEntrenador->posicionY --;
-			} else {
-				unEntrenador->posicionY ++;
-			}
-			pthread_mutex_lock(&mutexCiclosConsumidos);
-			ciclosConsumidos++;
-			pthread_mutex_unlock(&mutexCiclosConsumidos);
-			unEntrenador->ciclosAcumulados ++;
-			log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
-			printf("El entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
-		}
+
+		        if(!esElDeMenorEstimacion(estado_ready,unEntrenador)){
+			        pthread_mutex_lock(&mutexCiclosConsumidos);
+			        ciclosConsumidos++;
+			        pthread_mutex_unlock(&mutexCiclosConsumidos);
+		        	break;
+		        }
+
+		        sleep(retardoCpu);
+
+		        if(unEntrenador->posicionY > posY){
+		            unEntrenador->posicionY --;
+		        } else {
+		            unEntrenador->posicionY ++;
+		        }
+		        pthread_mutex_lock(&mutexCiclosConsumidos);
+		        ciclosConsumidos++;
+		        pthread_mutex_unlock(&mutexCiclosConsumidos);
+		        unEntrenador->ciclosAcumulados ++;
+		        log_info(logger,"El entrenador %d se movio a la posicion (%d,%d).",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		        printf("El entrenador %d se movio a la posicion (%d,%d)\n",unEntrenador->idEntrenador, unEntrenador->posicionX, unEntrenador->posicionY);
+		    }
 	}
 }
 

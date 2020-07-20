@@ -42,7 +42,6 @@ pthread_mutex_t mutexCiclosConsumidos;
 pthread_mutex_t mutexEstadoNew;
 pthread_mutex_t mutexEstadoBloqueado;
 pthread_mutex_t mutexEstadoReady;
-pthread_mutex_t mutexCambiosDeContexto;
 
 char* ALGORITMO;
 uint32_t QUANTUM;

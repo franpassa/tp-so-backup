@@ -148,13 +148,12 @@ void esperar_cliente(int* socket_servidor){
 }
 
 void estado_exec(){
+	while (1){
 
-	while (1)
-	{
-		if(!list_is_empty(estado_ready))
-		{
-			if(!hayEntrenadorProcesando)
-			{
+		if (!list_is_empty(estado_ready)){
+
+			if(!hayEntrenadorProcesando){
+
 				pthread_mutex_lock(&mutexHayEntrenadorProcesando);
 				hayEntrenadorProcesando = true;
 				pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
@@ -168,10 +167,6 @@ void estado_exec(){
 		}
 	}
 }
-
-
-
-
 
 void planificacion()
 {
@@ -267,8 +262,8 @@ void planificacion()
 }
 
 void pasar_a_ready(){
+	while(1){
 		t_list* entrenadoresAPlanificar = todosLosEntrenadoresAPlanificar();
-	while(!list_is_empty(entrenadoresAPlanificar)){
 
 		if(list_size(pokemons_recibidos)>0 && list_size(entrenadoresAPlanificar)>0){
 
@@ -290,7 +285,7 @@ void pasar_a_ready(){
 				return unEntrenador->idEntrenador == entrenadorTemporal->idEntrenador;
 			}
 
-
+			//Aca tengo que poner mutex??
 			pthread_mutex_t mutexLista;
 			t_list* lista = listaALaQuePertenece(entrenadorTemporal, &mutexLista);
 
@@ -571,7 +566,7 @@ void deadlock()
 			if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && list_is_empty(estado_bloqueado))break;
 		}
 
-		sleep(30); // con esto dejo el proceso corriendo y chequeo
+		sleep(7); // con esto dejo el proceso corriendo y chequeo
 	}
 
 	log_info(logger,"Finaliza el algoritmo de correccion de DEADLOCK.");
