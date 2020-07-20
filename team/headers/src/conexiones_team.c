@@ -285,7 +285,6 @@ void pasar_a_ready(){
 				return unEntrenador->idEntrenador == entrenadorTemporal->idEntrenador;
 			}
 
-			//Aca tengo que poner mutex??
 			pthread_mutex_t mutexLista;
 			t_list* lista = listaALaQuePertenece(entrenadorTemporal, &mutexLista);
 
@@ -566,7 +565,8 @@ void deadlock()
 			if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && list_is_empty(estado_bloqueado))break;
 		}
 
-		sleep(7); // con esto dejo el proceso corriendo y chequeo
+		int tiempo = config_get_int_value(config,"TIEMPO_DEADLOCK");
+		sleep(tiempo); // con esto dejo el proceso corriendo y chequeo
 	}
 
 	log_info(logger,"Finaliza el algoritmo de correccion de DEADLOCK.");
