@@ -90,7 +90,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 		} else {
 			printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 		}
-
+		printf("BIT AUXILIAR = %d\n",particion_a_llenar_con_msg->auxiliar);
 		pthread_mutex_lock(&(semaforo_memoria));
 		memmove(memoria + particion_a_llenar_con_msg->bit_inicio, mensaje, size);
 		pthread_mutex_unlock(&(semaforo_memoria));
@@ -120,8 +120,8 @@ void buscar_particion_en_bs() {
 	int encontro_particion = 1;
 	int tamanio_lista = list_size(lista_de_particiones);
 	if (string_equals_ignore_case(algoritmo_part_libre, "FF")) {
+		pthread_mutex_lock(&(semaforo_struct_s));
 		for (int i = 0; i < tamanio_lista; i++) { // list_iterate podemos usar por ahi (despues verlo)
-			pthread_mutex_lock(&(semaforo_struct_s));
 			particion = list_get(lista_de_particiones, i);
 			if (particion->tipo_mensaje == 6) {
 				while (particion->tamanio >= mayor_entre_Min_y_tam(tamanio_a_ocupar) && encontro_particion != 0) { // divide las particiones (64 -- 32 32 -- 16 16 32 ..)
@@ -130,6 +130,10 @@ void buscar_particion_en_bs() {
 						particion->tamanio = particion->tamanio / 2;
 						particion_nueva->tamanio = particion->tamanio; // ya va a estar divido el tamanio
 						particion_nueva->bit_inicio = particion->bit_inicio + particion->tamanio;
+						printf("Tamanio:%d\n",particion->tamanio);
+						printf("Bit de inicio:%d\n",particion->bit_inicio);
+						printf("Tamanio Part Nueva:%d\n",particion_nueva->tamanio);
+						printf("Bit de inicio Part Nueva:%d\n",particion_nueva->bit_inicio);
 						list_add_in_index(lista_de_particiones, i + 1, particion_nueva);
 					} else {
 						encontro_particion = 0;
@@ -137,8 +141,8 @@ void buscar_particion_en_bs() {
 					}
 				}
 			}
-			pthread_mutex_unlock(&(semaforo_struct_s));
 		}
+		pthread_mutex_unlock(&(semaforo_struct_s));
 		if (entra == -1) {
 			elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs(); // Como esta en BS entonces elimino y veo si puedo consolidar
 		}
@@ -190,9 +194,17 @@ void buscar_particion_en_bs() {
 
 bool son_buddies(t_struct_secundaria* particion_A, t_struct_secundaria* particion_B) {
 	printf("Son buddies\n");
+	printf("tamanio A= %d\n",particion_A->tamanio);
+	printf("tamanio B= %d\n",particion_B->tamanio);
+	printf("bit de inicio A= %d\n",particion_A->bit_inicio);
+	printf("bit de inicio B= %d\n",particion_B->bit_inicio);
 	int operacion_xorA_B = particion_B->bit_inicio ^ particion_A->tamanio;
+	printf("XorAB=%d\n",operacion_xorA_B);
 	bool xorA_B = particion_A->bit_inicio == operacion_xorA_B;
-	return particion_A->tamanio == particion_B->tamanio && xorA_B;
+	int operacion_xorB_A = particion_A->bit_inicio ^ particion_B->tamanio;
+	printf("XorBA=%d\n",operacion_xorB_A);
+	bool xorB_A = particion_B->bit_inicio == operacion_xorB_A;
+	return particion_A->tamanio == particion_B->tamanio && xorA_B && xorB_A;
 }
 
 bool es_potencia_de_dos(int numero){
@@ -204,17 +216,29 @@ void consolidar_particiones_en_bs(int posicion_a_liberar) { // Consolido cada ve
 	printf("Consolidar particiones\n");
 	pthread_mutex_lock(&(semaforo_struct_s));
 	t_struct_secundaria* particion_a_consolidar = list_get(lista_de_particiones, posicion_a_liberar);
-
-	for (int i = 0; i < list_size(lista_de_particiones); i++) {
+	int tam_lista = list_size(lista_de_particiones);
+	for (int i = 0; i < tam_lista; i++) {
+		printf("i Arranque:%d\n",i);
 		t_struct_secundaria* particion_a_comparar_si_es_buddy = list_get(lista_de_particiones, i);
-		while(son_buddies(particion_a_consolidar, particion_a_comparar_si_es_buddy) && particion_a_comparar_si_es_buddy->tipo_mensaje==6) {
+		if(son_buddies(particion_a_consolidar, particion_a_comparar_si_es_buddy) && particion_a_comparar_si_es_buddy->tipo_mensaje == 6) {
+			printf("particion_a_consolidar->bit_inicio: %d\n",particion_a_consolidar->bit_inicio);
+			printf("particion_a_comparar_si_es_buddy->bit_inicio: %d\n",particion_a_comparar_si_es_buddy->bit_inicio);
+			if(particion_a_consolidar->bit_inicio > particion_a_comparar_si_es_buddy->bit_inicio){
+				particion_a_consolidar->bit_inicio = particion_a_comparar_si_es_buddy->bit_inicio;
+			}
+			particion_a_consolidar->tamanio = particion_a_comparar_si_es_buddy->tamanio + particion_a_consolidar->tamanio;
 			log_info(logger,
-					"ASOCIACION DE PARTICION:%d -- BIT DE INCICIO:0x%x y PARTICION:%d -- BIT DE INCICIO:0x%x ",
-					posicion_a_liberar, particion_a_consolidar->bit_inicio, i,
-					particion_a_comparar_si_es_buddy->bit_inicio); // LOG 8
-			particion_a_comparar_si_es_buddy->tamanio = particion_a_comparar_si_es_buddy->tamanio + particion_a_consolidar->tamanio;
-
-			list_remove_and_destroy_element(lista_de_particiones, posicion_a_liberar, free);
+					"ASOCIACION DE PARTICION:%d -- BIT DE INCICIO:%d y PARTICION:%d -- BIT DE INCICIO:%d ",
+					posicion_a_liberar, particion_a_comparar_si_es_buddy->bit_inicio, i,
+					particion_a_consolidar->bit_inicio); // LOG 8
+			printf("particion que queda-> tamanio: %d - bit inicio: %d\n",particion_a_consolidar->tamanio,particion_a_consolidar->bit_inicio);
+			list_remove_and_destroy_element(lista_de_particiones, i, free);
+			tam_lista -=1;
+			i -= 2;
+			if (i<0){
+				i = -1;
+			}
+			printf("i Final=%d\n",i);
 		}
 	}
 	pthread_mutex_unlock(&(semaforo_struct_s));
@@ -382,6 +406,7 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 		particion_a_sacar->tamanio += 1;
 	}
 	particion_a_sacar->tamanio = mayor_entre_Min_y_tam(particion_a_sacar->tamanio);
+	printf("Tamanio de particion eliminada:%d\n",particion_a_sacar->tamanio);
 	particion_a_sacar->auxiliar = 0;
 	pthread_mutex_unlock(&(semaforo_struct_s));
 
@@ -395,20 +420,28 @@ int algoritmo_FIFO(){
 	int orden = 0;
 	int orden_menor = 0;
 	int a_sacar = -1; // Creo q esta bien esto
+	int a = 0;
 	for(int i = 0; i< list_size(lista_de_particiones); i++ ){
 		pthread_mutex_lock(&(semaforo_struct_s));
 		particion_a_sacar = list_get(lista_de_particiones,i);
-		if(i == 0){
+		if(i == a && particion_a_sacar->tipo_mensaje != 6 ){
 			orden_menor = particion_a_sacar->auxiliar;
-			a_sacar = 0;
+			printf("Orden MENOR =%d\n",orden_menor);
+			a_sacar = i;
+		} else {
+			a += 1;
 		}
 		orden = particion_a_sacar->auxiliar;
-		if (orden_menor < orden && particion_a_sacar->tipo_mensaje != 6){
+		printf("Orden =%d\n",orden);
+		if (orden_menor > orden && particion_a_sacar->tipo_mensaje != 6){
 			orden_menor = orden;
+			printf("Resultado orden menor =%d\n",orden_menor);
 			a_sacar = i;
+			printf("A SACAR EN IF=%d\n",a_sacar);
 		}
 		pthread_mutex_unlock(&(semaforo_struct_s));
 	}
+	printf("A SACAR REAL =%d\n",a_sacar);
 	return a_sacar;
 }
 

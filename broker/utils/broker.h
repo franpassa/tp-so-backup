@@ -85,11 +85,11 @@ char* nombres_colas[7];
 
 // SEMAFOROS
 
-pthread_mutex_t semaforo_id; //estan bien
-pthread_mutex_t sem_cola[6]; // no estoy seguro
-pthread_mutex_t mutex_productores;//esta bien
-pthread_mutex_t semaforo_struct_s;//esta bien
-pthread_mutex_t semaforo_memoria;// esta bien
+pthread_mutex_t semaforo_id;
+pthread_mutex_t sem_cola[6];
+pthread_mutex_t mutex_productores;
+pthread_mutex_t semaforo_struct_s;
+pthread_mutex_t semaforo_memoria;
 
 // HILOS
 
