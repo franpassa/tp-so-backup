@@ -37,6 +37,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 		paquete->buffer->stream = malloc(paquete->buffer->size);
 		recv(*socket_escucha, paquete->buffer->stream, paquete->buffer->size, MSG_WAITALL);
 		void* stream_a_comparar = malloc(paquete->buffer->size);
+
 		memcpy(stream_a_comparar, paquete->buffer->stream, paquete->buffer->size);
 
 		int id_mens_en_cola = revisar_si_mensaje_no_estaba_en_cola(id_cola, stream_a_comparar, paquete->buffer->size);
@@ -52,9 +53,24 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 			printf("MENSAJE NUEVO -- ID: %d -- COLA: %s\n", id_mensaje, nombres_colas[id_cola]);
 			//log_info(logger, " MENSAJE NUEVO: %s -- ID: %d -- COLA: %s ", msg_as_string(id_cola, msg), id_mensaje, nombres_colas[id_cola]); // LOG 3 hay que deserializarlo para mostrarlo
 
-			agregar_a_cola(id_cola, id_mensaje);
+			if (id_cola == 1 || id_cola == 3 || id_cola == 5 ){
+				int size_a_guardar = paquete->buffer->size - sizeof(uint32_t);
+				void* stream_a_guardar = malloc( size_a_guardar);
+				memcpy(stream_a_guardar, paquete->buffer->stream + sizeof(uint32_t) , size_a_guardar);
 
-			almacenar(paquete->buffer->stream, id_cola, id_mensaje, paquete->buffer->size);
+				void* id_correlativo = malloc(sizeof(uint32_t));
+				memcpy(id_correlativo, paquete->buffer->stream , sizeof(uint32_t));
+				uint32_t id_aux_correlativo = *(uint32_t*) id_correlativo;
+
+				agregar_a_cola(id_cola, id_mensaje, id_aux_correlativo);
+
+				almacenar(stream_a_guardar, id_cola, id_mensaje, size_a_guardar);
+
+			}else{
+				agregar_a_cola(id_cola, id_mensaje,-1);
+
+				almacenar(paquete->buffer->stream, id_cola, id_mensaje, paquete->buffer->size);
+			}
 
 		} else {
 			send(*socket_escucha, &id_mens_en_cola, sizeof(uint32_t), 0);
@@ -120,12 +136,13 @@ uint32_t crear_nuevo_id(){
 	return contador_id;
 }
 
-void agregar_a_cola(uint32_t id_cola, uint32_t id_mensaje){
+void agregar_a_cola(uint32_t id_cola, uint32_t id_mensaje,uint32_t id_correlativo){
 	printf("Agregar a cola\n");
 	t_info_mensaje* info_msg = malloc(sizeof(t_info_mensaje));
 	info_msg->id = id_mensaje;
 	info_msg->quienes_lo_recibieron = list_create();
 	info_msg->a_quienes_fue_enviado = list_create();
+	info_msg->id_correlativo = id_correlativo;
 	t_cola_de_mensajes* queue_del_mensaje_a_pushear = int_a_nombre_cola(id_cola);
 	pthread_mutex_lock(&(sem_cola[id_cola]));
 	queue_push(queue_del_mensaje_a_pushear->cola, info_msg);

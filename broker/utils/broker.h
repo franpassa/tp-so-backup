@@ -23,6 +23,7 @@
 
 typedef struct {
 	uint32_t id;
+	uint32_t id_correlativo;
 	t_list* a_quienes_fue_enviado;
 	t_list* quienes_lo_recibieron; // ACK
 } t_info_mensaje;
@@ -135,7 +136,7 @@ void loop_productores();
 void recibir_mensajes_para_broker(int*);
 void confirmar_mensaje(queue_name, uint32_t,int);
 uint32_t crear_nuevo_id();
-void agregar_a_cola(uint32_t,uint32_t);
+void agregar_a_cola(uint32_t,uint32_t,uint32_t);
 bool es_el_mismo_mensaje(queue_name, void*,void*);
 int revisar_si_mensaje_no_estaba_en_cola(queue_name, void*, uint32_t);
 void free_msg_cola(t_info_mensaje*);
@@ -144,7 +145,7 @@ void free_msg_cola(t_info_mensaje*);
 
 void mandar_mensajes();
 bool esta_en_lista(t_list*, uint32_t*);
-int mandar(queue_name, void*, int,int,int);
+int mandar(queue_name, void*, int,int,int,uint32_t);
 void recorrer_cola(t_cola_de_mensajes*);
 
 // MEMORIA
@@ -169,8 +170,7 @@ void buscar_particion_en_bs();
 void consolidar_particiones_en_bs(int posicion_liberada);
 bool son_buddies(t_struct_secundaria*, t_struct_secundaria*);
 bool es_potencia_de_dos(int);
-int algoritmo_FIFO();
-int algoritmo_LRU();
+int elegir_bit_aux_mas_viejo();
 t_struct_secundaria* encontrar_particion_en_base_a_un_id_mensaje(uint32_t,int);
 void dump_de_cache();
 void capturar_senial();
