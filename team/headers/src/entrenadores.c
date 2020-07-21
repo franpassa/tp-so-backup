@@ -63,9 +63,10 @@ t_list* insertarPokesEntrenador(uint32_t nroEntrenador, t_list* pokemons, char**
 }
 
 void liberarEntrenador(void* entrenador){
+	t_entrenador* unEntrenador = (t_entrenador*) entrenador;
 	list_destroy_and_destroy_elements(((t_entrenador*)entrenador)->pokesAtrapados,free);
-	list_destroy_and_destroy_elements(((t_entrenador*)entrenador)->pokesObjetivos,free);
-	free(entrenador);
+	//list_destroy_and_destroy_elements(((t_entrenador*)entrenador)->pokesObjetivos,free);
+	free(unEntrenador);
 }
 
 t_list* crearListaDeEntrenadores(char** posicionesEntrenadores, char** pokesEntrenadores, char** pokesObjetivos)
@@ -93,6 +94,7 @@ t_list* crearListaDeEntrenadores(char** posicionesEntrenadores, char** pokesEntr
 		entrenador->ciclosAcumulados = 0;
 		entrenador->posXAMoverse = 0;
 		entrenador->posYAMoverse = 0;
+		entrenador->yaPasoAReadyUnaVez = false;
 		list_add(entrenadores,entrenador);
 		sem_post(&semEntrenadoresAPlanificar);
 	}
@@ -148,8 +150,9 @@ void igualarEntrenador(t_entrenador* unEntrenador, t_entrenador* otroEntrenador)
 	unEntrenador->posicionY = otroEntrenador->posicionY;
 	unEntrenador->estimacion = otroEntrenador->estimacion;
 	unEntrenador->ciclosAcumulados = otroEntrenador->ciclosAcumulados;
-	unEntrenador->posXAMoverse = otroEntrenador->posXAMoverse ;
-	unEntrenador->posYAMoverse = otroEntrenador->posYAMoverse ;
+	unEntrenador->posXAMoverse = otroEntrenador->posXAMoverse;
+	unEntrenador->posYAMoverse = otroEntrenador->posYAMoverse;
+	unEntrenador->yaPasoAReadyUnaVez = otroEntrenador->yaPasoAReadyUnaVez;
 }
 
 void setearEnCeroEntrenador (t_entrenador* unEntrenador)
@@ -165,6 +168,7 @@ void setearEnCeroEntrenador (t_entrenador* unEntrenador)
 	unEntrenador->ciclosAcumulados = 0;
 	unEntrenador->posXAMoverse = 0;
 	unEntrenador->posYAMoverse = 0;
+	unEntrenador->yaPasoAReadyUnaVez = false;
 }
 
 // devuelve el pokemon de la lista que esta mas cerca a un entrenador
@@ -337,7 +341,7 @@ void moverConDesalojoPorRR(t_entrenador* unEntrenador, uint32_t posX, uint32_t p
 		        ciclosConsumidos++;
 		        pthread_mutex_unlock(&mutexCiclosConsumidos);
 		        unEntrenador->ciclosAcumulados ++;
-		        if(distanciaRecorrida == QUANTUM){cambiosDeContexto++;break;}
+		        if(distanciaRecorrida == QUANTUM)break;
 		    }
 
 		if(abs(unEntrenador->posicionY - posY) > 0){
@@ -354,7 +358,7 @@ void moverConDesalojoPorRR(t_entrenador* unEntrenador, uint32_t posX, uint32_t p
 		        ciclosConsumidos++;
 		        pthread_mutex_unlock(&mutexCiclosConsumidos);
 		        unEntrenador->ciclosAcumulados ++;
-		        if(distanciaRecorrida == QUANTUM){cambiosDeContexto++;break;}
+		        if(distanciaRecorrida == QUANTUM)break;
 		    }
 	}
 }
@@ -362,13 +366,10 @@ void moverConDesalojoPorRR(t_entrenador* unEntrenador, uint32_t posX, uint32_t p
 void moverConDesalojoPorSJF(t_entrenador* unEntrenador, uint32_t posX, uint32_t posY){
 
 	while(distanciaEntrenadorPokemon(unEntrenador->posicionX, unEntrenador->posicionY,posX,posY)!=0){
-		if(!esElDeMenorEstimacion(estado_ready,unEntrenador)){
-			pthread_mutex_lock(&mutexCambiosDeContexto);
-			cambiosDeContexto++;
-			pthread_mutex_unlock(&mutexCambiosDeContexto);
-			break;
-		}
 
+		pthread_mutex_lock(&mutexEstadoReady);
+		if(!esElDeMenorEstimacion(estado_ready,unEntrenador))break;
+		pthread_mutex_unlock(&mutexEstadoReady);
 
 		if(abs(unEntrenador->posicionX - posX) > 0){
 
@@ -590,13 +591,13 @@ void realizarCambio(t_entrenador* entrenador1, t_entrenador* entrenador2)
 
 	t_list* pokemones = pokemonesAlPedo(entrenador1);
 	uint32_t a = retornarIndice(entrenador1->pokesAtrapados,list_get(pokemones,0));
-
 	uint32_t indiceDelPokemonDondeEstaEnElEntrenador2 = retornarIndice(entrenador2->pokesAtrapados,pokemon(pokemonesQueLeFaltan(entrenador1)));
 
 	char* flag = list_remove(entrenador2->pokesAtrapados,indiceDelPokemonDondeEstaEnElEntrenador2);
 	char* flag2 = list_replace(entrenador1->pokesAtrapados,a,flag);
+
 	sleep(5);
-	ciclosConsumidos+=5;
+
 	list_add(entrenador2->pokesAtrapados,flag2);
 
 	list_destroy(pokemones);

@@ -28,6 +28,7 @@ typedef struct Entrenador
 	uint32_t ciclosAcumulados;
 	uint32_t posXAMoverse;
 	uint32_t posYAMoverse;
+	bool yaPasoAReadyUnaVez;
 }t_entrenador;
 
 t_log* logger;
