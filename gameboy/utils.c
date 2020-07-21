@@ -71,13 +71,18 @@ char* unir_args(char** args, int cant){
 	return args_string;
 }
 
-void recibir_mensajes(int* socket){
+void recibir_mensajes(queue_name* cola){
+
+	char* ip_broker = config_get_string_value(config, "IP_BROKER");
+	char* puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
+	int socket_broker = suscribirse_a_cola(*cola, ip_broker, puerto_broker);
 
 	while(1){
-		uint32_t id;
+		uint32_t id, mi_socket;
 		queue_name tipo_msg;
-		void* msg = recibir_mensaje(*socket, &id, &tipo_msg);
-		printf("id: %d -> ", id);
+		void* msg = recibir_mensaje(socket_broker, &id, &tipo_msg, &mi_socket);
+		confirmar_recepcion(ip_broker, puerto_broker, tipo_msg, id, mi_socket);
+		printf("ID: %d -> ", id);
 		print_msg(tipo_msg, msg);
 		sleep(1);
 	}
