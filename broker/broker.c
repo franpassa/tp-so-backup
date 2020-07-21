@@ -220,10 +220,9 @@ void free_queue_msgs(t_cola_de_mensajes* cola_de_mensajes){
 }
 
 void sacar_de_cola(uint32_t id, int cola) {
-	printf("Sacar_de_cola\n");
 
 	pthread_mutex_lock(&sem_cola[cola]);
-	printf("Entra al lock\n");
+
 	t_cola_de_mensajes* queue = int_a_nombre_cola(cola);
 
 	t_info_mensaje* mensaje = queue_peek(queue->cola);
@@ -248,8 +247,7 @@ void sacar_de_cola(uint32_t id, int cola) {
 		printf("Id_siguiente= %d\n",id_siguiente);
 	} while (control == 0 && id_primero!= id_siguiente);
 
-	printf("SALE DO While\n");
 	pthread_mutex_unlock(&sem_cola[cola]);
-	printf("Termina todo el Sacar COLA\n");
+
 }
 

@@ -20,7 +20,7 @@ void mandar_mensajes() {
 }
 
 int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size ,uint32_t id_correlativo) { // falta el tema del id correlativo
-	printf("MANDAR MENSAJE\n");
+
 	int control = 0;
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
@@ -123,7 +123,7 @@ void recorrer_cola(t_cola_de_mensajes* nombre) {
 }
 
 bool esta_en_lista(t_list* a_los_que_envie, uint32_t* sub) {
-	printf("Esta_en_lista (MANDAR) \n");
+
 	bool es_igual(void* uno) {
 		uint32_t nro = *(uint32_t*) uno;
 		return nro == *sub;

@@ -137,7 +137,7 @@ uint32_t crear_nuevo_id(){
 }
 
 void agregar_a_cola(uint32_t id_cola, uint32_t id_mensaje,uint32_t id_correlativo){
-	printf("Agregar a cola\n");
+
 	t_info_mensaje* info_msg = malloc(sizeof(t_info_mensaje));
 	info_msg->id = id_mensaje;
 	info_msg->quienes_lo_recibieron = list_create();
@@ -150,7 +150,7 @@ void agregar_a_cola(uint32_t id_cola, uint32_t id_mensaje,uint32_t id_correlativ
 }
 
 bool es_el_mismo_mensaje(queue_name id, void* mensaje, void* otro_mensaje) {
-	printf("Mismo mensaje\n");
+
 	switch(id){
 
 	case NEW_POKEMON: ;
@@ -216,7 +216,7 @@ bool es_el_mismo_mensaje(queue_name id, void* mensaje, void* otro_mensaje) {
 }
 
 int revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido, uint32_t tamanio_mensaje) {
-	printf("Revisar igual mensaje\n");
+
 	t_cola_de_mensajes* queue_a_revisar = int_a_nombre_cola(id);
 
 	int mensaje_nuevo = 0;
