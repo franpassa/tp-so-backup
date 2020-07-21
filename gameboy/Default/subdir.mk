@@ -7,10 +7,6 @@ C_SRCS += \
 ../gameboy.c \
 ../utils.c 
 
-O_SRCS += \
-../gameboy.o \
-../utils.o 
-
 OBJS += \
 ./gameboy.o \
 ./utils.o 
