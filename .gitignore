@@ -7,6 +7,5 @@
 */Default/gamecard
 */Default/broker
 */Default/team
-*/Default/gameboy
-*/gameboy/gameboy
+gameboy/gameboy
 *.out

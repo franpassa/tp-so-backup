@@ -136,14 +136,8 @@ int main(int argc, char** argv){
 		int scan_result = sscanf(argumentos_string, "%d", &duracion_suscripcion);
 		if(scan_result != 1) cortar_ejecucion("Parametros incorrectos");
 
-		char* ip_broker = config_get_string_value(config, "IP_BROKER");
-		char* puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
-		int socket_broker = suscribirse_a_cola(cola, ip_broker, puerto_broker);
-		free(ip_broker);
-		free(puerto_broker);
-
 		pthread_t listener_thread;
-		pthread_create(&listener_thread, NULL, (void*) recibir_mensajes, (void*) &socket_broker);
+		pthread_create(&listener_thread, NULL, (void*) recibir_mensajes, (void*) &cola);
 
 		sleep(duracion_suscripcion);
 
