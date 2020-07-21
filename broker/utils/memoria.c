@@ -353,15 +353,8 @@ void consolidar(){
 
 void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones() {
 
-	int a_sacar = 0;
+	int a_sacar = elegir_bit_aux_mas_viejo();
 
-	if (string_equals_ignore_case(algoritmo_remplazo,"FIFO")) {
-		a_sacar = algoritmo_FIFO();
-	} else if (string_equals_ignore_case(algoritmo_remplazo,"LRU")) {
-		a_sacar = algoritmo_LRU();
-	} else {
-		printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
-	}
 	pthread_mutex_lock(&(semaforo_struct_s));
 	t_struct_secundaria* particion_a_sacar = list_get(lista_de_particiones,a_sacar);
 
@@ -391,15 +384,8 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones() {
 
 void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 	printf("ELIMINAR VICTIMA\n");
-	int a_sacar = 0;
 
-	if (string_equals_ignore_case(algoritmo_remplazo, "FIFO")) {
-		a_sacar = algoritmo_FIFO();
-	} else if (string_equals_ignore_case(algoritmo_remplazo, "LRU")) {
-		a_sacar = algoritmo_LRU();
-	} else {
-		printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
-	}
+	int a_sacar = elegir_bit_aux_mas_viejo();
 
 	pthread_mutex_lock(&(semaforo_struct_s));
 	t_struct_secundaria* particion_a_sacar = list_get(lista_de_particiones, a_sacar);
@@ -423,7 +409,7 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 	buscar_particion_en_bs();
 }
 
-int algoritmo_FIFO(){
+int elegir_bit_aux_mas_viejo(){
 	printf("FIFO\n");
 	t_struct_secundaria* particion_a_sacar;
 	int orden = 0;
@@ -450,31 +436,6 @@ int algoritmo_FIFO(){
 		}
 	}
 	printf("A SACAR REAL =%d\n",a_sacar);
-	pthread_mutex_unlock(&(semaforo_struct_s));
-	return a_sacar;
-}
-
-int algoritmo_LRU(){
-	int a_sacar = -1;
-	int a = 0;
-	t_struct_secundaria* particion_a_sacar;
-	int lru = 0;
-	int lru_menor = 0;
-	pthread_mutex_lock(&(semaforo_struct_s));
-	for(int i = 0; i< list_size(lista_de_particiones); i++ ){
-		particion_a_sacar = list_get(lista_de_particiones,i);
-		if(i == a && particion_a_sacar->tipo_mensaje != 6 ){
-			lru_menor = particion_a_sacar->auxiliar;
-			a_sacar = i;
-		} else {
-			a += 1;
-		}
-		lru = particion_a_sacar->auxiliar;
-		if (lru_menor > lru && particion_a_sacar->tipo_mensaje != 6){
-			lru_menor = lru;
-			a_sacar = i;
-			}
-		}
 	pthread_mutex_unlock(&(semaforo_struct_s));
 	return a_sacar;
 }
