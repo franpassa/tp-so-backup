@@ -306,9 +306,9 @@ void* recibir_mensaje(int socket, uint32_t* id, queue_name* tipo_msg, uint32_t* 
 	}
 
 	if (recv(socket, id, sizeof(uint32_t), MSG_WAITALL) <= 0) {
-		*id = NULL; // No se envio o hubo un error recibiendo el ID.
+		*id = 0; // No se envio o hubo un error recibiendo el ID.
 	} else if(recv(socket, mi_socket, sizeof(uint32_t), MSG_WAITALL) <= 0) {
-		*mi_socket = NULL;
+		*mi_socket = 0;
 	}
 
 	void* msg = deserializar_buffer(*tipo_msg, paquete->buffer);

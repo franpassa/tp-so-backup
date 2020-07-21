@@ -71,19 +71,41 @@ char* unir_args(char** args, int cant){
 	return args_string;
 }
 
+bool id_en_lista(t_list* lista, uint32_t id){
+
+	bool id_igual(void* id_en_lista){
+		uint32_t* id_casteado = (uint32_t*) id_en_lista;
+		return id == *id_casteado;
+	}
+
+	return list_any_satisfy(lista, id_igual);
+}
+
+void agregar_id(t_list* lista, uint32_t id){
+	uint32_t* id_a_lista = malloc(sizeof(uint32_t));
+	*id_a_lista = id;
+
+	list_add(lista, (void*) id_a_lista);
+}
+
 void recibir_mensajes(queue_name* cola){
 
 	char* ip_broker = config_get_string_value(config, "IP_BROKER");
 	char* puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
 	int socket_broker = suscribirse_a_cola(*cola, ip_broker, puerto_broker);
 
+	t_list* ids_recibidos = list_create();
+
 	while(1){
 		uint32_t id, mi_socket;
 		queue_name tipo_msg;
 		void* msg = recibir_mensaje(socket_broker, &id, &tipo_msg, &mi_socket);
-		confirmar_recepcion(ip_broker, puerto_broker, tipo_msg, id, mi_socket);
-		printf("ID: %d -> ", id);
-		print_msg(tipo_msg, msg);
+		if(id != 0 && mi_socket != 0 && !id_en_lista(ids_recibidos, id)){
+			agregar_id(ids_recibidos, id);
+			confirmar_recepcion(ip_broker, puerto_broker, tipo_msg, id, mi_socket);
+			printf("ID: %d -> ", id);
+			print_msg(tipo_msg, msg);
+		}
 	}
 
 }
