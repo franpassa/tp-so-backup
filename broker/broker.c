@@ -8,19 +8,16 @@ int main(){
 	int socket_servidor = iniciar_servidor_broker();
 
 	pthread_create(&hilo_suscripciones, NULL, (void*) esperar_cliente, &socket_servidor);
-	//pthread_create(&hilo_estado_queues,NULL,(void*) estado_de_queues, &socket_servidor);
+	pthread_create(&hilo_estado_queues,NULL,(void*) estado_de_queues, &socket_servidor);
 	pthread_create(&hilo_mensajes, NULL, (void*) loop_productores, NULL);
-	//pthread_create(&hilo_enviar_mensaje, NULL, (void*) mandar_mensajes, NULL);
+	pthread_create(&hilo_enviar_mensaje, NULL, (void*) mandar_mensajes, NULL);
 
-	//reconstruir();
-
-	//pthread_join(hilo_estado_queues,NULL);
+	pthread_join(hilo_estado_queues,NULL);
 	pthread_join(hilo_suscripciones,NULL);
 	pthread_join(hilo_mensajes,NULL);
-	//pthread_join(hilo_enviar_mensaje,NULL);
+	pthread_join(hilo_enviar_mensaje,NULL);
 
 	close(socket_servidor);
-	//terminar_programa(logger,config);
 
 	return 0;
 
@@ -121,11 +118,10 @@ void inicializar(){
 
 	sockets_productores = list_create();
 	pthread_mutex_init(&mutex_productores, NULL);
-	pthread_mutex_init(&semaforo_suscriber, NULL);
 	pthread_mutex_init(&semaforo_id, NULL);
 	pthread_mutex_init(&semaforo_struct_s, NULL);
 	pthread_mutex_init(&semaforo_memoria, NULL);
-	pthread_mutex_init(&semaforo_reconstruir, NULL);
+	pthread_mutex_init(&sem_lru, NULL);
 
 	for(int i = 0; i <= 5; i++){
 		pthread_mutex_init(&(sem_cola[i]), NULL);
@@ -198,7 +194,7 @@ void print_mensaje_de_cola(t_info_mensaje* mensaje){
 	uint32_t id_mensaje = mensaje->id;
 	printf("ID: %d\n",id_mensaje);
 	queue_name id_cola = de_id_mensaje_a_cola(id_mensaje);
-	void* msg = de_id_mensaje_a_mensaje(id_mensaje);
+	void* msg = de_id_mensaje_a_mensaje(id_mensaje,0);
 	t_buffer* mensaje_en_buffer = malloc(sizeof(t_buffer));
 	mensaje_en_buffer->stream = msg;
 	mensaje_en_buffer->size = de_id_mensaje_a_size(id_mensaje);
@@ -223,26 +219,10 @@ void free_queue_msgs(t_cola_de_mensajes* cola_de_mensajes){
 	free(cola_de_mensajes);
 }
 
-void reconstruir(){
-	FILE* reconstruir = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/reconstruir","r");
-	//rewind(reconstruir); No hace falta
-	//int contador_de_linea = 1;
-	//char linea[100];
-	while (!feof(reconstruir)){
-		//fgets(linea, 100, reconstruir); // fgets(string_a_guardar,tamanio_string,file)
-		//contador_de_linea++;
-	}
-
-	fclose(reconstruir);
-}
-
 void sacar_de_cola(uint32_t id, int cola) {
-	printf("Sacar_de_cola\n");
-	pthread_mutex_t mutex_cola = sem_cola[cola];
 
+	pthread_mutex_lock(&sem_cola[cola]);
 
-	pthread_mutex_lock(&mutex_cola);
-	printf("Entra al lock\n");
 	t_cola_de_mensajes* queue = int_a_nombre_cola(cola);
 
 	t_info_mensaje* mensaje = queue_peek(queue->cola);
@@ -267,8 +247,7 @@ void sacar_de_cola(uint32_t id, int cola) {
 		printf("Id_siguiente= %d\n",id_siguiente);
 	} while (control == 0 && id_primero!= id_siguiente);
 
-	printf("SALE DO While\n");
-	pthread_mutex_unlock(&mutex_cola);
-	printf("Termina todo el Sacar COLA\n");
+	pthread_mutex_unlock(&sem_cola[cola]);
+
 }
 

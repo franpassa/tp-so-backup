@@ -19,19 +19,30 @@ void mandar_mensajes() {
 	}
 }
 
-int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size) { // falta el tema del id correlativo
-	printf("MANDAR MENSAJE\n");
+int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size ,uint32_t id_correlativo) { // falta el tema del id correlativo
+
 	int control = 0;
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
 	paquete->cola_msg = cola;
 	paquete->buffer = malloc(sizeof(t_buffer));
-	paquete->buffer->size = size;
 
+
+	if (cola == 1 || cola == 3 || cola == 5 ){
+
+		void* stream_a_mandar = malloc(paquete->buffer->size + sizeof(uint32_t));
+		memcpy(stream_a_mandar,(void*) id_correlativo,sizeof(uint32_t));
+		memcpy(stream_a_mandar + sizeof(uint32_t) , stream ,paquete->buffer->size);
+		paquete->buffer->size = size + sizeof(uint32_t);
+		paquete->buffer->stream = stream_a_mandar;
+	}else {
+		paquete->buffer->stream = stream;
+		paquete->buffer->size = size;
+	}
 	// El tamaño total sería: id_cola (4) + buffer_size (4) + stream (buffer_size)
 	int total_bytes = paquete->buffer->size + sizeof(queue_name) + sizeof(uint32_t);
 
-	paquete->buffer->stream = stream;
+
 	void* a_enviar = serializar_paquete(paquete, total_bytes);
 
 	if (send(socket_receptor, a_enviar, total_bytes, 0) == -1) {
@@ -40,6 +51,8 @@ int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size)
 	}
 
 	send(socket_receptor, &id, sizeof(uint32_t), 0);
+
+	send(socket_receptor, &socket_receptor, sizeof(uint32_t), 0);
 
 	//log_info(logger, "MENSAJE CON ID:%d -- ENVIADO A SUSCRIPTOR:%d ", id, socket_receptor); LOG
 
@@ -68,9 +81,9 @@ void recorrer_cola(t_cola_de_mensajes* nombre) {
 				uint32_t* sub = (uint32_t*) list_get(nombre->lista_suscriptores,i);
 				if (!esta_en_lista(info_a_sacar->quienes_lo_recibieron, sub)) {
 
-					void* mensaje = de_id_mensaje_a_mensaje(info_a_sacar->id);
+					void* mensaje = de_id_mensaje_a_mensaje(info_a_sacar->id,1);
 
-					if (mandar(nombre->tipo_cola, mensaje, info_a_sacar->id, *sub, de_id_mensaje_a_size(info_a_sacar->id)) == -1) {
+					if (mandar(nombre->tipo_cola, mensaje, info_a_sacar->id, *sub, de_id_mensaje_a_size(info_a_sacar->id),info_a_sacar->id_correlativo) == -1) {
 
 						sub_suscrito = false;
 
@@ -110,7 +123,7 @@ void recorrer_cola(t_cola_de_mensajes* nombre) {
 }
 
 bool esta_en_lista(t_list* a_los_que_envie, uint32_t* sub) {
-	printf("Esta_en_lista (MANDAR) \n");
+
 	bool es_igual(void* uno) {
 		uint32_t nro = *(uint32_t*) uno;
 		return nro == *sub;

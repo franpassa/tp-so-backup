@@ -13,19 +13,20 @@ void cambiarAExit(t_entrenador* entrenador)
 void cambiarABlockNada(t_entrenador* entrenador)
 {
 	entrenador->motivoBloqueo = MOTIVO_NADA;
+	log_info(logger,"Cambio del entrenador %d a la cola BLOQUEADO, no tiene NADA que hacer.",entrenador->idEntrenador);
 	pthread_mutex_lock(&mutexEstadoBloqueado);
 	list_add(estado_bloqueado,entrenador);
 	pthread_mutex_unlock(&mutexEstadoBloqueado);
-	log_info(logger,"Cambio del entrenador %d a la cola BLOQUEADO, no tiene NADA que hacer.",entrenador->idEntrenador);
+	sem_post(&semEntrenadoresAPlanificar);
 }
 
 void cambiarABlockDeadlock(t_entrenador* entrenador)
 {
 	entrenador->motivoBloqueo = ESPERA_DEADLOCK;
+	log_info(logger,"Cambio del entrenador %d a la cola BLOQUEADO, esperando DEADLOCK.",entrenador->idEntrenador);
 	pthread_mutex_lock(&mutexEstadoBloqueado);
 	list_add(estado_bloqueado,entrenador);
 	pthread_mutex_unlock(&mutexEstadoBloqueado);
-	log_info(logger,"Cambio del entrenador %d a la cola BLOQUEADO, esperando DEADLOCK.",entrenador->idEntrenador);
 }
 
 void cambiarEstado(t_entrenador* entrenador){
@@ -57,6 +58,7 @@ void cambiarEstado(t_entrenador* entrenador){
 		pthread_mutex_lock(&mutexEstadoReady);
 		list_add(estado_ready,entrenador);
 		pthread_mutex_unlock(&mutexEstadoReady);
+		sem_post(&semEstadoExec);
 	}
 	else
 	{
@@ -126,7 +128,9 @@ void esperar_cliente(int* socket_servidor){
 
 		queue_name colaMensaje;
 
-		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_cliente,&id,&colaMensaje);
+		uint32_t mi_socket;
+
+		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_cliente,&id,&colaMensaje,&mi_socket);
 
 		if (mensaje_recibido_appeared != NULL) {
 			log_info(logger,"Nuevo mensaje APPEARED_POKEMON %s, en la posicion (%d,%d).",mensaje_recibido_appeared->nombre_pokemon,mensaje_recibido_appeared->coordenada_X,mensaje_recibido_appeared->coordenada_Y);
@@ -135,6 +139,8 @@ void esperar_cliente(int* socket_servidor){
 				pthread_mutex_lock(&mutexPokemonsRecibidos);
 				agregarAppearedRecibidoALista(pokemons_recibidos,mensaje_recibido_appeared);
 				pthread_mutex_unlock(&mutexPokemonsRecibidos);
+
+				sem_post(&semPokemonsRecibidos);
 
 				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
 				agregarAppearedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_appeared);
@@ -150,20 +156,19 @@ void esperar_cliente(int* socket_servidor){
 void estado_exec(){
 	while (1){
 
-		if (!list_is_empty(estado_ready)){
+		sem_wait(&semEstadoExec);
 
-			if(!hayEntrenadorProcesando){
+		if(!hayEntrenadorProcesando){
 
-				pthread_mutex_lock(&mutexHayEntrenadorProcesando);
-				hayEntrenadorProcesando = true;
-				pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
+			pthread_mutex_lock(&mutexHayEntrenadorProcesando);
+			hayEntrenadorProcesando = true;
+			pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
 
-				planificacion();
+			planificacion();
 
-				pthread_mutex_lock(&mutexHayEntrenadorProcesando);
-				hayEntrenadorProcesando = false;
-				pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
-			}
+			pthread_mutex_lock(&mutexHayEntrenadorProcesando);
+			hayEntrenadorProcesando = false;
+			pthread_mutex_unlock(&mutexHayEntrenadorProcesando);
 		}
 	}
 }
@@ -194,23 +199,38 @@ void planificacion()
 		pthread_mutex_unlock(&mutexEstadoBloqueado);
 		entrenadorAMoverse = list_get(losQueTienenElPokemonQueLeFalta,0);
 		entrenador->posXAMoverse = entrenadorAMoverse->posicionX;
-		entrenador->posYAMoverse = entrenadorAMoverse->posicionY; //<- muere aca despues del deadlock
+		entrenador->posYAMoverse = entrenadorAMoverse->posicionY;
 	}
 
 	moverEntrenador(entrenador,entrenador->posXAMoverse,entrenador->posYAMoverse);
 
-	uint32_t distancia = distanciaEntrenadorPokemon(entrenador->posicionX,entrenador->posicionY, entrenador->posXAMoverse,entrenador->posYAMoverse);
+	uint32_t distanciaRecorrida = distanciaEntrenadorPokemon(entrenador->posicionX,entrenador->posicionY, entrenador->posXAMoverse,entrenador->posYAMoverse);
 
-	if(distancia != 0){
+	if(distanciaRecorrida != 0){
+		pthread_mutex_lock(&mutexCambiosDeContexto);
+		cambiosDeContexto++;
+		pthread_mutex_unlock(&mutexCambiosDeContexto);
 		pthread_mutex_lock(&mutexEstadoReady);
 		list_add(estado_ready,entrenador);
 		pthread_mutex_unlock(&mutexEstadoReady);
-	} else
-	{
-		if(entrenador->motivoBloqueo == RESOLVIENDO_DEADLOCK)
-		{
+
+		sem_post(&semEstadoExec);
+	} else {
+		if(entrenador->motivoBloqueo == RESOLVIENDO_DEADLOCK){
+
 			realizarCambio(entrenador,entrenadorAMoverse);
+
+			pthread_mutex_lock(&mutexCiclosConsumidos);
+			ciclosConsumidos+=5;
+			pthread_mutex_unlock(&mutexCiclosConsumidos);
+
+			entrenador->ciclosAcumulados+=5;
+
 			cambiarEstado(entrenador);
+
+			pthread_mutex_lock(&mutexCambiosDeContexto);
+			cambiosDeContexto++;
+			pthread_mutex_unlock(&mutexCambiosDeContexto);
 
 			bool mismo(t_entrenador* unEntrenador){
 				return unEntrenador->idEntrenador == entrenadorAMoverse->idEntrenador;
@@ -221,10 +241,8 @@ void planificacion()
 			pthread_mutex_unlock(&mutexEstadoBloqueado);
 
 			cambiarEstado(entrenadorAMoverse);
-			printf("cambio realizado entre el entrenador %d, y el entrenador %d.\n",entrenador->idEntrenador,entrenadorAMoverse->idEntrenador);
-		}
-		else
-		{
+			printf("\nCambio realizado entre el entrenador %d, y el entrenador %d.\n",entrenador->idEntrenador,entrenadorAMoverse->idEntrenador);
+		} else {
 			//CONEXION AL BROKER Y ENVIO DE MENSAJE CATCH
 			catch_pokemon_msg* mensaje = catch_msg(entrenador->pokemonAMoverse->nombre,entrenador->pokemonAMoverse->posicionX,entrenador->pokemonAMoverse->posicionY);
 			uint32_t* idMensajeExec = malloc(sizeof(int)); // no se libera aca porque se libera cuando liberamos  ids enviados
@@ -236,7 +254,7 @@ void planificacion()
 			pthread_mutex_lock(&mutexCambiosDeContexto);
 			cambiosDeContexto++;
 			pthread_mutex_unlock(&mutexCambiosDeContexto);
-			if (*idMensajeExec == -1){
+			if(*idMensajeExec == -1){
 				printf("Falló el envio del mensaje CATCH_POKEMON %s.\n",mensaje->nombre_pokemon);
 				log_error(logger,"ERROR al enviar el mensaje CATCH_POKEMON %s.",mensaje->nombre_pokemon);
 				log_info(logger,"OPERACION DEFAULT: El entrenador %d capturó al pokemon %s.",entrenador->idEntrenador,mensaje->nombre_pokemon);
@@ -263,50 +281,55 @@ void planificacion()
 
 void pasar_a_ready(){
 	while(1){
+
+		sem_wait(&semPokemonsRecibidos);
+		sem_wait(&semEntrenadoresAPlanificar);
+
 		t_list* entrenadoresAPlanificar = todosLosEntrenadoresAPlanificar();
 
-		if(list_size(pokemons_recibidos)>0 && list_size(entrenadoresAPlanificar)>0){
+		pthread_mutex_lock(&mutexPokemonsRecibidos);
+		t_entrenador* entrenadorTemporal = entrenadorAReady(entrenadoresAPlanificar,pokemons_recibidos);
+		pthread_mutex_unlock(&mutexPokemonsRecibidos);
 
-			pthread_mutex_lock(&mutexPokemonsRecibidos);
-			t_entrenador* entrenadorTemporal = entrenadorAReady(entrenadoresAPlanificar,pokemons_recibidos);
-			pthread_mutex_unlock(&mutexPokemonsRecibidos);
+		entrenadorTemporal->posXAMoverse = (entrenadorTemporal->pokemonAMoverse)->posicionX;
+		entrenadorTemporal->posYAMoverse = (entrenadorTemporal->pokemonAMoverse)->posicionY;
 
-			entrenadorTemporal->posXAMoverse = (entrenadorTemporal->pokemonAMoverse)->posicionX;
-			entrenadorTemporal->posYAMoverse = (entrenadorTemporal->pokemonAMoverse)->posicionY;
+		if(string_equals_ignore_case(ALGORITMO,"SJF-SD") || string_equals_ignore_case(ALGORITMO,"SJF-CD")){
+			uint32_t distancia = distanciaEntrenadorPokemon(entrenadorTemporal->posicionX, entrenadorTemporal->posicionY,entrenadorTemporal->posXAMoverse,entrenadorTemporal->posYAMoverse);
 
-			if(string_equals_ignore_case(ALGORITMO,"SJF-SD") || string_equals_ignore_case(ALGORITMO,"SJF-CD")){
-				uint32_t distancia = distanciaEntrenadorPokemon(entrenadorTemporal->posicionX, entrenadorTemporal->posicionY,entrenadorTemporal->posXAMoverse,entrenadorTemporal->posYAMoverse);
-				if(fabs(entrenadorTemporal->estimacion) != fabs(config_get_double_value(config,"ESTIMACION_INICIAL"))){
-					recalcularEstimacion(entrenadorTemporal,distancia);
-				}
+			if(entrenadorTemporal->yaPasoAReadyUnaVez){
+				recalcularEstimacion(entrenadorTemporal,distancia);
+			} else {
+				entrenadorTemporal->yaPasoAReadyUnaVez = true;
 			}
-
-			bool es_el_mismo_entrenador(t_entrenador* unEntrenador){
-				return unEntrenador->idEntrenador == entrenadorTemporal->idEntrenador;
-			}
-
-			//Aca tengo que poner mutex??
-			pthread_mutex_t mutexLista;
-			t_list* lista = listaALaQuePertenece(entrenadorTemporal, &mutexLista);
-
-			pthread_mutex_lock(&mutexLista);
-			list_remove_and_destroy_by_condition(lista,(void*) es_el_mismo_entrenador,free);
-			pthread_mutex_unlock(&mutexLista);
-
-			pthread_mutex_lock(&mutexEstadoReady);
-			list_add(estado_ready,entrenadorTemporal);
-			pthread_mutex_unlock(&mutexEstadoReady);
-
-			log_info(logger,"El entrenador con id %d paso a la cola READY.", entrenadorTemporal->idEntrenador);
-
-			bool es_el_mismo_pokemon(t_pokemon* pokemon){
-				return string_equals_ignore_case(pokemon->nombre, (entrenadorTemporal->pokemonAMoverse)->nombre);
-			}
-
-			pthread_mutex_lock(&mutexPokemonsRecibidos);
-			list_remove_by_condition(pokemons_recibidos,(void*) es_el_mismo_pokemon);
-			pthread_mutex_unlock(&mutexPokemonsRecibidos);
 		}
+
+		bool es_el_mismo_entrenador(t_entrenador* unEntrenador){
+			return unEntrenador->idEntrenador == entrenadorTemporal->idEntrenador;
+		}
+
+		pthread_mutex_t mutexLista;
+		t_list* lista = listaALaQuePertenece(entrenadorTemporal, &mutexLista);
+
+		pthread_mutex_lock(&mutexLista);
+		list_remove_by_condition(lista,(void*) es_el_mismo_entrenador);
+		pthread_mutex_unlock(&mutexLista);
+
+		pthread_mutex_lock(&mutexEstadoReady);
+		list_add(estado_ready,entrenadorTemporal);
+		pthread_mutex_unlock(&mutexEstadoReady);
+
+		sem_post(&semEstadoExec);
+
+		log_info(logger,"El entrenador con id %d paso a la cola READY.", entrenadorTemporal->idEntrenador);
+
+		bool es_el_mismo_pokemon(t_pokemon* pokemon){
+			return string_equals_ignore_case(pokemon->nombre, (entrenadorTemporal->pokemonAMoverse)->nombre);
+		}
+
+		pthread_mutex_lock(&mutexPokemonsRecibidos);
+		list_remove_by_condition(pokemons_recibidos,(void*) es_el_mismo_pokemon);
+		pthread_mutex_unlock(&mutexPokemonsRecibidos);
 
 		list_destroy(entrenadoresAPlanificar);
 	}
@@ -315,10 +338,11 @@ void pasar_a_ready(){
 void recibirAppeared(){
 	uint32_t idRecibido;
 	queue_name colaMensaje;
+	uint32_t mi_socket;
 
 	while(1){
 
-		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_appeared,&idRecibido,&colaMensaje);
+		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_appeared,&idRecibido,&colaMensaje,&mi_socket);
 		//confirmar_recepcion();
 
 		if (mensaje_recibido_appeared != NULL) {
@@ -328,6 +352,8 @@ void recibirAppeared(){
 				pthread_mutex_lock(&mutexPokemonsRecibidos);
 				agregarAppearedRecibidoALista(pokemons_recibidos,mensaje_recibido_appeared);
 				pthread_mutex_unlock(&mutexPokemonsRecibidos);
+
+				sem_post(&semPokemonsRecibidos);
 
 				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
 				agregarAppearedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_appeared);
@@ -350,10 +376,11 @@ void recibirAppeared(){
 void recibirLocalized(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 	uint32_t id;
 	queue_name colaMensaje;
+	uint32_t mi_socket;
 
 	while (1) {
 
-		localized_pokemon_msg* mensaje_recibido_localized = recibir_mensaje(socket_localized,&id,&colaMensaje); //Devuelve NULL si falla, falta manejar eso para que vuelva a reintentar la conexion.
+		localized_pokemon_msg* mensaje_recibido_localized = recibir_mensaje(socket_localized,&id,&colaMensaje,&mi_socket); //Devuelve NULL si falla, falta manejar eso para que vuelva a reintentar la conexion.
 
 		if (mensaje_recibido_localized != NULL) {
 			log_info(logger,"Nuevo mensaje recibido: LOCALIZED_POKEMON %s, en %d posiciones.",mensaje_recibido_localized->nombre_pokemon,mensaje_recibido_localized->cantidad_posiciones);
@@ -361,13 +388,15 @@ void recibirLocalized(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 					(!(estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),pokemons_recibidos_historicos)))&&
 					necesitoElMensaje(mensaje_recibido_localized->id_correlativo)){
 
-				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
-				agregarLocalizedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_localized);
-				pthread_mutex_unlock(&mutexPokemonsRecibidosHistoricos);
-
 				pthread_mutex_lock(&mutexPokemonsRecibidos);
 				agregarLocalizedRecibidoALista(pokemons_recibidos,mensaje_recibido_localized);
 				pthread_mutex_unlock(&mutexPokemonsRecibidos);
+
+				sem_post(&semPokemonsRecibidos);
+
+				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
+				agregarLocalizedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_localized);
+				pthread_mutex_unlock(&mutexPokemonsRecibidosHistoricos);
 			}
 		} else {
 			if(pthread_mutex_trylock(&mutexReconexion)==0){
@@ -386,10 +415,11 @@ void recibirLocalized(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 	uint32_t idRecibido;
 	queue_name colaMensaje;
+	uint32_t mi_socket;
 
 	while(1){
 
-		caught_pokemon_msg* mensaje_recibido = recibir_mensaje(socket_caught,&idRecibido,&colaMensaje);
+		caught_pokemon_msg* mensaje_recibido = recibir_mensaje(socket_caught,&idRecibido,&colaMensaje,&mi_socket);
 
 		if(mensaje_recibido != NULL){ //Verifico si recibo el mensaje.
 			if(mensaje_recibido->resultado){log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: Atrapado.");}else{log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: No Atrapado.");}
@@ -539,9 +569,6 @@ void deadlock()
 					pthread_mutex_unlock(&mutexEstadoBloqueado);
 				}
 
-				pthread_mutex_lock(&mutexCambiosDeContexto);
-				cambiosDeContexto++;
-				pthread_mutex_unlock(&mutexCambiosDeContexto);
 				t_list* losQueTienenElPokemonQueLeFalta = quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado);
 				t_entrenador* entrenadorAMoverse = list_get(losQueTienenElPokemonQueLeFalta,0);
 				if(entrenadorAMoverse == NULL)
@@ -566,7 +593,8 @@ void deadlock()
 			if(list_is_empty(estado_ready) && list_is_empty(estado_new) && !hayEntrenadorProcesando && list_is_empty(estado_bloqueado))break;
 		}
 
-		sleep(7); // con esto dejo el proceso corriendo y chequeo
+		int tiempo = config_get_int_value(config,"TIEMPO_DEADLOCK");
+		sleep(tiempo); // con esto dejo el proceso corriendo y chequeo
 	}
 
 	log_info(logger,"Finaliza el algoritmo de correccion de DEADLOCK.");

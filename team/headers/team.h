@@ -59,7 +59,6 @@ pthread_mutex_t mutexReconexion;
 pthread_mutex_t mutexLog;
 pthread_mutex_t mutexHayEntrenadorProcesando;
 pthread_mutex_t mutexCantidadDeadlocks;
-pthread_mutex_t mutexCambiosDeContexto;
 pthread_mutex_t mutexEspera;
 pthread_cond_t cond_reconectado;
 

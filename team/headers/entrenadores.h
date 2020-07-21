@@ -4,6 +4,7 @@
 #include "pokemon.h"
 #include <math.h>
 #include <pthread.h>
+#include <semaphore.h>
 
 typedef enum{
 	ESPERA_CAUGHT,
@@ -27,6 +28,7 @@ typedef struct Entrenador
 	uint32_t ciclosAcumulados;
 	uint32_t posXAMoverse;
 	uint32_t posYAMoverse;
+	bool yaPasoAReadyUnaVez;
 }t_entrenador;
 
 t_log* logger;
@@ -42,6 +44,11 @@ pthread_mutex_t mutexCiclosConsumidos;
 pthread_mutex_t mutexEstadoNew;
 pthread_mutex_t mutexEstadoBloqueado;
 pthread_mutex_t mutexEstadoReady;
+pthread_mutex_t mutexCambiosDeContexto;
+
+sem_t semEstadoExec;
+sem_t semPokemonsRecibidos;
+sem_t semEntrenadoresAPlanificar;
 
 char* ALGORITMO;
 uint32_t QUANTUM;

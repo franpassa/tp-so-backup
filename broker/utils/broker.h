@@ -23,6 +23,7 @@
 
 typedef struct {
 	uint32_t id;
+	uint32_t id_correlativo;
 	t_list* a_quienes_fue_enviado;
 	t_list* quienes_lo_recibieron; // ACK
 } t_info_mensaje;
@@ -59,9 +60,8 @@ char* algoritmo_remplazo;
 char* algoritmo_part_libre;
 int frecuencia_compactacion;
 int tamanio_minimo;
-void eliminar_mensaje(uint32_t);
-
 int cont_orden;
+int cont_lru;
 
 uint32_t tamanio_memoria;
 
@@ -88,12 +88,11 @@ char* nombres_colas[7];
 // SEMAFOROS
 
 pthread_mutex_t semaforo_id;
-pthread_mutex_t semaforo_suscriber;
 pthread_mutex_t sem_cola[6];
 pthread_mutex_t mutex_productores;
 pthread_mutex_t semaforo_struct_s;
 pthread_mutex_t semaforo_memoria;
-pthread_mutex_t semaforo_reconstruir;
+pthread_mutex_t sem_lru;
 
 // HILOS
 
@@ -137,7 +136,7 @@ void loop_productores();
 void recibir_mensajes_para_broker(int*);
 void confirmar_mensaje(queue_name, uint32_t,int);
 uint32_t crear_nuevo_id();
-void agregar_a_cola(uint32_t,uint32_t);
+void agregar_a_cola(uint32_t,uint32_t,uint32_t);
 bool es_el_mismo_mensaje(queue_name, void*,void*);
 int revisar_si_mensaje_no_estaba_en_cola(queue_name, void*, uint32_t);
 void free_msg_cola(t_info_mensaje*);
@@ -146,7 +145,7 @@ void free_msg_cola(t_info_mensaje*);
 
 void mandar_mensajes();
 bool esta_en_lista(t_list*, uint32_t*);
-int mandar(queue_name, void*, int,int,int);
+int mandar(queue_name, void*, int,int,int,uint32_t);
 void recorrer_cola(t_cola_de_mensajes*);
 
 // MEMORIA
@@ -157,13 +156,13 @@ t_struct_secundaria* duplicar_estructura(t_struct_secundaria*);
 void llenar_estructura(t_struct_secundaria*, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
 void buscar_particion_en_particiones_dinamicas();
 void compactar();
+void consolidar();
 void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones();
 void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs();
 void liberar_memoria_interna();
-int cont_orden_f();
 void actualizar_bit_inicio(int);
 void mover_memoria(int);
-void* de_id_mensaje_a_mensaje(uint32_t);
+void* de_id_mensaje_a_mensaje(uint32_t,int);
 uint32_t de_id_mensaje_a_cola(uint32_t);
 uint32_t de_id_mensaje_a_size(uint32_t);
 
@@ -171,12 +170,12 @@ void buscar_particion_en_bs();
 void consolidar_particiones_en_bs(int posicion_liberada);
 bool son_buddies(t_struct_secundaria*, t_struct_secundaria*);
 bool es_potencia_de_dos(int);
-int algoritmo_FIFO();
-int algoritmo_LRU();
-t_struct_secundaria* encontrar_particion_en_base_a_un_id_mensaje(uint32_t);
+int elegir_bit_aux_mas_viejo();
+t_struct_secundaria* encontrar_particion_en_base_a_un_id_mensaje(uint32_t,int);
 void dump_de_cache();
 void capturar_senial();
 int mayor_entre_Min_y_tam(int);
+int f_cont_lru();
 
 // otras
 void reconstruir();

@@ -93,6 +93,10 @@ void inicializarVariables(){
 	pthread_mutex_init(&mutexEspera, NULL);
 	pthread_cond_init(&cond_reconectado, NULL);
 
+	sem_init(&semEstadoExec,0,0);
+	sem_init(&semPokemonsRecibidos,0,0);
+	sem_init(&semEntrenadoresAPlanificar,0,0);
+
 	posicionesEntrenadores = config_get_array_value(config,"POSICIONES_ENTRENADORES");
 	pokesEntrenadores = config_get_array_value(config, "POKEMON_ENTRENADORES");
 	pokesObjetivos = config_get_array_value(config, "OBJETIVOS_ENTRENADORES");
@@ -124,9 +128,9 @@ void liberarVariables()
 	liberarArray(pokesObjetivos);
 	list_destroy_and_destroy_elements(pokemons_objetivos, free);
 	list_destroy_and_destroy_elements(objetivos_globales,liberarEspecie);
-	list_destroy(estado_bloqueado);
-	list_destroy(estado_new);
-	list_destroy(estado_exit);
+	list_destroy_and_destroy_elements(estado_bloqueado,liberarEntrenador);
+	list_destroy_and_destroy_elements(estado_new,liberarEntrenador);
+	list_destroy_and_destroy_elements(estado_exit,liberarEntrenador);
 	list_destroy_and_destroy_elements(pokemons_recibidos_historicos,liberarPokemon);
 	list_destroy_and_destroy_elements(pokemons_recibidos,liberarPokemon);
 	list_destroy_and_destroy_elements(ids_enviados,free);
@@ -143,4 +147,7 @@ void liberarVariables()
 	pthread_mutex_destroy(&mutexReconexion);
 	pthread_mutex_destroy(&mutexEspera);
 	pthread_cond_destroy(&cond_reconectado);
+	sem_destroy(&semEstadoExec);
+	sem_destroy(&semPokemonsRecibidos);
+	sem_destroy(&semEntrenadoresAPlanificar);
 }
