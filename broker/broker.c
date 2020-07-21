@@ -8,17 +8,16 @@ int main(){
 	int socket_servidor = iniciar_servidor_broker();
 
 	pthread_create(&hilo_suscripciones, NULL, (void*) esperar_cliente, &socket_servidor);
-	//pthread_create(&hilo_estado_queues,NULL,(void*) estado_de_queues, &socket_servidor);
+	pthread_create(&hilo_estado_queues,NULL,(void*) estado_de_queues, &socket_servidor);
 	pthread_create(&hilo_mensajes, NULL, (void*) loop_productores, NULL);
-	//pthread_create(&hilo_enviar_mensaje, NULL, (void*) mandar_mensajes, NULL);
+	pthread_create(&hilo_enviar_mensaje, NULL, (void*) mandar_mensajes, NULL);
 
-	//pthread_join(hilo_estado_queues,NULL);
+	pthread_join(hilo_estado_queues,NULL);
 	pthread_join(hilo_suscripciones,NULL);
 	pthread_join(hilo_mensajes,NULL);
-	//pthread_join(hilo_enviar_mensaje,NULL);
+	pthread_join(hilo_enviar_mensaje,NULL);
 
 	close(socket_servidor);
-	//terminar_programa(logger,config);
 
 	return 0;
 
@@ -208,7 +207,6 @@ void print_mensaje_de_cola(t_info_mensaje* mensaje){
 }
 
 void free_msg_cola(t_info_mensaje* mensaje){
-	free(mensaje->id_correlativo);
 	list_destroy_and_destroy_elements(mensaje->quienes_lo_recibieron,free);
 	list_destroy_and_destroy_elements(mensaje->a_quienes_fue_enviado,free);
 	free(mensaje);
@@ -222,10 +220,9 @@ void free_queue_msgs(t_cola_de_mensajes* cola_de_mensajes){
 }
 
 void sacar_de_cola(uint32_t id, int cola) {
-	printf("Sacar_de_cola\n");
 
 	pthread_mutex_lock(&sem_cola[cola]);
-	printf("Entra al lock\n");
+
 	t_cola_de_mensajes* queue = int_a_nombre_cola(cola);
 
 	t_info_mensaje* mensaje = queue_peek(queue->cola);
@@ -250,8 +247,7 @@ void sacar_de_cola(uint32_t id, int cola) {
 		printf("Id_siguiente= %d\n",id_siguiente);
 	} while (control == 0 && id_primero!= id_siguiente);
 
-	printf("SALE DO While\n");
 	pthread_mutex_unlock(&sem_cola[cola]);
-	printf("Termina todo el Sacar COLA\n");
+
 }
 

@@ -78,14 +78,16 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 
 	} else {
 
-		uint32_t id_correlativo;
-		recv(*socket_escucha, &id_correlativo, sizeof(uint32_t), MSG_WAITALL);
+		uint32_t id_mensaje;
+		uint32_t socket_sub;
+		uint32_t* stream_a_agarrar = malloc(sizeof(uint32_t) * 2);
+		recv(*socket_escucha, (void*) stream_a_agarrar, sizeof(uint32_t)*2, MSG_WAITALL);
 
-		uint32_t socket_sub; // Falta que me manden el socket_sub
-		recv(*socket_escucha, &socket_sub, sizeof(uint32_t), MSG_WAITALL);
+		id_mensaje = stream_a_agarrar[0];
+		socket_sub = stream_a_agarrar[1];
 
 		pthread_mutex_lock(&(sem_cola[id_cola]));
-		confirmar_mensaje(id_cola, id_correlativo, socket_sub);
+		confirmar_mensaje(id_cola, id_mensaje, socket_sub);
 		pthread_mutex_unlock(&(sem_cola[id_cola]));
 
 	}
@@ -95,7 +97,10 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 }
 
 
-void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, int socket_sub) { // Revisarlo
+void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, uint32_t socket_sub) { // Revisarlo
+	printf("Estoy confirmando rey\n");
+	printf("Id mensaje= %d\n", id_mensaje);
+	printf("Socket sub= %d\n", socket_sub);
 
 	t_cola_de_mensajes* queue = int_a_nombre_cola(id_cola);
 	t_info_mensaje* mensaje = queue_peek(queue->cola);
@@ -119,7 +124,6 @@ void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, int socket_sub) 
 			log_info(logger,"CONFIRMACION DE LLEGADA DE MENSAJE DE SUSCRIPTOR:%d ",sub); // LOG 5
 			if (list_size(mensaje->quienes_lo_recibieron) == list_size(queue->lista_suscriptores)) {
 				free_msg_cola(mensaje);
-				//eliminar_mensaje(mensaje->id);
 			}
 
 		} else {
@@ -129,6 +133,7 @@ void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, int socket_sub) 
 		}
 
 	} while (control == 0 && id_primero != id_siguiente);
+	printf("Termino de confirmar");
 }
 
 uint32_t crear_nuevo_id(){
@@ -137,7 +142,7 @@ uint32_t crear_nuevo_id(){
 }
 
 void agregar_a_cola(uint32_t id_cola, uint32_t id_mensaje,uint32_t id_correlativo){
-	printf("Agregar a cola\n");
+
 	t_info_mensaje* info_msg = malloc(sizeof(t_info_mensaje));
 	info_msg->id = id_mensaje;
 	info_msg->quienes_lo_recibieron = list_create();
@@ -150,7 +155,7 @@ void agregar_a_cola(uint32_t id_cola, uint32_t id_mensaje,uint32_t id_correlativ
 }
 
 bool es_el_mismo_mensaje(queue_name id, void* mensaje, void* otro_mensaje) {
-	printf("Mismo mensaje\n");
+
 	switch(id){
 
 	case NEW_POKEMON: ;
@@ -216,7 +221,7 @@ bool es_el_mismo_mensaje(queue_name id, void* mensaje, void* otro_mensaje) {
 }
 
 int revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido, uint32_t tamanio_mensaje) {
-	printf("Revisar igual mensaje\n");
+
 	t_cola_de_mensajes* queue_a_revisar = int_a_nombre_cola(id);
 
 	int mensaje_nuevo = 0;

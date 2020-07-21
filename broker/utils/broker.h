@@ -134,7 +134,7 @@ int suscribir_a_cola(int, queue_name);
 
 void loop_productores();
 void recibir_mensajes_para_broker(int*);
-void confirmar_mensaje(queue_name, uint32_t,int);
+void confirmar_mensaje(queue_name, uint32_t,uint32_t);
 uint32_t crear_nuevo_id();
 void agregar_a_cola(uint32_t,uint32_t,uint32_t);
 bool es_el_mismo_mensaje(queue_name, void*,void*);
