@@ -367,9 +367,7 @@ void moverConDesalojoPorSJF(t_entrenador* unEntrenador, uint32_t posX, uint32_t 
 
 	while(distanciaEntrenadorPokemon(unEntrenador->posicionX, unEntrenador->posicionY,posX,posY)!=0){
 
-		pthread_mutex_lock(&mutexEstadoReady);
-		if(!esElDeMenorEstimacion(estado_ready,unEntrenador))break;
-		pthread_mutex_unlock(&mutexEstadoReady);
+		if(!esElDeMenorEstimacion(estado_ready,unEntrenador))break; //NO PONER MUTEX ACA
 
 		if(abs(unEntrenador->posicionX - posX) > 0){
 
