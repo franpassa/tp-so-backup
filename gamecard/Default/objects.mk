@@ -5,6 +5,6 @@
 USER_OBJS :=
 
 
-LIBS := -lcuarenteam -lconexiones -lcommons -lpthread
+LIBS := -lcuarenteam -lcommons -lpthread
 
 

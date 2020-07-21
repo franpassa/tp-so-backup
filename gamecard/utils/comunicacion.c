@@ -31,9 +31,10 @@ void manejar_msg_gameboy(int* socket_gameboy){
 	queue_name cola_productor;
 	recv(*socket_gameboy, &cola_productor, sizeof(queue_name), MSG_WAITALL);
 
-	uint32_t id_recibido;
+	uint32_t id_recibido, mi_socket;
 	queue_name tipo_msg;
-	void* msg = recibir_mensaje(*socket_gameboy, &id_recibido, &tipo_msg);
+	void* msg = recibir_mensaje(*socket_gameboy, &id_recibido, &tipo_msg, &mi_socket);
+	// confirmar_mensaje()...
 	free(socket_gameboy); // Se libera ya que se cierra dsp de enviar el msg.
 
 	procesar_msg(tipo_msg, msg, id_recibido);
@@ -68,11 +69,11 @@ void escuchar_socket(int* socket){
 	//char* ip_broker = config_get_string_value(config, "IP_BROKER");
 	//char* puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
 
-	uint32_t id;
+	uint32_t id, mi_socket;
 	queue_name cola;
 
 	while(1){
-		void* msg = recibir_mensaje(*socket, &id, &cola);
+		void* msg = recibir_mensaje(*socket, &id, &cola, &mi_socket);
 		if(msg != NULL){
 			//confirmar_recepcion(ip_broker, puerto_broker, cola, id, mi_socket);
 			procesar_msg(cola, msg, id);
