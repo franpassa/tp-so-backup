@@ -84,7 +84,6 @@ void recibir_mensajes(queue_name* cola){
 		confirmar_recepcion(ip_broker, puerto_broker, tipo_msg, id, mi_socket);
 		printf("ID: %d -> ", id);
 		print_msg(tipo_msg, msg);
-		sleep(1);
 	}
 
 }
