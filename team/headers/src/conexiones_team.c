@@ -569,9 +569,6 @@ void deadlock()
 					pthread_mutex_unlock(&mutexEstadoBloqueado);
 				}
 
-				pthread_mutex_lock(&mutexCambiosDeContexto);
-				cambiosDeContexto++;
-				pthread_mutex_unlock(&mutexCambiosDeContexto);
 				t_list* losQueTienenElPokemonQueLeFalta = quienesTienenElPokeQueMeFalta(entrenador,estado_bloqueado);
 				t_entrenador* entrenadorAMoverse = list_get(losQueTienenElPokemonQueLeFalta,0);
 				if(entrenadorAMoverse == NULL)
