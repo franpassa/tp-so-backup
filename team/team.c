@@ -128,9 +128,9 @@ void liberarVariables()
 	liberarArray(pokesObjetivos);
 	list_destroy_and_destroy_elements(pokemons_objetivos, free);
 	list_destroy_and_destroy_elements(objetivos_globales,liberarEspecie);
-	list_destroy(estado_bloqueado);
-	list_destroy(estado_new);
-	list_destroy(estado_exit);
+	list_destroy_and_destroy_elements(estado_bloqueado,liberarEntrenador);
+	list_destroy_and_destroy_elements(estado_new,liberarEntrenador);
+	list_destroy_and_destroy_elements(estado_exit,liberarEntrenador);
 	list_destroy_and_destroy_elements(pokemons_recibidos_historicos,liberarPokemon);
 	list_destroy_and_destroy_elements(pokemons_recibidos,liberarPokemon);
 	list_destroy_and_destroy_elements(ids_enviados,free);
