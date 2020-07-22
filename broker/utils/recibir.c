@@ -9,6 +9,7 @@ void loop_productores(){
 		uint32_t* socket_productor = (uint32_t*) list_remove(sockets_productores,0);
 		pthread_mutex_unlock(&mutex_productores);
 		recibir_mensajes_para_broker(socket_productor);
+		free(socket_productor);
 	}
 
 }
@@ -18,11 +19,8 @@ void recibir_mensajes_para_broker(uint32_t* socket_escucha){
 	queue_name id_cola;
 	int bytes_recibidos = recv(*socket_escucha, &id_cola, sizeof(queue_name), MSG_WAITALL);
 
-	if(bytes_recibidos < 0){
-		printf("EL SOCKET %d NO ME MANDO NADA, RE ORTIBA\n", *socket_escucha);
-		return;
-	} else if(bytes_recibidos == 0){
-		printf("EL SOCKET %d SE DESCONECTO\n", *socket_escucha);
+	if(bytes_recibidos <= 0){
+		printf("Error en conexion %d\n", *socket_escucha);
 		return;
 	}
 
@@ -45,9 +43,7 @@ void recibir_mensajes_para_broker(uint32_t* socket_escucha){
 
 		if (id_mens_en_cola == 0){ // Si es 0 no esta en la cola el msg
 
-			pthread_mutex_lock(&semaforo_id);
  			uint32_t id_mensaje = crear_nuevo_id();
-			pthread_mutex_unlock(&semaforo_id);
 
 			send(*socket_escucha, &id_mensaje, sizeof(uint32_t), 0);
 
@@ -62,11 +58,11 @@ void recibir_mensajes_para_broker(uint32_t* socket_escucha){
 				void* id_correlativo = malloc(sizeof(uint32_t));
 				memcpy(id_correlativo, paquete->buffer->stream , sizeof(uint32_t));
 				uint32_t id_aux_correlativo = *(uint32_t*) id_correlativo;
-				free_paquete(paquete);
 
 				agregar_a_cola(id_cola, id_mensaje, id_aux_correlativo);
 
 				almacenar(stream_a_guardar, id_cola, id_mensaje, size_a_guardar);
+				free(stream_a_guardar);
 
 			}else{
 				agregar_a_cola(id_cola, id_mensaje, 0);
@@ -77,7 +73,7 @@ void recibir_mensajes_para_broker(uint32_t* socket_escucha){
 		} else {
 			send(*socket_escucha, &id_mens_en_cola, sizeof(uint32_t), 0);
 		}
-
+		free_paquete(paquete);
 	} else {
 
 		uint32_t id_mensaje;
@@ -88,12 +84,13 @@ void recibir_mensajes_para_broker(uint32_t* socket_escucha){
 		id_mensaje = stream_a_agarrar[0];
 		socket_sub = stream_a_agarrar[1];
 
+		free(stream_a_agarrar);
+
 		pthread_mutex_lock(&(sem_cola[id_cola]));
 		confirmar_mensaje(id_cola, id_mensaje, socket_sub);
 		pthread_mutex_unlock(&(sem_cola[id_cola]));
 
 	}
-
 }
 
 
@@ -134,7 +131,10 @@ void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, uint32_t socket_
 }
 
 uint32_t crear_nuevo_id(){
-	contador_id ++;
+	pthread_mutex_lock(&semaforo_id);
+	contador_id++;
+	pthread_mutex_unlock(&semaforo_id);
+
 	return contador_id;
 }
 
@@ -245,6 +245,8 @@ int revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido, uint
 			if (es_el_mismo_mensaje(id, msg2, msg_a_comparar)) {
 				mensaje_nuevo = elemento_a_testear->id; // asignas el id del que ya esta en la cola y se lo das al sub
 			}
+
+			free_mensaje(id, msg2);
 			queue_push(queue_a_revisar->cola, elemento_a_testear);
 			free(mensaje_en_cola_buffer->stream);
 			free(mensaje_en_cola_buffer);
@@ -253,6 +255,7 @@ int revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido, uint
 	}
 	pthread_mutex_unlock(&(sem_cola[id]));
 
+	free_mensaje(id, msg_a_comparar);
 	free(mensaje_en_buffer_recibido->stream);
 	free(mensaje_en_buffer_recibido);
 

@@ -252,7 +252,7 @@ void* serializar_paquete(t_paquete* paquete, int bytes) {
 	offset += sizeof(queue_name);
 	memcpy(a_enviar + offset, &(paquete->buffer->size), sizeof(uint32_t));
 	offset += sizeof(uint32_t);
-	memcpy(a_enviar + offset, paquete->buffer->stream, bytes - sizeof(queue_name) - sizeof(uint32_t));
+	memcpy(a_enviar + offset, paquete->buffer->stream, paquete->buffer->size);
 
 	return a_enviar;
 }

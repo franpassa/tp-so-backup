@@ -74,7 +74,9 @@ void recorrer_cola(t_cola_de_mensajes* nombre) {
 			info_a_sacar = queue_pop(nombre->cola);
 
 			for (int i = 0; i < list_size(nombre->lista_suscriptores); i++) {
-				uint32_t* sub = (uint32_t*) list_get(nombre->lista_suscriptores,i);
+				uint32_t* sub = malloc(sizeof(uint32_t));
+				memcpy(sub, list_get(nombre->lista_suscriptores,i), sizeof(uint32_t));
+
 				if (!esta_en_lista(info_a_sacar->quienes_lo_recibieron, sub)) {
 
 					void* mensaje = de_id_mensaje_a_mensaje(info_a_sacar->id,1);
@@ -100,6 +102,7 @@ void recorrer_cola(t_cola_de_mensajes* nombre) {
 						} while (id_afuera != id_siguiente);
 
 						list_remove_and_destroy_by_condition(nombre->lista_suscriptores, es_igual_a, free);
+						free(sub);
 					}
 
 					if (!esta_en_lista(info_a_sacar->a_quienes_fue_enviado, sub) && sub_suscrito) {

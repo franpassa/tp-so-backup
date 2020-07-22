@@ -62,7 +62,6 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
         memmove(memoria + estructura_memoria->bit_inicio, mensaje, size);
         pthread_mutex_unlock(&(semaforo_memoria));
 
-
 //      printf("Bit De inicio = %d \n", estructura_memoria->bit_inicio); // Lo hace bien
         log_info(logger, "MENSAJE ALMACENADO EN PARTICION:%d -- BIT DE INICIO:%d", entra, estructura_memoria->bit_inicio); // LOG 6 en HEXA
 
@@ -510,39 +509,46 @@ t_struct_secundaria* encontrar_particion_en_base_a_un_id_mensaje(uint32_t id_men
 	return particion;
 }
 
-void dump_de_cache(){
-	log_info(logger,"EJECUCION DE DUMP DE CACHE\n"); //LOG 9
-	t_struct_secundaria* particion_a_mostrar;
-	FILE* dump_file = fopen("/home/utnso/workspace/tp-2020-1c-Cuarenteam/broker/Default/dump_cache","w");
-	if(dump_file == NULL){
-		printf("No se pudo abrir el archivo.\n");
-		exit(1);
-	} else {
-	time_t fecha;
-	struct tm *info;
-	time(&fecha);
-	info = localtime(&fecha);
-	fprintf(dump_file, "Date:%s ", asctime(info)); // Esta impreso distinto, imprime el dia y el mes en string
-
-	for(int i=0; i < list_size(lista_de_particiones);i++){
-		particion_a_mostrar = list_get(lista_de_particiones,i);
-		fprintf(dump_file,"Particion %d:", i);
-		fprintf(dump_file,"0x%x - 0x%x.\t ",particion_a_mostrar->bit_inicio, particion_a_mostrar->bit_inicio + mayor_entre_Min_y_tam(particion_a_mostrar->tamanio));
-		if(particion_a_mostrar->tipo_mensaje == 6){
-			fprintf(dump_file,"[L]\t Size:%d b \n", particion_a_mostrar->tamanio);
+void dump_de_cache(int sig) {
+	if (sig == SIGUSR1) {
+		printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa\n");
+		log_info(logger, "EJECUCION DE DUMP DE CACHE\n"); //LOG 9
+		t_struct_secundaria* particion_a_mostrar;
+		FILE* dump_file = fopen("broker.dump", "w");
+		if (dump_file == NULL) {
+			printf("No se pudo abrir el archivo.\n");
+			exit(1);
 		} else {
-			//VER LRU Depende del algoritmo, igual esta puesto.
-			fprintf(dump_file,"[X]\t Size:%d b \t LRU:%d \t Cola:%d \t Id:%d \n", particion_a_mostrar->tamanio,
-					particion_a_mostrar->auxiliar, particion_a_mostrar->tipo_mensaje, particion_a_mostrar->id_mensaje);
-		}
-	}
-	}
-	fclose(dump_file);
-}
+			time_t fecha;
+			struct tm *info;
+			time(&fecha);
+			info = localtime(&fecha);
+			fprintf(dump_file, "Date:%s ", asctime(info)); // Esta impreso distinto, imprime el dia y el mes en string
 
-void capturar_senial(){
-	while(1){
-		signal(SIGUSR1, dump_de_cache);
+			for (int i = 0; i < list_size(lista_de_particiones); i++) {
+				particion_a_mostrar = list_get(lista_de_particiones, i);
+				fprintf(dump_file, "Particion %d:", i);
+				fprintf(dump_file, "0x%x - 0x%x.\t ",
+						particion_a_mostrar->bit_inicio,
+						particion_a_mostrar->bit_inicio
+								+ mayor_entre_Min_y_tam(
+										particion_a_mostrar->tamanio));
+				if (particion_a_mostrar->tipo_mensaje == 6) {
+					fprintf(dump_file, "[L]\t Size:%d b \n",
+							particion_a_mostrar->tamanio);
+				} else {
+					//VER LRU Depende del algoritmo, igual esta puesto.
+					fprintf(dump_file,
+							"[X]\t Size:%d b \t LRU:%d \t Cola:%d \t Id:%d \n",
+							particion_a_mostrar->tamanio,
+							particion_a_mostrar->auxiliar,
+							particion_a_mostrar->tipo_mensaje,
+							particion_a_mostrar->id_mensaje);
+				}
+			}
+		}
+
+		fclose(dump_file);
 	}
 }
 

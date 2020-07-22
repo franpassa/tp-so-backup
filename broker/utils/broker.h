@@ -167,6 +167,7 @@ void mover_memoria(int);
 void* de_id_mensaje_a_mensaje(uint32_t,int);
 uint32_t de_id_mensaje_a_cola(uint32_t);
 uint32_t de_id_mensaje_a_size(uint32_t);
+void dump_de_cache(int sig);
 
 void buscar_particion_en_bs();
 void consolidar_particiones_en_bs(int posicion_liberada);
@@ -174,7 +175,6 @@ bool son_buddies(t_struct_secundaria*, t_struct_secundaria*);
 bool es_potencia_de_dos(int);
 int elegir_bit_aux_mas_viejo();
 t_struct_secundaria* encontrar_particion_en_base_a_un_id_mensaje(uint32_t,int);
-void dump_de_cache();
 void capturar_senial();
 int mayor_entre_Min_y_tam(int);
 int f_cont_lru();
