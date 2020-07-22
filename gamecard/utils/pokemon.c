@@ -170,19 +170,23 @@ void ceder_acceso(char* nombre_pokemon, pthread_mutex_t* mutex_file){
 
 // Se inicializa el semaforo del pokemon y (si asi se lo indica) se crea el archivo.
 pthread_mutex_t* inicializar_pokemon(char* nombre_pokemon, bool new_file){
+	char* lowered_nombre = string_duplicate(nombre_pokemon);
+	string_to_lower(lowered_nombre);
+
 	pthread_mutex_t* mx_pokemon = malloc(sizeof(pthread_mutex_t));
 	pthread_mutex_init(mx_pokemon, NULL);
 	pthread_mutex_lock(mx_pokemon);
 
 	pthread_mutex_lock(&mutex_dict);
-	dictionary_put(sem_files, nombre_pokemon, mx_pokemon);
+	dictionary_put(sem_files, lowered_nombre, mx_pokemon);
 	pthread_mutex_unlock(&mutex_dict);
 
 	if(new_file){
-		crear_file(nombre_pokemon, true);
+		crear_file(lowered_nombre, true);
 	}
 	pthread_mutex_unlock(mx_pokemon);
 
+	free(lowered_nombre);
 	return mx_pokemon;
 }
 
