@@ -4,18 +4,19 @@
 void loop_productores(){
 
 	while(1){
-		if(!list_is_empty(sockets_productores)){
-			list_iterate(sockets_productores, (void*) recibir_mensajes_para_broker);
-			sleep(2);
-		}
+		sem_wait(&semaforo_contador_productores);
+		pthread_mutex_lock(&mutex_productores);
+		uint32_t* socket_productor = (uint32_t*) list_remove(sockets_productores,0);
+		pthread_mutex_unlock(&mutex_productores);
+		recibir_mensajes_para_broker(socket_productor);
 	}
 
 }
 
-void recibir_mensajes_para_broker(int* socket_escucha){
+void recibir_mensajes_para_broker(uint32_t* socket_escucha){
 
 	queue_name id_cola;
-	int bytes_recibidos = recv(*socket_escucha, &id_cola, sizeof(queue_name), MSG_DONTWAIT);
+	int bytes_recibidos = recv(*socket_escucha, &id_cola, sizeof(queue_name), MSG_WAITALL);
 
 	if(bytes_recibidos < 0){
 		printf("EL SOCKET %d NO ME MANDO NADA, RE ORTIBA\n", *socket_escucha);
@@ -71,7 +72,7 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 
 				almacenar(paquete->buffer->stream, id_cola, id_mensaje, paquete->buffer->size);
 			}
-
+			sem_post(&binario_mandar);
 		} else {
 			send(*socket_escucha, &id_mens_en_cola, sizeof(uint32_t), 0);
 		}
@@ -91,16 +92,11 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 		pthread_mutex_unlock(&(sem_cola[id_cola]));
 
 	}
-	pthread_mutex_lock(&mutex_productores);
-	list_remove_and_destroy_element(sockets_productores,0,free);
-	pthread_mutex_unlock(&mutex_productores);
+
 }
 
 
 void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, uint32_t socket_sub) { // Revisarlo
-	printf("Estoy confirmando rey\n");
-	printf("Id mensaje= %d\n", id_mensaje);
-	printf("Socket sub= %d\n", socket_sub);
 
 	t_cola_de_mensajes* queue = int_a_nombre_cola(id_cola);
 	t_info_mensaje* mensaje = queue_peek(queue->cola);

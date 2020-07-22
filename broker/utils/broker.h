@@ -87,12 +87,14 @@ char* nombres_colas[7];
 
 // SEMAFOROS
 
+sem_t semaforo_contador_productores;
 pthread_mutex_t semaforo_id;
 pthread_mutex_t sem_cola[6];
 pthread_mutex_t mutex_productores;
 pthread_mutex_t semaforo_struct_s;
 pthread_mutex_t semaforo_memoria;
 pthread_mutex_t sem_lru;
+sem_t binario_mandar;
 
 // HILOS
 
@@ -133,7 +135,7 @@ int suscribir_a_cola(int, queue_name);
 // Recibir
 
 void loop_productores();
-void recibir_mensajes_para_broker(int*);
+void recibir_mensajes_para_broker(uint32_t*);
 void confirmar_mensaje(queue_name, uint32_t,uint32_t);
 uint32_t crear_nuevo_id();
 void agregar_a_cola(uint32_t,uint32_t,uint32_t);
