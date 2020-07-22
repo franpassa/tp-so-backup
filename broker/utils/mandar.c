@@ -26,9 +26,9 @@ int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size 
 
 	if (cola == 1 || cola == 3 || cola == 5 ){
 
-		void* stream_a_mandar = malloc(paquete->buffer->size + sizeof(uint32_t));
-		memcpy(stream_a_mandar,(void*) id_correlativo,sizeof(uint32_t));
-		memcpy(stream_a_mandar + sizeof(uint32_t) , stream ,paquete->buffer->size);
+		void* stream_a_mandar = malloc(size + sizeof(uint32_t));
+		memcpy(stream_a_mandar,&id_correlativo,sizeof(uint32_t));
+		memcpy(stream_a_mandar + sizeof(uint32_t), stream, size);
 		paquete->buffer->size = size + sizeof(uint32_t);
 		paquete->buffer->stream = stream_a_mandar;
 	}else {

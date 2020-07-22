@@ -23,17 +23,9 @@
 
 typedef struct {
 	uint32_t id;
-	uint32_t id_correlativo;
-	t_list* a_quienes_fue_enviado;
-	t_list* quienes_lo_recibieron; // ACK
-} t_info_mensaje;
-
-typedef struct {
-	uint32_t id;
 } t_suscriptor;
 
 typedef struct {
-	t_queue* cola;
 	t_list* lista_suscriptores;
 	queue_name tipo_cola;
 } t_cola_de_mensajes;
@@ -46,6 +38,9 @@ typedef struct {
 	uint32_t id_mensaje;
 	uint32_t bit_inicio;
 	uint32_t auxiliar;
+	uint32_t id_correlativo;
+	t_list* a_quienes_fue_enviado;
+	t_list* quienes_lo_recibieron;
 }t_struct_secundaria;
 
 // Variables globales memoria
@@ -89,7 +84,7 @@ char* nombres_colas[7];
 
 sem_t semaforo_contador_productores;
 pthread_mutex_t semaforo_id;
-pthread_mutex_t sem_cola[6];
+//pthread_mutex_t sem_cola[6];
 pthread_mutex_t mutex_productores;
 pthread_mutex_t semaforo_struct_s;
 pthread_mutex_t semaforo_memoria;

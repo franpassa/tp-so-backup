@@ -316,8 +316,9 @@ void compactar(){
 
 			estructura1->bit_inicio = tamanio_memoria - estructura1->tamanio;
 
-			list_remove(lista_de_particiones,i);
 			list_add(lista_de_particiones, estructura1);
+			list_remove(lista_de_particiones,i);
+
 			}
 	}
 	pthread_mutex_unlock(&(semaforo_struct_s));
@@ -465,7 +466,7 @@ void mover_memoria(int a_sacar) {
 
 void* de_id_mensaje_a_mensaje(uint32_t id_mensaje,int control){
 //	printf("id mensaje a mensaje\n");
-	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola = encontrar_particion_en_base_a_un_id_mensaje(id_mensaje,1);
+	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola = encontrar_particion_en_base_a_un_id_mensaje(id_mensaje, control);
 	void* mensaje = malloc(particion_de_donde_voy_a_sacar_el_tipo_de_cola->tamanio);
 	pthread_mutex_lock(&(semaforo_memoria));
 	memcpy(mensaje, memoria + particion_de_donde_voy_a_sacar_el_tipo_de_cola->bit_inicio, particion_de_donde_voy_a_sacar_el_tipo_de_cola->tamanio);
@@ -476,7 +477,7 @@ void* de_id_mensaje_a_mensaje(uint32_t id_mensaje,int control){
 
 uint32_t de_id_mensaje_a_cola(uint32_t id_mensaje){
 //	printf("id mensaje a cola\n");
-	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola = encontrar_particion_en_base_a_un_id_mensaje(id_mensaje,0);
+	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola = encontrar_particion_en_base_a_un_id_mensaje(id_mensaje, 0);
 	uint32_t cola = particion_de_donde_voy_a_sacar_el_tipo_de_cola->tipo_mensaje;
 	free(particion_de_donde_voy_a_sacar_el_tipo_de_cola);
 	return cola;
@@ -501,17 +502,23 @@ t_struct_secundaria* encontrar_particion_en_base_a_un_id_mensaje(uint32_t id_men
 //	printf("MISMO ID LO HACE\n");
 	pthread_mutex_lock(&(semaforo_struct_s));
 	particion_de_donde_voy_a_sacar_el_tipo_de_cola = list_find(lista_de_particiones, mismo_id);
-	if (control == 1 && string_equals_ignore_case(algoritmo_remplazo,"LRU")){
-		particion_de_donde_voy_a_sacar_el_tipo_de_cola->auxiliar = f_cont_lru();
+	if(particion_de_donde_voy_a_sacar_el_tipo_de_cola != NULL){
+		if (control == 1 && string_equals_ignore_case(algoritmo_remplazo,"LRU")){
+			printf("actualizo bit auxiliar lru");
+			particion_de_donde_voy_a_sacar_el_tipo_de_cola->auxiliar = f_cont_lru();
+		}
+		t_struct_secundaria* particion = duplicar_estructura(particion_de_donde_voy_a_sacar_el_tipo_de_cola);
+		pthread_mutex_unlock(&(semaforo_struct_s));
+		return particion;
+	} else {
+		printf("Devuelve NULL\n");
+		return NULL;
 	}
-	t_struct_secundaria* particion = duplicar_estructura(particion_de_donde_voy_a_sacar_el_tipo_de_cola);
-	pthread_mutex_unlock(&(semaforo_struct_s));
-	return particion;
+
 }
 
 void dump_de_cache(int sig) {
 	if (sig == SIGUSR1) {
-		printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa\n");
 		log_info(logger, "EJECUCION DE DUMP DE CACHE\n"); //LOG 9
 		t_struct_secundaria* particion_a_mostrar;
 		FILE* dump_file = fopen("broker.dump", "w");

@@ -195,6 +195,7 @@ void print_list_sockets_ACK_de_un_mensaje(void* numero){
 
 
 void print_mensaje_de_cola(t_info_mensaje* mensaje){
+	if(mensaje!=NULL){
 	uint32_t id_mensaje = mensaje->id;
 	printf("ID: %d\n",id_mensaje);
 	queue_name id_cola = de_id_mensaje_a_cola(id_mensaje);
@@ -209,6 +210,7 @@ void print_mensaje_de_cola(t_info_mensaje* mensaje){
 	list_iterate(mensaje->quienes_lo_recibieron, print_list_sockets_ACK_de_un_mensaje); // ACK
 	free(mensaje_en_buffer->stream);
 	free(mensaje_en_buffer);
+	}
 }
 
 void free_msg_cola(t_info_mensaje* mensaje){
