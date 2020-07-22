@@ -60,11 +60,12 @@ void esperar_cliente(int* socket_servidor) {
 		}
 
 		if(cola == PRODUCTOR){
-			int* socket_productor = malloc(sizeof(int));
+			uint32_t* socket_productor = malloc(sizeof(uint32_t));
 			*socket_productor = socket_cliente;
 			pthread_mutex_lock(&mutex_productores);
 			list_add(sockets_productores, socket_productor);
 			pthread_mutex_unlock(&mutex_productores);
+			sem_post(&semaforo_contador_productores);
 
 		} else if(suscribir_a_cola(socket_cliente, cola) == -1) {
 			printf("%d es un codigo invalido\n", cola);
@@ -74,7 +75,7 @@ void esperar_cliente(int* socket_servidor) {
 			log_info(logger, "El Cliente %d se suscribio la a cola %s", socket_cliente, nombres_colas[cola]); // LOG 2
 			uint32_t codigo_ok = 0;
 			send(socket_cliente, &codigo_ok, sizeof(uint32_t), 0);
-
+			sem_post(&binario_mandar);
 		}
 	}
 

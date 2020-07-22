@@ -8,7 +8,7 @@ int main(){
 	int socket_servidor = iniciar_servidor_broker();
 
 	pthread_create(&hilo_suscripciones, NULL, (void*) esperar_cliente, &socket_servidor);
-	pthread_create(&hilo_estado_queues,NULL,(void*) estado_de_queues, &socket_servidor);
+	pthread_create(&hilo_estado_queues,NULL,(void*) estado_de_queues, &socket_servidor); // no tiene espera activa
 	pthread_create(&hilo_mensajes, NULL, (void*) loop_productores, NULL);
 	pthread_create(&hilo_enviar_mensaje, NULL, (void*) mandar_mensajes, NULL);
 
@@ -122,6 +122,8 @@ void inicializar(){
 	pthread_mutex_init(&semaforo_struct_s, NULL);
 	pthread_mutex_init(&semaforo_memoria, NULL);
 	pthread_mutex_init(&sem_lru, NULL);
+	sem_init(&semaforo_contador_productores, 0, 0);
+	sem_init(&binario_mandar, 0, 0);
 
 	for(int i = 0; i <= 5; i++){
 		pthread_mutex_init(&(sem_cola[i]), NULL);
