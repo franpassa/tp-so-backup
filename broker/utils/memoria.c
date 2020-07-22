@@ -12,7 +12,6 @@ void inicializar_memoria() {
 	tamanio_minimo = config_get_int_value(config,"TAMANIO_MINIMO_PARTICION");
 
 	t_struct_secundaria* particion_inicial = malloc(sizeof(t_struct_secundaria));
-	lista_de_particiones = list_create();
 	cont_orden = 0;
 
 	particion_inicial->tipo_mensaje = 6;
@@ -20,10 +19,11 @@ void inicializar_memoria() {
 	particion_inicial->id_mensaje = 0;
 	particion_inicial->bit_inicio = 0;
 	particion_inicial->auxiliar = -1;
+	particion_inicial->id_correlativo = 0;
 	list_add(lista_de_particiones, particion_inicial);
 }
 
-void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t size){
+void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t size,uint32_t id_correlativo){
 	//printf("Almacenar\n");
 	entra = -1;
 	tamanio_a_ocupar = size;
@@ -77,6 +77,9 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 		particion_a_llenar_con_msg->tamanio = size;
 		particion_a_llenar_con_msg->id_mensaje = id_mensaje;
 		particion_a_llenar_con_msg->tipo_mensaje = id_cola;
+		particion_a_llenar_con_msg->id_correlativo = id_correlativo;
+		particion_a_llenar_con_msg->a_quienes_fue_enviado = list_create();
+		particion_a_llenar_con_msg->quienes_lo_recibieron = list_create();
 
 		if(string_equals_ignore_case(algoritmo_remplazo,"FIFO")) {
 			cont_orden ++;
@@ -107,6 +110,9 @@ t_struct_secundaria* duplicar_estructura(t_struct_secundaria* estructura){
 	duplicado->id_mensaje = estructura->id_mensaje;
 	duplicado->tamanio = estructura->tamanio;
 	duplicado->tipo_mensaje = estructura->tipo_mensaje;
+	duplicado->a_quienes_fue_enviado = estructura->a_quienes_fue_enviado;
+	duplicado->quienes_lo_recibieron = estructura->quienes_lo_recibieron;
+
 	return duplicado;
 }
 
@@ -356,12 +362,13 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones() {
 	pthread_mutex_lock(&(semaforo_struct_s));
 	t_struct_secundaria* particion_a_sacar = list_get(lista_de_particiones,a_sacar);
 
-	sacar_de_cola(particion_a_sacar->id_mensaje,particion_a_sacar->tipo_mensaje );
-
 	log_info(logger,"ELIMINO PARTICION:%d -- BIT DE INCICIO:%d", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
 	particion_a_sacar->id_mensaje = -1;
 	particion_a_sacar->tipo_mensaje= 6;
 	particion_a_sacar->tamanio = mayor_entre_Min_y_tam(particion_a_sacar->tamanio);
+	particion_a_sacar->id_correlativo = 0;
+	list_destroy_and_destroy_elements(particion_a_sacar->a_quienes_fue_enviado,free);
+	list_destroy_and_destroy_elements(particion_a_sacar->quienes_lo_recibieron,free);
 
 	pthread_mutex_unlock(&(semaforo_struct_s));
 
@@ -388,11 +395,12 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 	pthread_mutex_lock(&(semaforo_struct_s));
 	t_struct_secundaria* particion_a_sacar = list_get(lista_de_particiones, a_sacar);
 
-	sacar_de_cola(particion_a_sacar->id_mensaje, particion_a_sacar->tipo_mensaje);
-
 	log_info(logger,"ELIMINO PARTICION:%d -- BIT DE INCICIO:%d", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
 	particion_a_sacar->id_mensaje = 0;
 	particion_a_sacar->tipo_mensaje = 6;
+	particion_a_sacar->id_correlativo = 0;
+	list_destroy_and_destroy_elements(particion_a_sacar->a_quienes_fue_enviado,free);
+	list_destroy_and_destroy_elements(particion_a_sacar->quienes_lo_recibieron,free);
 
 
 	while (!es_potencia_de_dos(particion_a_sacar->tamanio)) { // Le sumo 1 hasta ver si es potencia de 2 ya que la estructura >= al size que tenia antes (ejemplo: tamanio = 6 entonces 7 ..8 para ahi)
@@ -464,56 +472,13 @@ void mover_memoria(int a_sacar) {
 
 }
 
-void* de_id_mensaje_a_mensaje(uint32_t id_mensaje,int control){
-//	printf("id mensaje a mensaje\n");
-	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola = encontrar_particion_en_base_a_un_id_mensaje(id_mensaje, control);
-	void* mensaje = malloc(particion_de_donde_voy_a_sacar_el_tipo_de_cola->tamanio);
+void* sacar_mensaje_de_memoria(uint32_t bit_inicio,uint32_t tamanio){
+
+	void* mensaje = malloc(tamanio);
 	pthread_mutex_lock(&(semaforo_memoria));
-	memcpy(mensaje, memoria + particion_de_donde_voy_a_sacar_el_tipo_de_cola->bit_inicio, particion_de_donde_voy_a_sacar_el_tipo_de_cola->tamanio);
+	memcpy(mensaje, memoria + bit_inicio, tamanio);
 	pthread_mutex_unlock(&(semaforo_memoria));
-	free(particion_de_donde_voy_a_sacar_el_tipo_de_cola);
 	return mensaje;
-}
-
-uint32_t de_id_mensaje_a_cola(uint32_t id_mensaje){
-//	printf("id mensaje a cola\n");
-	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola = encontrar_particion_en_base_a_un_id_mensaje(id_mensaje, 0);
-	uint32_t cola = particion_de_donde_voy_a_sacar_el_tipo_de_cola->tipo_mensaje;
-	free(particion_de_donde_voy_a_sacar_el_tipo_de_cola);
-	return cola;
-}
-
-
-uint32_t de_id_mensaje_a_size(uint32_t id_mensaje){ //revisar
-//	printf("id mensaje a size\n");
-	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola = encontrar_particion_en_base_a_un_id_mensaje(id_mensaje,0);
-	uint32_t size = particion_de_donde_voy_a_sacar_el_tipo_de_cola->tamanio;
-	free(particion_de_donde_voy_a_sacar_el_tipo_de_cola);
-	return size;
-}
-
-t_struct_secundaria* encontrar_particion_en_base_a_un_id_mensaje(uint32_t id_mensaje, int control){
-//	printf("Encontrar particion\n");
-	t_struct_secundaria* particion_de_donde_voy_a_sacar_el_tipo_de_cola;
-	bool mismo_id(void* una_particion){
-		t_struct_secundaria* particion_a_comparar =  (t_struct_secundaria*) una_particion;
-		return particion_a_comparar->id_mensaje == id_mensaje;
-	}
-//	printf("MISMO ID LO HACE\n");
-	pthread_mutex_lock(&(semaforo_struct_s));
-	particion_de_donde_voy_a_sacar_el_tipo_de_cola = list_find(lista_de_particiones, mismo_id);
-	if(particion_de_donde_voy_a_sacar_el_tipo_de_cola != NULL){
-		if (control == 1 && string_equals_ignore_case(algoritmo_remplazo,"LRU")){
-			printf("actualizo bit auxiliar lru");
-			particion_de_donde_voy_a_sacar_el_tipo_de_cola->auxiliar = f_cont_lru();
-		}
-		t_struct_secundaria* particion = duplicar_estructura(particion_de_donde_voy_a_sacar_el_tipo_de_cola);
-		pthread_mutex_unlock(&(semaforo_struct_s));
-		return particion;
-	} else {
-		printf("Devuelve NULL\n");
-		return NULL;
-	}
 
 }
 
@@ -573,3 +538,4 @@ int f_cont_lru(){
 	pthread_mutex_unlock(&(sem_lru));
 	return cont_lru;
 }
+

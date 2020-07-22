@@ -4,18 +4,13 @@ void mandar_mensajes() {
 
 	while (1) {
 		sem_wait(&binario_mandar);
-		for(uint32_t cola_actual = 0; cola_actual < 6; cola_actual++){
-		t_cola_de_mensajes* cola_a_revisar = int_a_nombre_cola(cola_actual);
-		if (!queue_is_empty(cola_a_revisar->cola)){
-			pthread_mutex_lock(&(sem_cola[cola_actual]));
-			recorrer_cola(int_a_nombre_cola(cola_actual));
-			pthread_mutex_unlock(&(sem_cola[cola_actual]));
-			}
-		}
+		pthread_mutex_lock(&(semaforo_struct_s));
+		recorrer_struct_s();
+		pthread_mutex_unlock(&(semaforo_struct_s));
 	}
 }
 
-int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size ,uint32_t id_correlativo) { // falta el tema del id correlativo
+int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size ,uint32_t id_correlativo) {
 
 	int control = 0;
 	t_paquete* paquete = malloc(sizeof(t_paquete));
@@ -59,66 +54,48 @@ int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size 
 
 }
 
+void recorrer_struct_s(){
+	bool sub_suscrito = true;
+	t_struct_secundaria* particion;
+	for ( int i=0 ; i < list_size(lista_de_particiones); i++){
 
-void recorrer_cola(t_cola_de_mensajes* nombre) {
+		particion = list_get(lista_de_particiones, i);
+		uint32_t* sub = malloc(sizeof(uint32_t));
+		memcpy(sub, list_get(int_a_nombre_cola(particion->tipo_mensaje)->lista_suscriptores,i), sizeof(uint32_t));
 
-	if (!queue_is_empty(nombre->cola) && (list_size(nombre->lista_suscriptores) != 0)) {
+		if (list_size(int_a_nombre_cola(particion->tipo_mensaje)->lista_suscriptores) != 0){
+			if (!esta_en_lista(particion->quienes_lo_recibieron, sub)) {
 
-		t_info_mensaje* info_a_sacar = queue_peek(nombre->cola);
-		uint32_t id_primero = info_a_sacar->id;
-		uint32_t id_siguiente;
+				void* mensaje = sacar_mensaje_de_memoria(particion->bit_inicio,particion->tamanio);
 
-		bool sub_suscrito = true;
-
-		do {
-			info_a_sacar = queue_pop(nombre->cola);
-
-			for (int i = 0; i < list_size(nombre->lista_suscriptores); i++) {
-				uint32_t* sub = malloc(sizeof(uint32_t));
-				memcpy(sub, list_get(nombre->lista_suscriptores,i), sizeof(uint32_t));
-
-				if (!esta_en_lista(info_a_sacar->quienes_lo_recibieron, sub)) {
-
-					void* mensaje = de_id_mensaje_a_mensaje(info_a_sacar->id,1);
-
-					if (mandar(nombre->tipo_cola, mensaje, info_a_sacar->id, *sub, de_id_mensaje_a_size(info_a_sacar->id),info_a_sacar->id_correlativo) == -1) {
+				bool es_igual_a(void* uno) {
+					uint32_t nro = *(uint32_t*) uno;
+					return nro == *sub;
+				}
+				if (!list_any_satisfy(particion->a_quienes_fue_enviado, es_igual_a)){
+					if (mandar(particion->tipo_mensaje, mensaje, particion->id_mensaje, *sub, particion->tamanio, particion->id_correlativo) == -1) {
 
 						sub_suscrito = false;
 
-						bool es_igual_a(void* uno) {
-							uint32_t nro = *(uint32_t*) uno;
-							return nro == *sub;
+						for (int a = 0; a < list_size(lista_de_particiones);
+								a++) {
+							t_struct_secundaria* particion_n = list_get(lista_de_particiones, a);
+							list_remove_by_condition(particion_n->a_quienes_fue_enviado,es_igual_a);
+							list_remove_by_condition(particion_n->quienes_lo_recibieron,es_igual_a);
 						}
 
-						uint32_t id_afuera = info_a_sacar->id;
-						do {
-							list_remove_by_condition(info_a_sacar->a_quienes_fue_enviado,es_igual_a);
-							list_remove_by_condition(info_a_sacar->quienes_lo_recibieron,es_igual_a);
-
-							queue_push(nombre->cola, info_a_sacar);
-							info_a_sacar = queue_pop(nombre->cola);
-							id_siguiente = info_a_sacar->id;
-
-						} while (id_afuera != id_siguiente);
-
-						list_remove_and_destroy_by_condition(nombre->lista_suscriptores, es_igual_a, free);
+						list_remove_and_destroy_by_condition(int_a_nombre_cola(particion->tipo_mensaje)->lista_suscriptores,es_igual_a, free);
 						free(sub);
 					}
+				}
 
-					if (!esta_en_lista(info_a_sacar->a_quienes_fue_enviado, sub) && sub_suscrito) {
-						list_add(info_a_sacar->a_quienes_fue_enviado, sub);
-					}
+				if (!esta_en_lista(particion->a_quienes_fue_enviado, sub) && sub_suscrito) {
+					list_add(particion->a_quienes_fue_enviado, sub);
 				}
 			}
 
-			queue_push(nombre->cola, info_a_sacar);
-			info_a_sacar = queue_peek(nombre->cola);
-			id_siguiente = info_a_sacar->id;
-
-		} while (id_primero != id_siguiente);
-
+		}
 	}
-
 }
 
 bool esta_en_lista(t_list* a_los_que_envie, uint32_t* sub) {

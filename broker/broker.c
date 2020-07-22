@@ -30,6 +30,7 @@ void inicializar_colas(){
 	inicializar_cola(&queue_caught_pokemon, CAUGHT_POKEMON);
 	inicializar_cola(&queue_get_pokemon, GET_POKEMON);
 	inicializar_cola(&queue_localized_pokemon, LOCALIZED_POKEMON);
+	lista_de_particiones = list_create();
 }
 
 t_log* iniciar_logger(){
@@ -63,7 +64,6 @@ void terminar_programa(t_log* logger, t_config* config){
 void inicializar_cola(t_cola_de_mensajes** nombre_cola, queue_name id_cola){ // Esta bien inicializado?
 
 	(*nombre_cola) = malloc(sizeof(t_cola_de_mensajes));
-	(*nombre_cola)->cola = queue_create();
 	(*nombre_cola)->lista_suscriptores = list_create();
 	(*nombre_cola)->tipo_cola = id_cola;
 }
@@ -159,26 +159,23 @@ void mostrar_estado_de_una_queue(t_cola_de_mensajes* cola){
 
 void recorrer_cola_de_mensajes_para_mostrar(t_cola_de_mensajes* queue_a_mostrar){
 
-	pthread_mutex_lock(&(sem_cola[queue_a_mostrar->tipo_cola]));
+	bool esCola(void* uno){
+		t_struct_secundaria* particion =  (t_struct_secundaria*) uno;
+		return particion->tipo_mensaje == queue_a_mostrar->tipo_cola;
+	}
+	t_list* lista_aux = list_filter(lista_de_particiones,esCola());
 
-	if (!queue_is_empty(queue_a_mostrar->cola)){
+	pthread_mutex_lock(&(semaforo_struct_s));
 
-		t_info_mensaje* info = queue_peek(queue_a_mostrar->cola);
+	if (!list_is_empty(lista_aux)){
 
-		uint32_t id_primero = info->id;
-		uint32_t id_siguiente;
-
-		do {
-			info = queue_pop(queue_a_mostrar->cola);
-			print_mensaje_de_cola(info);
-			queue_push(queue_a_mostrar->cola,info);
-			info = queue_peek(queue_a_mostrar->cola);
-			id_siguiente = info->id;
-		} while(id_primero != id_siguiente);
-
+		for (int i = 0 ; i < list_size(lista_aux) ;i++){
+			t_struct_secundaria* particion = list_get(lista_aux,i);
+			print_mensaje_de_cola(particion);
+		}
 	}
 
-	pthread_mutex_unlock(&(sem_cola[queue_a_mostrar->tipo_cola]));
+	pthread_mutex_unlock(&(semaforo_struct_s));
 }
 
 void print_list_sockets(void* numero){
@@ -194,68 +191,40 @@ void print_list_sockets_ACK_de_un_mensaje(void* numero){
 }
 
 
-void print_mensaje_de_cola(t_info_mensaje* mensaje){
-	if(mensaje!=NULL){
-	uint32_t id_mensaje = mensaje->id;
+void print_mensaje_de_cola(t_struct_secundaria* particion){
+	uint32_t id_mensaje = particion->id_mensaje;
 	printf("ID: %d\n",id_mensaje);
-	queue_name id_cola = de_id_mensaje_a_cola(id_mensaje);
-	void* msg = de_id_mensaje_a_mensaje(id_mensaje,0);
+	queue_name id_cola = particion->tipo_mensaje;
+	void* msg = sacar_mensaje_de_memoria(particion->bit_inicio, particion->tamanio);
 	t_buffer* mensaje_en_buffer = malloc(sizeof(t_buffer));
-	mensaje_en_buffer->stream = msg;
-	mensaje_en_buffer->size = de_id_mensaje_a_size(id_mensaje);
-	void* msg_deserializado = deserializar_buffer(id_cola, mensaje_en_buffer, false);
-	print_msg(id_cola, msg_deserializado);
+	void* msg_deserializado;
+	if (id_cola == 1 || id_cola == 3 || id_cola == 5 ){
+
+		void* stream_a_mandar = malloc(particion->tamanio + sizeof(uint32_t));
+		memcpy(stream_a_mandar,&particion->id_correlativo,sizeof(uint32_t));
+		memcpy(stream_a_mandar + sizeof(uint32_t), msg, particion->tamanio);
+		mensaje_en_buffer->stream = stream_a_mandar;
+		mensaje_en_buffer->size = particion->tamanio + sizeof(uint32_t);
+		msg_deserializado = deserializar_buffer(id_cola, mensaje_en_buffer, true);
+		print_msg(id_cola, msg_deserializado);
+		free(stream_a_mandar);
+	}else{
+		mensaje_en_buffer->stream = msg;
+		mensaje_en_buffer->size = de_id_mensaje_a_size(id_mensaje);
+		msg_deserializado = deserializar_buffer(id_cola, mensaje_en_buffer, false);
+		print_msg(id_cola, msg_deserializado);
+	}
 	free_mensaje(id_cola, msg_deserializado);
-	list_iterate(mensaje->a_quienes_fue_enviado, print_list_sockets_de_un_mensaje);
-	list_iterate(mensaje->quienes_lo_recibieron, print_list_sockets_ACK_de_un_mensaje); // ACK
+	list_iterate(particion->a_quienes_fue_enviado, print_list_sockets_de_un_mensaje);
+	list_iterate(particion->quienes_lo_recibieron, print_list_sockets_ACK_de_un_mensaje); // ACK
 	free(mensaje_en_buffer->stream);
 	free(mensaje_en_buffer);
-	}
-}
 
-void free_msg_cola(t_info_mensaje* mensaje){
-	list_destroy_and_destroy_elements(mensaje->quienes_lo_recibieron, free);
-	list_destroy_and_destroy_elements(mensaje->a_quienes_fue_enviado, free);
-
-	free(mensaje);
 }
 
 void free_queue_msgs(t_cola_de_mensajes* cola_de_mensajes){
-	queue_clean_and_destroy_elements(cola_de_mensajes->cola, free);
 	list_destroy_and_destroy_elements(cola_de_mensajes->lista_suscriptores, free);
 
 	free(cola_de_mensajes);
-}
-
-void sacar_de_cola(uint32_t id, int cola) {
-
-	pthread_mutex_lock(&sem_cola[cola]);
-
-	t_cola_de_mensajes* queue = int_a_nombre_cola(cola);
-
-	t_info_mensaje* mensaje = queue_peek(queue->cola);
-
-	int control = 0;
-	uint32_t id_primero = mensaje->id; // Rompe acá, nos fuimos a mimir zZzZZ...
-	uint32_t id_siguiente;
-	printf("Entra al DO While\n");
-	do {
-		mensaje = queue_pop(queue->cola);
-
-		if (mensaje->id == id) {
-			control = 1;
-			free_msg_cola(mensaje);
-		} else {
-			queue_push(queue->cola, mensaje);
-			mensaje = queue_peek(queue->cola);
-			id_siguiente = mensaje->id;
-		}
-		printf("control = %d\n",control);
-		printf("id_primero= %d\n",id_primero);
-		printf("Id_siguiente= %d\n",id_siguiente);
-	} while (control == 0 && id_primero!= id_siguiente);
-
-	pthread_mutex_unlock(&sem_cola[cola]);
-
 }
 

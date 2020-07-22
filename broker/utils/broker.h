@@ -84,7 +84,7 @@ char* nombres_colas[7];
 
 sem_t semaforo_contador_productores;
 pthread_mutex_t semaforo_id;
-//pthread_mutex_t sem_cola[6];
+pthread_mutex_t sem_cola[6];
 pthread_mutex_t mutex_productores;
 pthread_mutex_t semaforo_struct_s;
 pthread_mutex_t semaforo_memoria;
@@ -108,7 +108,7 @@ void inicializar();
 void mostrar_estado_de_una_queue(t_cola_de_mensajes*);
 void estado_de_queues();
 void print_list_sockets(void* numero);
-void print_mensaje_de_cola(t_info_mensaje*);
+void print_mensaje_de_cola(t_struct_secundaria*);
 void print_list_sockets_de_un_mensaje(void*);
 void print_list_sockets_ACK_de_un_mensaje(void*);
 void recorrer_cola_de_mensajes_para_mostrar(t_cola_de_mensajes*);
@@ -135,20 +135,19 @@ void confirmar_mensaje(queue_name, uint32_t,uint32_t);
 uint32_t crear_nuevo_id();
 void agregar_a_cola(uint32_t,uint32_t,uint32_t);
 bool es_el_mismo_mensaje(queue_name, void*,void*);
-int revisar_si_mensaje_no_estaba_en_cola(queue_name, void*, uint32_t);
-void free_msg_cola(t_info_mensaje*);
+uint32_t revisar_si_mensaje_no_estaba_en_cola(queue_name, void*, uint32_t);
 
 // Mandar
 
 void mandar_mensajes();
 bool esta_en_lista(t_list*, uint32_t*);
 int mandar(queue_name, void*, int,int,int,uint32_t);
-void recorrer_cola(t_cola_de_mensajes*);
+void recorrer_struct_s();
 
 // MEMORIA
 
 void inicializar_memoria();
-void almacenar(void*, uint32_t, uint32_t, uint32_t);
+void almacenar(void*, uint32_t, uint32_t, uint32_t,uint32_t);
 t_struct_secundaria* duplicar_estructura(t_struct_secundaria*);
 void llenar_estructura(t_struct_secundaria*, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
 void buscar_particion_en_particiones_dinamicas();
@@ -159,9 +158,6 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs();
 void liberar_memoria_interna();
 void actualizar_bit_inicio(int);
 void mover_memoria(int);
-void* de_id_mensaje_a_mensaje(uint32_t,int);
-uint32_t de_id_mensaje_a_cola(uint32_t);
-uint32_t de_id_mensaje_a_size(uint32_t);
 void dump_de_cache(int sig);
 
 void buscar_particion_en_bs();
@@ -173,9 +169,6 @@ t_struct_secundaria* encontrar_particion_en_base_a_un_id_mensaje(uint32_t,int);
 void capturar_senial();
 int mayor_entre_Min_y_tam(int);
 int f_cont_lru();
-
-// otras
-void reconstruir();
-void sacar_de_cola(uint32_t,int);
+void* sacar_mensaje_de_memoria(uint32_t,uint32_t);
 
 #endif /* BROKER_H_ */
