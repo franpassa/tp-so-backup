@@ -200,7 +200,7 @@ void print_mensaje_de_cola(t_info_mensaje* mensaje){
 	t_buffer* mensaje_en_buffer = malloc(sizeof(t_buffer));
 	mensaje_en_buffer->stream = msg;
 	mensaje_en_buffer->size = de_id_mensaje_a_size(id_mensaje);
-	void* msg_deserializado = deserializar_buffer(id_cola, mensaje_en_buffer);
+	void* msg_deserializado = deserializar_buffer(id_cola, mensaje_en_buffer, false);
 	print_msg(id_cola, msg_deserializado);
 	list_iterate(mensaje->a_quienes_fue_enviado, print_list_sockets_de_un_mensaje);
 	list_iterate(mensaje->quienes_lo_recibieron, print_list_sockets_ACK_de_un_mensaje); // ACK
@@ -230,7 +230,7 @@ void sacar_de_cola(uint32_t id, int cola) {
 	t_info_mensaje* mensaje = queue_peek(queue->cola);
 
 	int control = 0;
-	uint32_t id_primero = mensaje->id;
+	uint32_t id_primero = mensaje->id; // Rompe acá, nos fuimos a mimir zZzZZ...
 	uint32_t id_siguiente;
 	printf("Entra al DO While\n");
 	do {

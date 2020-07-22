@@ -118,7 +118,7 @@ void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, uint32_t socket_
 			if (!esta_en_lista(mensaje->quienes_lo_recibieron, sub)) {
 				list_add(mensaje->quienes_lo_recibieron, sub);
 			}
-			log_info(logger,"CONFIRMACION DE LLEGADA DE MENSAJE DE SUSCRIPTOR:%d ",sub); // LOG 5
+			log_info(logger,"El suscriptor %d confirmó la llegada de un mensaje", *sub); // LOG 5
 			if (list_size(mensaje->quienes_lo_recibieron) == list_size(queue->lista_suscriptores)) {
 				free_msg_cola(mensaje);
 			}
@@ -130,7 +130,7 @@ void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, uint32_t socket_
 		}
 
 	} while (control == 0 && id_primero != id_siguiente);
-	printf("Termino de confirmar");
+	printf("Termino de confirmar\n");
 }
 
 uint32_t crear_nuevo_id(){
@@ -226,7 +226,7 @@ int revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido, uint
 	t_buffer* mensaje_en_buffer_recibido = malloc(sizeof(t_buffer));
 	mensaje_en_buffer_recibido->stream = msg_recibido;
 	mensaje_en_buffer_recibido->size = tamanio_mensaje;
-	void* msg_a_comparar = deserializar_buffer(id, mensaje_en_buffer_recibido);
+	void* msg_a_comparar = deserializar_buffer(id, mensaje_en_buffer_recibido, true);
 	void* msg;
 	void* msg2;
 	t_info_mensaje* elemento_a_testear;
@@ -240,7 +240,7 @@ int revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido, uint
 			msg = de_id_mensaje_a_mensaje(elemento_a_testear->id,0);
 			mensaje_en_cola_buffer->stream = msg;
 			mensaje_en_cola_buffer->size = de_id_mensaje_a_size(elemento_a_testear->id);
-			msg2 = deserializar_buffer(id, mensaje_en_cola_buffer);
+			msg2 = deserializar_buffer(id, mensaje_en_cola_buffer, false);
 
 			if (es_el_mismo_mensaje(id, msg2, msg_a_comparar)) {
 				mensaje_nuevo = elemento_a_testear->id; // asignas el id del que ya esta en la cola y se lo das al sub

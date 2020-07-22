@@ -99,7 +99,7 @@ uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructur
 void* recibir_mensaje(int socket, uint32_t* id_mensaje, queue_name* tipo_msg, uint32_t* mi_socket);
 void confirmar_recepcion(char* ip, char* puerto, queue_name cola, uint32_t id_mensaje, uint32_t mi_socket); // SE ENVÍA queue_name - size - id_mensaje - socket_suscripcion
 void* serializar_paquete(t_paquete* paquete, int bytes);
-void* deserializar_buffer(queue_name cola, void* buffer_ptr);
+void* deserializar_buffer(queue_name cola, void* buffer_ptr, bool incluir_correlativo);
 void free_paquete(t_paquete* paquete);
 void free_mensaje(queue_name tipo_msg, void* msg);
 

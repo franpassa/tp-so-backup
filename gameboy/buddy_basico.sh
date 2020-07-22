@@ -1,6 +1,6 @@
 #!/bin/sh
-./gameboy BROKER CAUGHT_POKEMON 1 OK
-./gameboy BROKER CAUGHT_POKEMON 2 FAIL
+./gameboy BROKER CAUGHT_POKEMON 1 1
+./gameboy BROKER CAUGHT_POKEMON 2 0
 
 ./gameboy BROKER NEW_POKEMON Pikachu 2 3 1
 

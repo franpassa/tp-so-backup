@@ -309,7 +309,7 @@ void* recibir_mensaje(int socket, uint32_t* id, queue_name* tipo_msg, uint32_t* 
 		*mi_socket = 0;
 	}
 
-	void* msg = deserializar_buffer(*tipo_msg, paquete->buffer);
+	void* msg = deserializar_buffer(*tipo_msg, paquete->buffer, true);
 	free_paquete(paquete);
 
 	return msg;
@@ -357,7 +357,7 @@ void free_mensaje(queue_name tipo_msg, void* msg){
 }
 
 // Retorna el tipo de msg que recibe por cola
-void* deserializar_buffer(queue_name cola, void* buffer_ptr) {
+void* deserializar_buffer(queue_name cola, void* buffer_ptr, bool incluir_correlativo) {
 
 	t_buffer* buffer = (t_buffer*) buffer_ptr;
 
@@ -387,8 +387,12 @@ void* deserializar_buffer(queue_name cola, void* buffer_ptr) {
 		appeared_pokemon_msg* msg_appeared = malloc(
 				sizeof(appeared_pokemon_msg));
 
-		memcpy(&(msg_appeared->id_correlativo), stream + offset, sizeof(uint32_t));
-		offset += sizeof(uint32_t);
+		if(incluir_correlativo){
+			memcpy(&(msg_appeared->id_correlativo), stream + offset, sizeof(uint32_t));
+			offset += sizeof(uint32_t);
+		} else {
+			msg_appeared->id_correlativo = 0;
+		}
 		memcpy(&(msg_appeared->tamanio_nombre), stream + offset, sizeof(uint32_t));
 		offset += sizeof(uint32_t);
 		msg_appeared->nombre_pokemon = malloc(msg_appeared->tamanio_nombre + 1);
@@ -415,8 +419,12 @@ void* deserializar_buffer(queue_name cola, void* buffer_ptr) {
 	case LOCALIZED_POKEMON:;
 		localized_pokemon_msg* msg_localized = malloc(sizeof(localized_pokemon_msg));
 
-		memcpy(&(msg_localized->id_correlativo), stream + offset, sizeof(uint32_t));
-		offset += sizeof(uint32_t);
+		if(incluir_correlativo){
+			memcpy(&(msg_localized->id_correlativo), stream + offset, sizeof(uint32_t));
+			offset += sizeof(uint32_t);
+		} else {
+			msg_localized->id_correlativo = 0;
+		}
 		memcpy(&(msg_localized->tamanio_nombre), stream + offset, sizeof(uint32_t));
 		offset += sizeof(uint32_t);
 		msg_localized->nombre_pokemon = malloc(msg_localized->tamanio_nombre + 1);
@@ -451,8 +459,12 @@ void* deserializar_buffer(queue_name cola, void* buffer_ptr) {
 	case CAUGHT_POKEMON:;
 		caught_pokemon_msg* msg_caught = malloc(sizeof(caught_pokemon_msg));
 
-		memcpy(&(msg_caught->id_correlativo), stream + offset, sizeof(uint32_t));
-		offset += sizeof(uint32_t);
+		if(incluir_correlativo){
+			memcpy(&(msg_caught->id_correlativo), stream + offset, sizeof(uint32_t));
+			offset += sizeof(uint32_t);
+		} else {
+			msg_caught->id_correlativo = 0;
+		}
 		memcpy(&(msg_caught->resultado), stream + offset, sizeof(uint32_t));
 
 		return (void*) msg_caught;
