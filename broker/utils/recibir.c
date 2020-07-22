@@ -55,19 +55,20 @@ void recibir_mensajes_para_broker(int* socket_escucha){
 
 			if (id_cola == 1 || id_cola == 3 || id_cola == 5 ){
 				int size_a_guardar = paquete->buffer->size - sizeof(uint32_t);
-				void* stream_a_guardar = malloc( size_a_guardar);
+				void* stream_a_guardar = malloc(size_a_guardar);
 				memcpy(stream_a_guardar, paquete->buffer->stream + sizeof(uint32_t) , size_a_guardar);
 
 				void* id_correlativo = malloc(sizeof(uint32_t));
 				memcpy(id_correlativo, paquete->buffer->stream , sizeof(uint32_t));
 				uint32_t id_aux_correlativo = *(uint32_t*) id_correlativo;
+				free_paquete(paquete);
 
 				agregar_a_cola(id_cola, id_mensaje, id_aux_correlativo);
 
 				almacenar(stream_a_guardar, id_cola, id_mensaje, size_a_guardar);
 
 			}else{
-				agregar_a_cola(id_cola, id_mensaje,-1);
+				agregar_a_cola(id_cola, id_mensaje, 0);
 
 				almacenar(paquete->buffer->stream, id_cola, id_mensaje, paquete->buffer->size);
 			}

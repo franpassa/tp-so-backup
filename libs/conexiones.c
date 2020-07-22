@@ -118,8 +118,7 @@ uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructur
 
 		memcpy(stream + offset, &(msg_new->tamanio_nombre), sizeof(uint32_t));
 		offset += sizeof(uint32_t);
-		memcpy(stream + offset, msg_new->nombre_pokemon,
-				msg_new->tamanio_nombre);
+		memcpy(stream + offset, msg_new->nombre_pokemon, msg_new->tamanio_nombre);
 		offset += msg_new->tamanio_nombre;
 		memcpy(stream + offset, &(msg_new->coordenada_X), sizeof(uint32_t));
 		offset += sizeof(uint32_t);
@@ -139,8 +138,7 @@ uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructur
 		offset += sizeof(uint32_t);
 		memcpy(stream + offset, &(msg_appeared->tamanio_nombre), sizeof(uint32_t));
 		offset += sizeof(uint32_t);
-		memcpy(stream + offset, msg_appeared->nombre_pokemon,
-				msg_appeared->tamanio_nombre);
+		memcpy(stream + offset, msg_appeared->nombre_pokemon, msg_appeared->tamanio_nombre);
 		offset += msg_appeared->tamanio_nombre;
 		memcpy(stream + offset, &(msg_appeared->coordenada_X), sizeof(uint32_t));
 		offset += sizeof(uint32_t);
@@ -373,8 +371,9 @@ void* deserializar_buffer(queue_name cola, void* buffer_ptr) {
 
 		memcpy(&(msg_new->tamanio_nombre), stream + offset, sizeof(uint32_t));
 		offset += sizeof(uint32_t);
-		msg_new->nombre_pokemon = malloc(msg_new->tamanio_nombre);
+		msg_new->nombre_pokemon = malloc(msg_new->tamanio_nombre + 1);
 		memcpy(msg_new->nombre_pokemon, stream + offset, msg_new->tamanio_nombre);
+		msg_new->nombre_pokemon[msg_new->tamanio_nombre] = '\0';
 		offset += msg_new->tamanio_nombre;
 		memcpy(&(msg_new->coordenada_X), stream + offset, sizeof(uint32_t));
 		offset += sizeof(uint32_t);
@@ -392,8 +391,9 @@ void* deserializar_buffer(queue_name cola, void* buffer_ptr) {
 		offset += sizeof(uint32_t);
 		memcpy(&(msg_appeared->tamanio_nombre), stream + offset, sizeof(uint32_t));
 		offset += sizeof(uint32_t);
-		msg_appeared->nombre_pokemon = malloc(msg_appeared->tamanio_nombre);
+		msg_appeared->nombre_pokemon = malloc(msg_appeared->tamanio_nombre + 1);
 		memcpy(msg_appeared->nombre_pokemon, stream + offset, msg_appeared->tamanio_nombre);
+		msg_appeared->nombre_pokemon[msg_appeared->tamanio_nombre] = '\0';
 		offset += msg_appeared->tamanio_nombre;
 		memcpy(&(msg_appeared->coordenada_X), stream + offset, sizeof(uint32_t));
 		offset += sizeof(uint32_t);
@@ -406,8 +406,9 @@ void* deserializar_buffer(queue_name cola, void* buffer_ptr) {
 
 		memcpy(&(msg_get->tamanio_nombre), stream + offset, sizeof(uint32_t));
 		offset += sizeof(uint32_t);
-		msg_get->nombre_pokemon = malloc(msg_get->tamanio_nombre);
+		msg_get->nombre_pokemon = malloc(msg_get->tamanio_nombre + 1);
 		memcpy(msg_get->nombre_pokemon, stream + offset, msg_get->tamanio_nombre);
+		msg_get->nombre_pokemon[msg_get->tamanio_nombre] = '\0';
 
 		return (void*) msg_get;
 
@@ -418,8 +419,9 @@ void* deserializar_buffer(queue_name cola, void* buffer_ptr) {
 		offset += sizeof(uint32_t);
 		memcpy(&(msg_localized->tamanio_nombre), stream + offset, sizeof(uint32_t));
 		offset += sizeof(uint32_t);
-		msg_localized->nombre_pokemon = malloc(msg_localized->tamanio_nombre);
+		msg_localized->nombre_pokemon = malloc(msg_localized->tamanio_nombre + 1);
 		memcpy(msg_localized->nombre_pokemon, stream + offset, msg_localized->tamanio_nombre);
+		msg_localized->nombre_pokemon[msg_localized->tamanio_nombre] = '\0';
 		offset += msg_localized->tamanio_nombre;
 		memcpy(&(msg_localized->cantidad_posiciones), stream + offset, sizeof(uint32_t));
 		offset += sizeof(uint32_t);
@@ -436,8 +438,9 @@ void* deserializar_buffer(queue_name cola, void* buffer_ptr) {
 
 		memcpy(&(msg_catch->tamanio_nombre), stream + offset, sizeof(uint32_t));
 		offset += sizeof(uint32_t);
-		msg_catch->nombre_pokemon = malloc(msg_catch->tamanio_nombre);
+		msg_catch->nombre_pokemon = malloc(msg_catch->tamanio_nombre + 1);
 		memcpy(msg_catch->nombre_pokemon, stream + offset, msg_catch->tamanio_nombre);
+		msg_catch->nombre_pokemon[msg_catch->tamanio_nombre] = '\0';
 		offset += msg_catch->tamanio_nombre;
 		memcpy(&(msg_catch->coordenada_X), stream + offset, sizeof(uint32_t));
 		offset += sizeof(uint32_t);
@@ -570,11 +573,10 @@ char* enum_to_string(queue_name cola) {
 }
 // ------------------ Constructores
 
-new_pokemon_msg* new_msg(char* nombre_pokemon, uint32_t x, uint32_t y,
-		uint32_t cantidad) {
+new_pokemon_msg* new_msg(char* nombre_pokemon, uint32_t x, uint32_t y, uint32_t cantidad) {
 	new_pokemon_msg* msg = malloc(sizeof(new_pokemon_msg));
 
-	msg->tamanio_nombre = strlen(nombre_pokemon) + 1;
+	msg->tamanio_nombre = strlen(nombre_pokemon);
 	msg->nombre_pokemon = nombre_pokemon;
 	msg->coordenada_X = x;
 	msg->coordenada_Y = y;
@@ -587,7 +589,7 @@ appeared_pokemon_msg* appeared_msg(uint32_t id_correlativo, char* nombre_pokemon
 	appeared_pokemon_msg* msg = malloc(sizeof(appeared_pokemon_msg));
 
 	msg->id_correlativo = id_correlativo;
-	msg->tamanio_nombre = strlen(nombre_pokemon) + 1;
+	msg->tamanio_nombre = strlen(nombre_pokemon);
 	msg->nombre_pokemon = nombre_pokemon;
 	msg->coordenada_X = x;
 	msg->coordenada_Y = y;
@@ -598,7 +600,7 @@ appeared_pokemon_msg* appeared_msg(uint32_t id_correlativo, char* nombre_pokemon
 get_pokemon_msg* get_msg(char* nombre_pokemon) {
 	get_pokemon_msg* msg = malloc(sizeof(get_pokemon_msg));
 
-	msg->tamanio_nombre = strlen(nombre_pokemon) + 1;
+	msg->tamanio_nombre = strlen(nombre_pokemon);
 	msg->nombre_pokemon = nombre_pokemon;
 
 	return msg;
@@ -608,7 +610,7 @@ localized_pokemon_msg* localized_msg(uint32_t id_corr, char* nombre_pokemon, uin
 	localized_pokemon_msg* msg = malloc(sizeof(localized_pokemon_msg));
 
 	msg->id_correlativo = id_corr;
-	msg->tamanio_nombre = strlen(nombre_pokemon) + 1;
+	msg->tamanio_nombre = strlen(nombre_pokemon);
 	msg->nombre_pokemon = nombre_pokemon;
 	msg->cantidad_posiciones = cant_posiciones;
 	msg->pares_coordenadas = pares;
@@ -619,7 +621,7 @@ localized_pokemon_msg* localized_msg(uint32_t id_corr, char* nombre_pokemon, uin
 catch_pokemon_msg* catch_msg(char* nombre_pokemon, uint32_t x, uint32_t y) {
 	catch_pokemon_msg* msg = malloc(sizeof(catch_pokemon_msg));
 
-	msg->tamanio_nombre = strlen(nombre_pokemon) + 1;
+	msg->tamanio_nombre = strlen(nombre_pokemon);
 	msg->nombre_pokemon = nombre_pokemon;
 	msg->coordenada_X = x;
 	msg->coordenada_Y = y;
