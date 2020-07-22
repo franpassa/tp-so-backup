@@ -167,20 +167,25 @@ void ceder_acceso(char* nombre_pokemon, pthread_mutex_t* mutex_file){
 	pthread_mutex_unlock(mutex_file);
 }
 
-pthread_mutex_t* crear_file_con_semaforo(char* nombre_pokemon){
-	pthread_mutex_t* mx_file = malloc(sizeof(pthread_mutex_t));
-	pthread_mutex_init(mx_file, NULL);
-	pthread_mutex_lock(mx_file);
+
+// Se inicializa el semaforo del pokemon y (si asi se lo indica) se crea el archivo.
+pthread_mutex_t* inicializar_pokemon(char* nombre_pokemon, bool new_file){
+	pthread_mutex_t* mx_pokemon = malloc(sizeof(pthread_mutex_t));
+	pthread_mutex_init(mx_pokemon, NULL);
+	pthread_mutex_lock(mx_pokemon);
 
 	pthread_mutex_lock(&mutex_dict);
-	dictionary_put(sem_files, nombre_pokemon, mx_file);
+	dictionary_put(sem_files, nombre_pokemon, mx_pokemon);
 	pthread_mutex_unlock(&mutex_dict);
 
-	crear_file(nombre_pokemon, true);
-	pthread_mutex_unlock(mx_file);
+	if(new_file){
+		crear_file(nombre_pokemon, true);
+	}
+	pthread_mutex_unlock(mx_pokemon);
 
-	return mx_file;
+	return mx_pokemon;
 }
+
 
 void new_pokemon(t_pokemon pokemon){
 	t_list* coordenadas = NULL;
@@ -188,6 +193,7 @@ void new_pokemon(t_pokemon pokemon){
 	int bytes_file;
 
 	if(existe_pokemon(pokemon.nombre)){
+		printf("Trato de obtener semaforo\n");
 		pthread_mutex_t* mutex_file = esperar_acceso(pokemon.nombre);
 		get_pokemon_blocks_and_coordenadas(pokemon.nombre, &bloques, &coordenadas);
 		add_coordenada(coordenadas, pokemon.posicion);
@@ -195,7 +201,8 @@ void new_pokemon(t_pokemon pokemon){
 		esperar_tiempo_retardo();
 		actualizar_metadata_y_ceder_acceso(pokemon.nombre, bytes_file, bloques, mutex_file);
 	} else {
-		pthread_mutex_t* mutex_file = crear_file_con_semaforo(pokemon.nombre);
+		printf("Creo semaforo\n");
+		pthread_mutex_t* mutex_file = inicializar_pokemon(pokemon.nombre, true);
 		bloques = list_create();
 		coordenadas = list_create();
 		add_coordenada(coordenadas, pokemon.posicion);

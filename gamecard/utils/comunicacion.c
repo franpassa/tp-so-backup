@@ -66,8 +66,10 @@ void suscribir_a_colas(){
 }
 
 void escuchar_socket(int* socket){
-	//char* ip_broker = config_get_string_value(config, "IP_BROKER");
-	//char* puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
+	char* ip_broker = config_get_string_value(config, "IP_BROKER");
+	char* puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
+
+	t_list* ids = list_create();
 
 	uint32_t id, mi_socket;
 	queue_name cola;
@@ -75,8 +77,11 @@ void escuchar_socket(int* socket){
 	while(1){
 		void* msg = recibir_mensaje(*socket, &id, &cola, &mi_socket);
 		if(msg != NULL){
-			//confirmar_recepcion(ip_broker, puerto_broker, cola, id, mi_socket);
-			procesar_msg(cola, msg, id);
+			if(id != 0 && mi_socket != 0 && !id_en_lista(ids, id)){
+				agregar_id(ids, id);
+				confirmar_recepcion(ip_broker, puerto_broker, cola, id, mi_socket);
+				procesar_msg(cola, msg, id);
+			}
 		} else {
 			if(pthread_mutex_trylock(&mutex_reconexion) == 0){
 				printf("Falló la conexión con el Broker, reintentando...\n");
