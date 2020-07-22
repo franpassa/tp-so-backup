@@ -109,6 +109,8 @@ t_list* dividir_string_por_tamanio(char* string, int tamanio);
 int min(int a, int b);
 void esperar_tiempo_retardo();
 void free_array(char** array);
+bool id_en_lista(t_list* lista, uint32_t id);
+void agregar_id(t_list* lista, uint32_t id);
 
 // --- Filesystem ---
 
@@ -138,6 +140,7 @@ int escribir_bloques(t_list* strings_por_bloque, t_list* blocks);
 int crear_file(char* nombre_pokemon, bool bloquear);
 bool files_folder_exists();
 void create_files_folder();
+void inicializar_pokemons();
 
 // --- Pokemons ---
 t_coordenada init_coordenada(uint32_t x, uint32_t y, uint32_t cantidad);
@@ -145,6 +148,7 @@ t_pokemon init_pokemon(char* nombre, uint32_t x, uint32_t y, uint32_t cantidad);
 // Devuelve un número de bloque si el pokemon existe, -1 si no
 int obtener_ultimo_bloque(char* nombre_pokemon);
 t_list* escribir_en_bloques(t_pokemon pokemon, t_list* lista_bloques, uint32_t *bytes_escritos);
+pthread_mutex_t* inicializar_pokemon(char* nombre_pokemon, bool crear_file);
 char* get_pokemon_path(char* nombre);
 bool existe_pokemon(char* nombre_pokemon);
 void toggle_open_flag(char* nombre_pokemon);

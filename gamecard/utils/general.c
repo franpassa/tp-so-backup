@@ -28,6 +28,23 @@ void terminar_aplicacion(char* mensaje){
 	abort();
 }
 
+bool id_en_lista(t_list* lista, uint32_t id){
+
+	bool id_igual(void* id_en_lista){
+		uint32_t* id_casteado = (uint32_t*) id_en_lista;
+		return id == *id_casteado;
+	}
+
+	return list_any_satisfy(lista, id_igual);
+}
+
+void agregar_id(t_list* lista, uint32_t id){
+	uint32_t* id_a_lista = malloc(sizeof(uint32_t));
+	*id_a_lista = id;
+
+	list_add(lista, (void*) id_a_lista);
+}
+
 
 void agregar_a_lista(t_list* lista, int nuevo_elemento){
 	int* nuevo_ptr = malloc(sizeof(int));

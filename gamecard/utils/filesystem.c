@@ -43,6 +43,7 @@ void init_fs(){
 		// Caso bitmap existente
 		fclose(bitmap_file);
 		printf("Bitmap.bin existente\n");
+		inicializar_pokemons();
 
 	} else {
 		// Caso bitmap NO existente
@@ -448,4 +449,19 @@ void obtener_bloques_necesarios(t_list* bloques_actuales, t_list* coordenadas){
 			free(bloque_sobrante);
 		}
 	}
+}
+
+void inicializar_pokemons(){
+	struct dirent *dp;
+	DIR *dir = opendir(fspaths->files_folder);
+	if(!dir) return;
+
+	while((dp = readdir(dir)) != NULL){
+		if(!string_starts_with(dp->d_name, ".")){
+			inicializar_pokemon(dp->d_name, false);
+		}
+	}
+
+	closedir(dir);
+
 }
