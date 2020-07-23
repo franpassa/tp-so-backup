@@ -52,6 +52,7 @@ void recibir_mensajes_para_broker(uint32_t* socket_escucha){
 
 			if (id_cola == 1 || id_cola == 3 || id_cola == 5 ){
 				int size_a_guardar = paquete->buffer->size - sizeof(uint32_t);
+				printf("Size A Guardar en memoria=%d\n",size_a_guardar);
 				void* stream_a_guardar = malloc(size_a_guardar);
 				memcpy(stream_a_guardar, paquete->buffer->stream + sizeof(uint32_t) , size_a_guardar);
 
@@ -62,9 +63,10 @@ void recibir_mensajes_para_broker(uint32_t* socket_escucha){
 				free(stream_a_guardar);
 
 			}else{
-
-				almacenar(paquete->buffer->stream, id_cola, id_mensaje, paquete->buffer->size,0);
+				printf("Size A Guardar en memoria=%d\n",paquete->buffer->size);
+				almacenar(paquete->buffer->stream, id_cola, id_mensaje, paquete->buffer->size, 0);
 			}
+			//free(stream_a_comparar);
 			free_paquete(paquete);
 			sem_post(&binario_mandar);
 		} else {
@@ -214,6 +216,8 @@ uint32_t revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido,
 		t_struct_secundaria* elemento_a_testear = (t_struct_secundaria*) list_get(lista_de_particiones, i);
 		uint32_t tipo_msg = elemento_a_testear->tipo_mensaje;
 		if(tipo_msg != id) {
+			free_mensaje(id, msg_a_comparar);
+			free(mensaje_en_buffer_recibido->stream);
 			free(mensaje_en_buffer_recibido);
 			pthread_mutex_unlock(&semaforo_struct_s);
 			return 0;
@@ -255,7 +259,6 @@ uint32_t revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido,
 	free_mensaje(id, msg_a_comparar);
 	free(mensaje_en_buffer_recibido->stream);
 	free(mensaje_en_buffer_recibido);
-
 
 	return mensaje_nuevo;
 }

@@ -251,7 +251,7 @@ void consolidar_particiones_en_bs(int posicion_a_liberar) { // Consolido cada ve
 
 void buscar_particion_en_particiones_dinamicas(){
 	t_struct_secundaria* nueva_est;
-
+	printf("Estoy buscando particion\n");
 	if(string_equals_ignore_case(algoritmo_part_libre,"FF")){
 		for (int i = 0; i < list_size(lista_de_particiones); i++ ){
 			pthread_mutex_lock(&(semaforo_struct_s));
@@ -312,6 +312,7 @@ void buscar_particion_en_particiones_dinamicas(){
 void compactar(){
 	t_struct_secundaria* estructura1;
 	int tamanio_lista_actual = list_size(lista_de_particiones);
+	printf("Estoy compactando\n");
 	pthread_mutex_lock(&(semaforo_struct_s));
 	for (int i = 0; i < tamanio_lista_actual; i++ ){
 		estructura1 = list_get(lista_de_particiones,i);
@@ -327,11 +328,13 @@ void compactar(){
 
 			list_add(lista_de_particiones, estructura1);
 			list_remove(lista_de_particiones,i);
-
-			}
+			tamanio_lista_actual-=1;
+			i-=1;
+		}
 	}
 	pthread_mutex_unlock(&(semaforo_struct_s));
-
+	printf("estoy por consolidar\n");
+	flag = 0;
 	consolidar();
 
 	buscar_particion_en_particiones_dinamicas();
@@ -340,6 +343,7 @@ void consolidar(){
 	t_struct_secundaria* estructura1;
 	t_struct_secundaria* estructura2;
 	int tamanio_lista_actual = list_size(lista_de_particiones);
+	printf("Estoy consolidando\n");
 	pthread_mutex_lock(&(semaforo_struct_s));
 	for (int i = 0; i < tamanio_lista_actual; i++ ){
 		estructura1 = list_get(lista_de_particiones,i);
@@ -355,11 +359,12 @@ void consolidar(){
 			}
 		}
 	}
+	printf("termine de consolidar\n");
 	pthread_mutex_unlock(&(semaforo_struct_s));
 }
 
 void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones() {
-
+	printf("Elijo victima\n");
 	int a_sacar = elegir_bit_aux_mas_viejo();
 
 	pthread_mutex_lock(&(semaforo_struct_s));
@@ -370,6 +375,7 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones() {
 	particion_a_sacar->tipo_mensaje= 6;
 	particion_a_sacar->tamanio = mayor_entre_Min_y_tam(particion_a_sacar->tamanio);
 	particion_a_sacar->id_correlativo = 0;
+	particion_a_sacar->auxiliar=-1;
 	list_destroy_and_destroy_elements(particion_a_sacar->a_quienes_fue_enviado,free);
 	list_destroy_and_destroy_elements(particion_a_sacar->quienes_lo_recibieron,free);
 
@@ -430,7 +436,7 @@ int elegir_bit_aux_mas_viejo(){
 		particion_a_sacar = list_get(lista_de_particiones,i);
 		if(i == a && particion_a_sacar->tipo_mensaje != 6 ){
 			orden_menor = particion_a_sacar->auxiliar;
-//			printf("Orden MENOR =%d\n",orden_menor);
+			printf("Orden MENOR =%d\n",orden_menor);
 			a_sacar = i;
 		} else {
 			a += 1;
@@ -439,9 +445,9 @@ int elegir_bit_aux_mas_viejo(){
 		printf("Orden =%d\n",orden);
 		if (orden_menor > orden && particion_a_sacar->tipo_mensaje != 6){
 			orden_menor = orden;
-//			printf("Resultado orden menor =%d\n",orden_menor);
+			printf("Resultado orden menor =%d\n",orden_menor);
 			a_sacar = i;
-//			printf("A SACAR EN IF=%d\n",a_sacar);
+		printf("A SACAR EN IF=%d\n",a_sacar);
 		}
 	}
 	printf("A SACAR REAL =%d\n",a_sacar);

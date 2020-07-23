@@ -160,8 +160,9 @@ void mostrar_estado_de_una_queue(t_cola_de_mensajes* cola){
 void recorrer_cola_de_mensajes_para_mostrar(t_cola_de_mensajes* queue_a_mostrar){
 
 	bool esCola(void* uno){
-		t_struct_secundaria* particion =  (t_struct_secundaria*) uno;
-		return particion->tipo_mensaje == queue_a_mostrar->tipo_cola;
+		t_struct_secundaria* particion = (t_struct_secundaria*) uno;
+		bool misma_cola = particion->tipo_mensaje == queue_a_mostrar->tipo_cola;
+		return misma_cola;
 	}
 	t_list* lista_aux = list_filter(lista_de_particiones,esCola); // LIBEREN A WILLY
 
@@ -174,6 +175,7 @@ void recorrer_cola_de_mensajes_para_mostrar(t_cola_de_mensajes* queue_a_mostrar)
 			print_mensaje_de_cola(particion);
 		}
 	}
+	list_destroy(lista_aux);
 
 	pthread_mutex_unlock(&(semaforo_struct_s));
 }
@@ -226,7 +228,13 @@ void print_mensaje_de_cola(t_struct_secundaria* particion){
 
 void free_queue_msgs(t_cola_de_mensajes* cola_de_mensajes){
 	list_destroy_and_destroy_elements(cola_de_mensajes->lista_suscriptores, free);
-
 	free(cola_de_mensajes);
+}
+
+void free_particion(void* particion){
+	t_struct_secundaria* una_particion = (t_struct_secundaria*) particion;
+	list_destroy_and_destroy_elements(una_particion->a_quienes_fue_enviado, free);
+	list_destroy_and_destroy_elements(una_particion->quienes_lo_recibieron, free);
+	free(una_particion);
 }
 
