@@ -61,7 +61,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 		estructura_memoria->a_quienes_fue_enviado = list_create();
 		estructura_memoria->quienes_lo_recibieron = list_create();
         pthread_mutex_lock(&(semaforo_memoria));
-        memmove(memoria + estructura_memoria->bit_inicio, mensaje, size);
+        memcpy(memoria + estructura_memoria->bit_inicio, mensaje, size);
         pthread_mutex_unlock(&(semaforo_memoria));
 
 //      printf("Bit De inicio = %d \n", estructura_memoria->bit_inicio); // Lo hace bien
@@ -95,7 +95,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 		}
 //		printf("BIT AUXILIAR = %d\n",particion_a_llenar_con_msg->auxiliar);
 		pthread_mutex_lock(&(semaforo_memoria));
-		memmove(memoria + particion_a_llenar_con_msg->bit_inicio, mensaje, size);
+		memcpy(memoria + particion_a_llenar_con_msg->bit_inicio, mensaje, size);
 		pthread_mutex_unlock(&(semaforo_memoria));
 
 		log_info(logger, "MENSAJE ALMACENADO EN PARTICION:%d -- BIT DE INICIO:%d", entra, particion_a_llenar_con_msg->bit_inicio);; // LOG 6 EN HEXA

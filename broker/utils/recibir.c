@@ -24,7 +24,7 @@ void recibir_mensajes_para_broker(uint32_t* socket_escucha){
 		return;
 	}
 
-	t_paquete* paquete= malloc(sizeof(t_paquete));
+	t_paquete* paquete = malloc(sizeof(t_paquete));
 	paquete->cola_msg = id_cola;
 
 	paquete->buffer = malloc(sizeof(t_buffer));
@@ -55,22 +55,22 @@ void recibir_mensajes_para_broker(uint32_t* socket_escucha){
 				void* stream_a_guardar = malloc(size_a_guardar);
 				memcpy(stream_a_guardar, paquete->buffer->stream + sizeof(uint32_t) , size_a_guardar);
 
-				void* id_correlativo = malloc(sizeof(uint32_t));
-				memcpy(id_correlativo, paquete->buffer->stream , sizeof(uint32_t));
-				uint32_t id_aux_correlativo = *(uint32_t*) id_correlativo;
+				uint32_t id_correlativo;
+				memcpy(&id_correlativo, paquete->buffer->stream , sizeof(uint32_t));
 
-				almacenar(stream_a_guardar, id_cola, id_mensaje, size_a_guardar,id_aux_correlativo);
+				almacenar(stream_a_guardar, id_cola, id_mensaje, size_a_guardar, id_correlativo);
 				free(stream_a_guardar);
 
 			}else{
 
 				almacenar(paquete->buffer->stream, id_cola, id_mensaje, paquete->buffer->size,0);
 			}
+			free_paquete(paquete);
 			sem_post(&binario_mandar);
 		} else {
 			send(*socket_escucha, &id_mens_en_cola, sizeof(uint32_t), 0);
 		}
-		free_paquete(paquete);
+
 	} else {
 
 		uint32_t id_mensaje;
@@ -207,45 +207,50 @@ uint32_t revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido,
 	mensaje_en_buffer_recibido->stream = msg_recibido;
 	mensaje_en_buffer_recibido->size = tamanio_mensaje;
 	void* msg_a_comparar = deserializar_buffer(id, mensaje_en_buffer_recibido, true);
-	void* msg;
-	void* msg2;
-	t_struct_secundaria* elemento_a_testear;
 
-	pthread_mutex_lock(&(semaforo_struct_s));
+	pthread_mutex_lock(&semaforo_struct_s);
 
 	for (int i = 0; i < list_size(lista_de_particiones); i++) {
-		elemento_a_testear = list_get(lista_de_particiones,i);
-		if (elemento_a_testear->tipo_mensaje >= 0 && elemento_a_testear->tipo_mensaje < 6){
-			t_buffer* mensaje_en_cola_buffer = malloc(sizeof(t_buffer));
-			msg = sacar_mensaje_de_memoria(elemento_a_testear->bit_inicio,elemento_a_testear->tamanio);
+		t_struct_secundaria* elemento_a_testear = (t_struct_secundaria*) list_get(lista_de_particiones, i);
+		uint32_t tipo_msg = elemento_a_testear->tipo_mensaje;
+		if(tipo_msg != id) {
+			free(mensaje_en_buffer_recibido);
+			pthread_mutex_unlock(&semaforo_struct_s);
+			return 0;
+		}
 
-			if (id == 1 || id == 3 || id == 5 ){
+		if (tipo_msg >= 0 && tipo_msg < 6){
+			t_buffer* mensaje_en_cola_buffer = malloc(sizeof(t_buffer));
+			void* msg = sacar_mensaje_de_memoria(elemento_a_testear->bit_inicio, elemento_a_testear->tamanio);
+			void* msg2;
+
+			if (tipo_msg == 1 || tipo_msg == 3 || tipo_msg == 5 ){
 
 				void* stream_a_mandar = malloc(elemento_a_testear->tamanio + sizeof(uint32_t));
-				memcpy(stream_a_mandar,&elemento_a_testear->id_correlativo,sizeof(uint32_t));
+				memcpy(stream_a_mandar,&(elemento_a_testear->id_correlativo),sizeof(uint32_t));
 				memcpy(stream_a_mandar + sizeof(uint32_t), msg, elemento_a_testear->tamanio);
 
 				mensaje_en_cola_buffer->stream = stream_a_mandar;
 				mensaje_en_cola_buffer->size = elemento_a_testear->tamanio + sizeof(uint32_t);
-				msg2 = deserializar_buffer(id, mensaje_en_cola_buffer, false);
-				free(stream_a_mandar);
+				msg2 = deserializar_buffer(tipo_msg, mensaje_en_cola_buffer, true);
 
 			}else{
 				mensaje_en_cola_buffer->stream = msg;
 				mensaje_en_cola_buffer->size = elemento_a_testear->tamanio;
-				msg2 = deserializar_buffer(id, mensaje_en_cola_buffer, false);
+				msg2 = deserializar_buffer(tipo_msg, mensaje_en_cola_buffer, false);
 			}
 
-			if (es_el_mismo_mensaje(id, msg2, msg_a_comparar)) {
+			if (es_el_mismo_mensaje(tipo_msg, msg2, msg_a_comparar)) {
 				mensaje_nuevo = elemento_a_testear->id_mensaje; // asignas el id del que ya esta en la cola y se lo das al sub
 			}
-			free_mensaje(id, msg2);
+			free(msg);
+			free_mensaje(tipo_msg, msg2);
 			free(mensaje_en_cola_buffer->stream);
 			free(mensaje_en_cola_buffer);
 		}
 	}
 
-	pthread_mutex_unlock(&(semaforo_struct_s));
+	pthread_mutex_unlock(&semaforo_struct_s);
 
 	free_mensaje(id, msg_a_comparar);
 	free(mensaje_en_buffer_recibido->stream);

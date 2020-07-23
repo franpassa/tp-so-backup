@@ -163,7 +163,7 @@ void recorrer_cola_de_mensajes_para_mostrar(t_cola_de_mensajes* queue_a_mostrar)
 		t_struct_secundaria* particion =  (t_struct_secundaria*) uno;
 		return particion->tipo_mensaje == queue_a_mostrar->tipo_cola;
 	}
-	t_list* lista_aux = list_filter(lista_de_particiones,esCola);
+	t_list* lista_aux = list_filter(lista_de_particiones,esCola); // LIBEREN A WILLY
 
 	pthread_mutex_lock(&(semaforo_struct_s));
 
@@ -208,17 +208,19 @@ void print_mensaje_de_cola(t_struct_secundaria* particion){
 		msg_deserializado = deserializar_buffer(id_cola, mensaje_en_buffer, true);
 		print_msg(id_cola, msg_deserializado);
 		free(stream_a_mandar);
+
 	}else{
 		mensaje_en_buffer->stream = msg;
 		mensaje_en_buffer->size = particion->tamanio;
 		msg_deserializado = deserializar_buffer(id_cola, mensaje_en_buffer, false);
 		print_msg(id_cola, msg_deserializado);
 	}
+
+	free(msg);
+	free(mensaje_en_buffer);
 	free_mensaje(id_cola, msg_deserializado);
 	list_iterate(particion->a_quienes_fue_enviado, print_list_sockets_de_un_mensaje);
 	list_iterate(particion->quienes_lo_recibieron, print_list_sockets_ACK_de_un_mensaje); // ACK
-	free(mensaje_en_buffer->stream);
-	free(mensaje_en_buffer);
 
 }
 
