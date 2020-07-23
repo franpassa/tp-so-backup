@@ -94,6 +94,8 @@ void recibir_mensajes(queue_name* cola){
 	char* puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
 	int socket_broker = suscribirse_a_cola(*cola, ip_broker, puerto_broker);
 
+	bool confirmar_msgs = hay_que_confirmar();
+
 	t_list* ids_recibidos = list_create();
 
 	while(1){
@@ -102,12 +104,26 @@ void recibir_mensajes(queue_name* cola){
 		void* msg = recibir_mensaje(socket_broker, &id, &tipo_msg, &mi_socket);
 		if(id != 0 && mi_socket != 0 && !id_en_lista(ids_recibidos, id)){
 			agregar_id(ids_recibidos, id);
-			confirmar_recepcion(ip_broker, puerto_broker, tipo_msg, id, mi_socket);
+			if(confirmar_msgs){
+				confirmar_recepcion(ip_broker, puerto_broker, tipo_msg, id, mi_socket);
+			}
 			printf("ID: %d -> ", id);
 			print_msg(tipo_msg, msg);
 		}
 	}
 
+}
+
+bool hay_que_confirmar(){
+	char* confirmar_string = config_get_string_value(config, "CONFIRMAR_MENSAJE");
+	bool confirmar;
+	if(string_equals_ignore_case(confirmar_string, "true")){
+		confirmar = true;
+	} else {
+		confirmar = false;
+	}
+
+	return confirmar;
 }
 
 suscripcion_t init_suscripcion(int socket, queue_name cola){
