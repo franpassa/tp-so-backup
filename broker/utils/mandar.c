@@ -11,7 +11,6 @@ void mandar_mensajes() {
 }
 
 int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size ,uint32_t id_correlativo) {
-
 	int control = 0;
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
@@ -26,7 +25,7 @@ int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size 
 		memcpy(stream_a_mandar + sizeof(uint32_t), stream, size);
 		paquete->buffer->size = size + sizeof(uint32_t);
 		paquete->buffer->stream = stream_a_mandar;
-	}else {
+	} else {
 		paquete->buffer->stream = stream;
 		paquete->buffer->size = size;
 	}
@@ -45,18 +44,17 @@ int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size 
 
 	send(socket_receptor, &socket_receptor, sizeof(uint32_t), 0);
 
-	//log_info(logger, "MENSAJE CON ID:%d -- ENVIADO A SUSCRIPTOR:%d ", id, socket_receptor); LOG
+	log_info(logger, "MENSAJE CON ID:%d -- ENVIADO A SUSCRIPTOR:%d ", id, socket_receptor);
 
 	free_paquete(paquete);
 	free(a_enviar);
-
+	printf("Salgo del mandar\n");
 	return control;
 
 }
 
 void recorrer_struct_s(){
 	bool sub_suscrito = true;
-
 	for ( int i=0 ; i < list_size(lista_de_particiones); i++){
 
 		t_struct_secundaria* particion = (t_struct_secundaria*) list_get(lista_de_particiones, i);
@@ -64,7 +62,8 @@ void recorrer_struct_s(){
 
 		t_cola_de_mensajes* cola_mensajes;
 		t_list* lista_suscriptores;
-		if(0 <= tipo_msg && tipo_msg < 6){
+
+		if(tipo_msg >= 0 && tipo_msg < 6){
 			cola_mensajes = int_a_nombre_cola(tipo_msg);
 			lista_suscriptores = cola_mensajes->lista_suscriptores;
 		} else {
@@ -73,16 +72,19 @@ void recorrer_struct_s(){
 
 		for(int j = 0; j < list_size(lista_suscriptores); j++){
 
+
 			uint32_t* suscriptor = list_get(lista_suscriptores, j);
 
 			uint32_t* sub = malloc(sizeof(uint32_t));
 			memcpy(sub, (void*) suscriptor, sizeof(uint32_t));
 
+
 			if (list_size(int_a_nombre_cola(particion->tipo_mensaje)->lista_suscriptores) != 0){
+
 				if (!esta_en_lista(particion->quienes_lo_recibieron, sub)) {
 
 					void* mensaje = sacar_mensaje_de_memoria(particion->bit_inicio, particion->tamanio);
-
+					printf("Es igual a\n");
 					bool es_igual_a(void* uno) {
 						uint32_t nro = *(uint32_t*) uno;
 						return nro == *sub;
@@ -103,9 +105,12 @@ void recorrer_struct_s(){
 							list_remove_and_destroy_by_condition(int_a_nombre_cola(particion->tipo_mensaje)->lista_suscriptores,es_igual_a, free);
 						}
 					}
+					//free(mensaje)
 
 					particion->auxiliar = f_cont_lru();
+
 					if (!esta_en_lista(particion->a_quienes_fue_enviado, sub) && sub_suscrito) {
+
 						list_add(particion->a_quienes_fue_enviado, sub);
 						return;
 					}
@@ -115,9 +120,13 @@ void recorrer_struct_s(){
 			free(sub);
 		}
 	}
+
 }
 
 bool esta_en_lista(t_list* a_los_que_envie, uint32_t* sub) {
+	if(list_is_empty(a_los_que_envie)){
+		return 0;
+	}
 
 	bool es_igual(void* uno) {
 		uint32_t nro = *(uint32_t*) uno;

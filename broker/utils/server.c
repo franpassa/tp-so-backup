@@ -83,7 +83,6 @@ void esperar_cliente(int* socket_servidor) {
 
 
 int suscribir_a_cola(int socket_cliente, queue_name cola) {
-
 	int retorno = 0;
 
 	int *socket_cola = malloc(sizeof(int));

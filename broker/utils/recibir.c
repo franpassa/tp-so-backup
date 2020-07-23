@@ -15,7 +15,6 @@ void loop_productores(){
 }
 
 void recibir_mensajes_para_broker(uint32_t* socket_escucha){
-
 	queue_name id_cola;
 	int bytes_recibidos = recv(*socket_escucha, &id_cola, sizeof(queue_name), MSG_WAITALL);
 
@@ -47,8 +46,8 @@ void recibir_mensajes_para_broker(uint32_t* socket_escucha){
 
 			send(*socket_escucha, &id_mensaje, sizeof(uint32_t), 0);
 
-			printf("MENSAJE NUEVO -- ID: %d -- COLA: %s\n", id_mensaje, nombres_colas[id_cola]);
-			//log_info(logger, " MENSAJE NUEVO: %s -- ID: %d -- COLA: %s ", msg_as_string(id_cola, msg), id_mensaje, nombres_colas[id_cola]); // LOG 3 hay que deserializarlo para mostrarlo
+			//printf("MENSAJE NUEVO -- ID: %d -- COLA: %s\n", id_mensaje, nombres_colas[id_cola]);
+			log_info(logger, " MENSAJE NUEVO CON ID: %d -- COLA: %s ", id_mensaje, nombres_colas[id_cola]); // LOG 3 hay que deserializarlo para mostrarlo
 
 			if (id_cola == 1 || id_cola == 3 || id_cola == 5 ){
 				int size_a_guardar = paquete->buffer->size - sizeof(uint32_t);
@@ -70,6 +69,7 @@ void recibir_mensajes_para_broker(uint32_t* socket_escucha){
 			free_paquete(paquete);
 			sem_post(&binario_mandar);
 		} else {
+			free_paquete(paquete);
 			send(*socket_escucha, &id_mens_en_cola, sizeof(uint32_t), 0);
 		}
 
@@ -94,15 +94,12 @@ void recibir_mensajes_para_broker(uint32_t* socket_escucha){
 
 
 void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, uint32_t socket_sub) { // Revisarlo
-
 	t_cola_de_mensajes* queue = int_a_nombre_cola(id_cola);
 	t_struct_secundaria* particion;
 
 	for (int i=0 ; i < list_size(lista_de_particiones);i++){
 
 		particion = list_get(lista_de_particiones, i);
-		if(particion == NULL){printf("CACAAAAAAAAAAAAAAAAAAAAAAA");
-		}
 		if (particion->id_mensaje == id_mensaje) {
 
 			uint32_t *sub = malloc(sizeof(uint32_t));
@@ -123,7 +120,6 @@ void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, uint32_t socket_
 
 		}
 	}
-	printf("Termino de confirmar\n");
 }
 
 uint32_t crear_nuevo_id(){
@@ -202,7 +198,6 @@ bool es_el_mismo_mensaje(queue_name id, void* mensaje, void* otro_mensaje) {
 }
 
 uint32_t revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido, uint32_t tamanio_mensaje) {
-
 	uint32_t mensaje_nuevo = 0;
 
 	t_buffer* mensaje_en_buffer_recibido = malloc(sizeof(t_buffer));
@@ -216,11 +211,7 @@ uint32_t revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido,
 		t_struct_secundaria* elemento_a_testear = (t_struct_secundaria*) list_get(lista_de_particiones, i);
 		uint32_t tipo_msg = elemento_a_testear->tipo_mensaje;
 		if(tipo_msg != id) {
-			free_mensaje(id, msg_a_comparar);
-			free(mensaje_en_buffer_recibido->stream);
-			free(mensaje_en_buffer_recibido);
-			pthread_mutex_unlock(&semaforo_struct_s);
-			return 0;
+			continue;
 		}
 
 		if (tipo_msg >= 0 && tipo_msg < 6){
@@ -247,9 +238,9 @@ uint32_t revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido,
 			if (es_el_mismo_mensaje(tipo_msg, msg2, msg_a_comparar)) {
 				mensaje_nuevo = elemento_a_testear->id_mensaje; // asignas el id del que ya esta en la cola y se lo das al sub
 			}
-//			free(msg);
+			free(msg); // rompe en grupal
 			free_mensaje(tipo_msg, msg2);
-//			free(mensaje_en_cola_buffer->stream);
+			free(mensaje_en_cola_buffer->stream); // invalid
 			free(mensaje_en_cola_buffer);
 		}
 	}
@@ -259,6 +250,6 @@ uint32_t revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido,
 	free_mensaje(id, msg_a_comparar);
 	free(mensaje_en_buffer_recibido->stream);
 	free(mensaje_en_buffer_recibido);
-
 	return mensaje_nuevo;
+
 }

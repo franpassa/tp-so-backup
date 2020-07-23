@@ -1,7 +1,6 @@
 #include "broker.h"
 
 void inicializar_memoria() {
-
 	tamanio_memoria = config_get_int_value(config,"TAMANIO_MEMORIA");
 	memoria = malloc(tamanio_memoria);
 
@@ -21,16 +20,18 @@ void inicializar_memoria() {
 	particion_inicial->auxiliar = -1;
 	particion_inicial->id_correlativo = 0;
 	list_add(lista_de_particiones, particion_inicial);
+
 }
 
 void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t size,uint32_t id_correlativo){
-	//printf("Almacenar\n");
+
 	entra = -1;
 	tamanio_a_ocupar = size;
 
 	if(string_equals_ignore_case(algoritmo_memoria,"PARTICIONES")){
 
 		buscar_particion_en_particiones_dinamicas();
+
 		pthread_mutex_lock(&(semaforo_struct_s));
 		t_struct_secundaria* estructura_memoria = (t_struct_secundaria*) list_get(lista_de_particiones, entra); // en lista
 
@@ -64,18 +65,15 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
         memcpy(memoria + estructura_memoria->bit_inicio, mensaje, size);
         pthread_mutex_unlock(&(semaforo_memoria));
 
-//      printf("Bit De inicio = %d \n", estructura_memoria->bit_inicio); // Lo hace bien
-        log_info(logger, "MENSAJE ALMACENADO EN PARTICION:%d -- BIT DE INICIO:%d", entra, estructura_memoria->bit_inicio); // LOG 6 en HEXA
+        log_info(logger, "MENSAJE ALMACENADO EN PARTICION:%d -- BIT DE INICIO:%d", entra, estructura_memoria->bit_inicio); // LOG 6
 
         pthread_mutex_unlock(&(semaforo_struct_s));
-
 
 	} else if(string_equals_ignore_case(algoritmo_memoria,"BS")) {
 
 		buscar_particion_en_bs(); // la lista de particiones va a tener mas de 1 elemento al hacer esto
 		pthread_mutex_lock(&(semaforo_struct_s));
 		t_struct_secundaria* particion_a_llenar_con_msg = (t_struct_secundaria*) list_get(lista_de_particiones,entra);
-
 
 		particion_a_llenar_con_msg->tamanio = size;
 		particion_a_llenar_con_msg->id_mensaje = id_mensaje;
@@ -88,22 +86,22 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 			cont_orden ++;
 			particion_a_llenar_con_msg->auxiliar = cont_orden;
 		} else if(string_equals_ignore_case(algoritmo_remplazo,"LRU")) {
-			//tema de hora
-			particion_a_llenar_con_msg->auxiliar = 1;
+			particion_a_llenar_con_msg->auxiliar = f_cont_lru();
 		} else {
 			printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 		}
-//		printf("BIT AUXILIAR = %d\n",particion_a_llenar_con_msg->auxiliar);
+
 		pthread_mutex_lock(&(semaforo_memoria));
 		memcpy(memoria + particion_a_llenar_con_msg->bit_inicio, mensaje, size);
 		pthread_mutex_unlock(&(semaforo_memoria));
 
-		log_info(logger, "MENSAJE ALMACENADO EN PARTICION:%d -- BIT DE INICIO:%d", entra, particion_a_llenar_con_msg->bit_inicio);; // LOG 6 EN HEXA
+		log_info(logger, "MENSAJE ALMACENADO EN PARTICION:%d -- BIT DE INICIO:%d", entra, particion_a_llenar_con_msg->bit_inicio);; // LOG 6
 
 		pthread_mutex_unlock(&(semaforo_struct_s));
 		} else {
 			printf("Error en broker.config ALGORITMO_MEMORIA no valido");
 		}
+
 }
 
 t_struct_secundaria* duplicar_estructura(t_struct_secundaria* estructura){
@@ -120,13 +118,12 @@ t_struct_secundaria* duplicar_estructura(t_struct_secundaria* estructura){
 }
 
 void buscar_particion_en_bs() {
-	//printf("Buscar en bs\n");
 	t_struct_secundaria* particion;
 	int encontro_particion = 1;
 	int tamanio_lista = list_size(lista_de_particiones);
 	if (string_equals_ignore_case(algoritmo_part_libre, "FF")) {
 		pthread_mutex_lock(&(semaforo_struct_s));
-		for (int i = 0; i < tamanio_lista; i++) { // list_iterate podemos usar por ahi (despues verlo)
+		for (int i = 0; i < tamanio_lista; i++) {
 			particion = list_get(lista_de_particiones, i);
 			if (particion->tipo_mensaje == 6) {
 				while (particion->tamanio >= mayor_entre_Min_y_tam(tamanio_a_ocupar) && encontro_particion != 0) { // divide las particiones (64 -- 32 32 -- 16 16 32 ..)
@@ -135,10 +132,6 @@ void buscar_particion_en_bs() {
 						particion->tamanio = particion->tamanio / 2;
 						particion_nueva->tamanio = particion->tamanio; // ya va a estar divido el tamanio
 						particion_nueva->bit_inicio = particion->bit_inicio + particion->tamanio;
-//						printf("Tamanio:%d\n",particion->tamanio);
-//						printf("Bit de inicio:%d\n",particion->bit_inicio);
-//						printf("Tamanio Part Nueva:%d\n",particion_nueva->tamanio);
-//						printf("Bit de inicio Part Nueva:%d\n",particion_nueva->bit_inicio);
 						list_add_in_index(lista_de_particiones, i + 1, particion_nueva);
 					} else {
 						encontro_particion = 0;
@@ -198,16 +191,9 @@ void buscar_particion_en_bs() {
 }
 
 bool son_buddies(t_struct_secundaria* particion_A, t_struct_secundaria* particion_B) {
-//	printf("Son buddies\n");
-//	printf("tamanio A= %d\n",particion_A->tamanio);
-//	printf("tamanio B= %d\n",particion_B->tamanio);
-//	printf("bit de inicio A= %d\n",particion_A->bit_inicio);
-//	printf("bit de inicio B= %d\n",particion_B->bit_inicio);
 	int operacion_xorA_B = particion_B->bit_inicio ^ particion_A->tamanio;
-//	printf("XorAB=%d\n",operacion_xorA_B);
 	bool xorA_B = particion_A->bit_inicio == operacion_xorA_B;
 	int operacion_xorB_A = particion_A->bit_inicio ^ particion_B->tamanio;
-//	printf("XorBA=%d\n",operacion_xorB_A);
 	bool xorB_A = particion_B->bit_inicio == operacion_xorB_A;
 	return particion_A->tamanio == particion_B->tamanio && xorA_B && xorB_A;
 }
@@ -218,16 +204,13 @@ bool es_potencia_de_dos(int numero){
 }
 
 void consolidar_particiones_en_bs(int posicion_a_liberar) { // Consolido cada vez que se libera una particion y sigo consolidando hasta que no pueda mas
-//	printf("Consolidar particiones\n");
+
 	pthread_mutex_lock(&(semaforo_struct_s));
 	t_struct_secundaria* particion_a_consolidar = list_get(lista_de_particiones, posicion_a_liberar);
 	int tam_lista = list_size(lista_de_particiones);
 	for (int i = 0; i < tam_lista; i++) {
-//		printf("i Arranque:%d\n",i);
 		t_struct_secundaria* particion_a_comparar_si_es_buddy = list_get(lista_de_particiones, i);
 		if(son_buddies(particion_a_consolidar, particion_a_comparar_si_es_buddy) && particion_a_comparar_si_es_buddy->tipo_mensaje == 6) {
-//			printf("particion_a_consolidar->bit_inicio: %d\n",particion_a_consolidar->bit_inicio);
-//			printf("particion_a_comparar_si_es_buddy->bit_inicio: %d\n",particion_a_comparar_si_es_buddy->bit_inicio);
 			if(particion_a_consolidar->bit_inicio > particion_a_comparar_si_es_buddy->bit_inicio){
 				particion_a_consolidar->bit_inicio = particion_a_comparar_si_es_buddy->bit_inicio;
 			}
@@ -236,14 +219,12 @@ void consolidar_particiones_en_bs(int posicion_a_liberar) { // Consolido cada ve
 					"ASOCIACION DE PARTICION:%d -- BIT DE INCICIO:%d y PARTICION:%d -- BIT DE INCICIO:%d ",
 					posicion_a_liberar, particion_a_comparar_si_es_buddy->bit_inicio, i,
 					particion_a_consolidar->bit_inicio); // LOG 8
-//			printf("particion que queda-> tamanio: %d - bit inicio: %d\n",particion_a_consolidar->tamanio,particion_a_consolidar->bit_inicio);
 			list_remove_and_destroy_element(lista_de_particiones, i, free);
 			tam_lista -=1;
 			i -= 2;
 			if (i<0){
 				i = -1;
 			}
-//			printf("i Final=%d\n",i);
 		}
 	}
 	pthread_mutex_unlock(&(semaforo_struct_s));
@@ -251,19 +232,17 @@ void consolidar_particiones_en_bs(int posicion_a_liberar) { // Consolido cada ve
 
 void buscar_particion_en_particiones_dinamicas(){
 	t_struct_secundaria* nueva_est;
-	printf("Estoy buscando particion\n");
 	if(string_equals_ignore_case(algoritmo_part_libre,"FF")){
+		pthread_mutex_lock(&(semaforo_struct_s));
 		for (int i = 0; i < list_size(lista_de_particiones); i++ ){
-			pthread_mutex_lock(&(semaforo_struct_s));
 			nueva_est = list_get(lista_de_particiones, i);
 			if (nueva_est->tipo_mensaje == 6){
 				if(nueva_est->tamanio >= mayor_entre_Min_y_tam(tamanio_a_ocupar) ){
 					entra = i;
 				}
 			}
-			pthread_mutex_unlock(&(semaforo_struct_s));
 		}
-
+		pthread_mutex_unlock(&(semaforo_struct_s));
 		if (entra == -1){
 			if (flag == frecuencia_compactacion){
 				compactar();
@@ -278,8 +257,8 @@ void buscar_particion_en_particiones_dinamicas(){
 	} else if(string_equals_ignore_case(algoritmo_part_libre,"BF")) {
 		int sobra;
 		int sobra_menor = tamanio_memoria;
+		pthread_mutex_lock(&(semaforo_struct_s));
 		for (int i = 0; i< list_size(lista_de_particiones); i++ ){
-			pthread_mutex_lock(&(semaforo_struct_s));
 			nueva_est = list_get(lista_de_particiones,i);
 			if (nueva_est->tipo_mensaje == 6){
 				if(nueva_est->tamanio >= mayor_entre_Min_y_tam(tamanio_a_ocupar) ){
@@ -290,8 +269,8 @@ void buscar_particion_en_particiones_dinamicas(){
 					}
 				}
 			}
-			pthread_mutex_unlock(&(semaforo_struct_s));
 		}
+		pthread_mutex_unlock(&(semaforo_struct_s));
 
 		if (entra == -1){
 			if (flag == frecuencia_compactacion){
@@ -312,13 +291,12 @@ void buscar_particion_en_particiones_dinamicas(){
 void compactar(){
 	t_struct_secundaria* estructura1;
 	int tamanio_lista_actual = list_size(lista_de_particiones);
-	printf("Estoy compactando\n");
 	pthread_mutex_lock(&(semaforo_struct_s));
 	for (int i = 0; i < tamanio_lista_actual; i++ ){
 		estructura1 = list_get(lista_de_particiones,i);
 		if (estructura1->tipo_mensaje == 6 && i+1 < tamanio_lista_actual){
 
-			log_info(logger, "COMPACTACION DE PARTICION:%d -- BIT DE INCICIO:%d", i, estructura1->bit_inicio); // LOG 8
+			log_info(logger, "COMPACTACION DE PARTICION:%d -- BIT DE INCICIO:%d",i ,estructura1->bit_inicio); // LOG 8
 
 			mover_memoria(i);
 
@@ -333,17 +311,14 @@ void compactar(){
 		}
 	}
 	pthread_mutex_unlock(&(semaforo_struct_s));
-	printf("estoy por consolidar\n");
 	flag = 0;
 	consolidar();
-
 	buscar_particion_en_particiones_dinamicas();
 }
 void consolidar(){
 	t_struct_secundaria* estructura1;
 	t_struct_secundaria* estructura2;
 	int tamanio_lista_actual = list_size(lista_de_particiones);
-	printf("Estoy consolidando\n");
 	pthread_mutex_lock(&(semaforo_struct_s));
 	for (int i = 0; i < tamanio_lista_actual; i++ ){
 		estructura1 = list_get(lista_de_particiones,i);
@@ -359,12 +334,10 @@ void consolidar(){
 			}
 		}
 	}
-	printf("termine de consolidar\n");
 	pthread_mutex_unlock(&(semaforo_struct_s));
 }
 
 void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones() {
-	printf("Elijo victima\n");
 	int a_sacar = elegir_bit_aux_mas_viejo();
 
 	pthread_mutex_lock(&(semaforo_struct_s));
@@ -390,14 +363,11 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones() {
 		flag = -1;
 	}
 	pthread_mutex_unlock(&(semaforo_struct_s));
-
 	consolidar();
-
 	buscar_particion_en_particiones_dinamicas();
 }
 
 void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
-	printf("ELIMINAR VICTIMA\n");
 
 	int a_sacar = elegir_bit_aux_mas_viejo();
 
@@ -416,7 +386,6 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 		particion_a_sacar->tamanio += 1;
 	}
 	particion_a_sacar->tamanio = mayor_entre_Min_y_tam(particion_a_sacar->tamanio);
-//	printf("Tamanio de particion eliminada:%d\n",particion_a_sacar->tamanio);
 	particion_a_sacar->auxiliar = 0;
 	pthread_mutex_unlock(&(semaforo_struct_s));
 
@@ -425,38 +394,31 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 }
 
 int elegir_bit_aux_mas_viejo(){
-//	printf("FIFO\n");
 	t_struct_secundaria* particion_a_sacar;
 	int orden = 0;
 	int orden_menor = 0;
-	int a_sacar = -1; // Creo q esta bien esto
+	int a_sacar = -1;
 	int a = 0;
 	pthread_mutex_lock(&(semaforo_struct_s));
 	for(int i = 0; i< list_size(lista_de_particiones); i++ ){
 		particion_a_sacar = list_get(lista_de_particiones,i);
 		if(i == a && particion_a_sacar->tipo_mensaje != 6 ){
 			orden_menor = particion_a_sacar->auxiliar;
-			printf("Orden MENOR =%d\n",orden_menor);
 			a_sacar = i;
 		} else {
 			a += 1;
 		}
 		orden = particion_a_sacar->auxiliar;
-		printf("Orden =%d\n",orden);
 		if (orden_menor > orden && particion_a_sacar->tipo_mensaje != 6){
 			orden_menor = orden;
-			printf("Resultado orden menor =%d\n",orden_menor);
 			a_sacar = i;
-		printf("A SACAR EN IF=%d\n",a_sacar);
 		}
 	}
-	printf("A SACAR REAL =%d\n",a_sacar);
 	pthread_mutex_unlock(&(semaforo_struct_s));
 	return a_sacar;
 }
 
 void actualizar_bit_inicio(int a_sacar){ // actualiza el bit de inicio y lo elimina de la lista de particiones a la particion a sacar // Creo que asi esta perfecto
-//	printf("Actualizar bit\n");
 	t_struct_secundaria* particion_actual; // en donde estoy parado ahora
 	t_struct_secundaria* particion_a_sacar = list_get(lista_de_particiones,a_sacar);
 
@@ -467,7 +429,6 @@ void actualizar_bit_inicio(int a_sacar){ // actualiza el bit de inicio y lo elim
 }
 
 void mover_memoria(int a_sacar) {
-//	printf("Mover memoria\n");
 	t_struct_secundaria* particion_a_mover_memoria;
 	particion_a_mover_memoria = list_get(lista_de_particiones, a_sacar);
 	int tamanio_a_mover = tamanio_memoria - (particion_a_mover_memoria->bit_inicio + mayor_entre_Min_y_tam(particion_a_mover_memoria->tamanio));
@@ -482,7 +443,6 @@ void mover_memoria(int a_sacar) {
 }
 
 void* sacar_mensaje_de_memoria(uint32_t bit_inicio,uint32_t tamanio){
-
 	void* mensaje = malloc(tamanio);
 	pthread_mutex_lock(&(semaforo_memoria));
 	memcpy(mensaje, memoria + bit_inicio, tamanio);
@@ -520,8 +480,9 @@ void dump_de_cache(int sig) {
 				} else {
 					//VER LRU Depende del algoritmo, igual esta puesto.
 					fprintf(dump_file,
-							"[X]\t Size:%d b \t LRU:%d \t Cola:%d \t Id:%d \n",
+							"[X]\t Size:%d b \t %s:%d \t Cola:%d \t Id:%d \n",
 							particion_a_mostrar->tamanio,
+							algoritmo_remplazo,
 							particion_a_mostrar->auxiliar,
 							particion_a_mostrar->tipo_mensaje,
 							particion_a_mostrar->id_mensaje);

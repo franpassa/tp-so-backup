@@ -164,20 +164,20 @@ void recorrer_cola_de_mensajes_para_mostrar(t_cola_de_mensajes* queue_a_mostrar)
 		bool misma_cola = particion->tipo_mensaje == queue_a_mostrar->tipo_cola;
 		return misma_cola;
 	}
+
 	t_list* lista_aux = list_filter(lista_de_particiones,esCola); // LIBEREN A WILLY
-
 	pthread_mutex_lock(&(semaforo_struct_s));
-
 	if (!list_is_empty(lista_aux)){
-
 		for (int i = 0 ; i < list_size(lista_aux) ;i++){
 			t_struct_secundaria* particion = list_get(lista_aux,i);
 			print_mensaje_de_cola(particion);
+
 		}
 	}
 	list_destroy(lista_aux);
 
 	pthread_mutex_unlock(&(semaforo_struct_s));
+
 }
 
 void print_list_sockets(void* numero){
