@@ -96,14 +96,12 @@ void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, uint32_t socket_
 	t_cola_de_mensajes* queue = int_a_nombre_cola(id_cola);
 	t_struct_secundaria* particion;
 
-	uint32_t control = 0;
-	int contador =0;
+	for (int i=0 ; i < list_size(lista_de_particiones);i++){
 
-	do {
-		particion = list_get(lista_de_particiones, contador);
-
+		particion = list_get(lista_de_particiones, i);
+		if(particion == NULL){printf("CACAAAAAAAAAAAAAAAAAAAAAAA");
+		}
 		if (particion->id_mensaje == id_mensaje) {
-			control = 1;
 
 			uint32_t *sub = malloc(sizeof(uint32_t));
 			*sub = socket_sub;
@@ -122,11 +120,7 @@ void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, uint32_t socket_
 			}
 
 		}
-		contador ++;
-		if (contador > list_size(lista_de_particiones)){
-			control = 1;
-		}
-	} while (control == 0);
+	}
 	printf("Termino de confirmar\n");
 }
 
@@ -245,7 +239,6 @@ uint32_t revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido,
 			if (es_el_mismo_mensaje(id, msg2, msg_a_comparar)) {
 				mensaje_nuevo = elemento_a_testear->id_mensaje; // asignas el id del que ya esta en la cola y se lo das al sub
 			}
-			free(msg);
 			free_mensaje(id, msg2);
 			free(mensaje_en_cola_buffer->stream);
 			free(mensaje_en_cola_buffer);

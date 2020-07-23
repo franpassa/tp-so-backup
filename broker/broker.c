@@ -29,7 +29,6 @@ void inicializar_colas(){
 	inicializar_cola(&queue_caught_pokemon, CAUGHT_POKEMON);
 	inicializar_cola(&queue_get_pokemon, GET_POKEMON);
 	inicializar_cola(&queue_localized_pokemon, LOCALIZED_POKEMON);
-	lista_de_particiones = list_create();
 }
 
 t_log* iniciar_logger(){
@@ -112,6 +111,8 @@ void inicializar(){
 	logger = iniciar_logger();
 
 	inicializar_colas();
+
+	lista_de_particiones = list_create();
 
 	contador_id = 0;
 	static const char* valores_colas[7] = {"NEW_POKEMON","APPEARED_POKEMON","CATCH_POKEMON","CAUGHT_POKEMON","GET_POKEMON","LOCALIZED_POKEMON", "PRODUCTOR"};

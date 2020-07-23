@@ -366,7 +366,7 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones() {
 	t_struct_secundaria* particion_a_sacar = list_get(lista_de_particiones,a_sacar);
 
 	log_info(logger,"ELIMINO PARTICION:%d -- BIT DE INCICIO:%d", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
-	particion_a_sacar->id_mensaje = -1;
+	particion_a_sacar->id_mensaje = 0;
 	particion_a_sacar->tipo_mensaje= 6;
 	particion_a_sacar->tamanio = mayor_entre_Min_y_tam(particion_a_sacar->tamanio);
 	particion_a_sacar->id_correlativo = 0;
