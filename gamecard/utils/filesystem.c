@@ -43,11 +43,12 @@ void init_fs(){
 		// Caso bitmap existente
 		fclose(bitmap_file);
 		log_info(logger, "Se detectó un FS existente");
+		if(!files_folder_exists()) terminar_aplicacion("Metadata/Bitmap.bin existente pero no hay directorio 'Files'. Eliminar para inicializar un FS limpio.");
 		inicializar_pokemons();
 
 	} else {
 		// Caso bitmap NO existente
-		printf("Archivo Bitmap.bin no encontrado, creando...\n");
+		log_info(logger, "Inicializando FS...");
 
 		int cantidad_bloques = config_get_int_value(metadata_config, "BLOCKS");
 		if(create_bitmap(cantidad_bloques) == -1) terminar_aplicacion("Error creando bitmap");
@@ -58,7 +59,7 @@ void init_fs(){
 			create_files_folder();
 		}
 
-		printf("Se crearon %d bloques\n", cantidad_bloques);
+		log_info(logger, "Se crearon %d bloques\n", cantidad_bloques);
 	}
 }
 
@@ -242,6 +243,7 @@ void actualizar_metadata(char* nombre_pokemon, uint32_t file_size, t_list* bloqu
 	}
 
 	t_config* metadata = config_create(metadata_path);
+	if(!metadata) terminar_aplicacion("METADATA DE ARCHIVO INEXISTENTE, CHEQUEAR CREACION");
 	char* str_file_size = string_itoa(file_size);
 	config_set_value(metadata, "SIZE", str_file_size);
 	config_set_value(metadata, "BLOCKS", blocks_string);

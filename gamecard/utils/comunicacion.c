@@ -39,12 +39,14 @@ void manejar_msg_gameboy(int* socket_gameboy){
 
 	char* msg_string = msg_as_string(tipo_msg, msg);
 	if(msg_string){
-		log_info(logger, "[MSG GAMEBOY] - %s", msg_string);
+		log_info(logger, "[MSG GAMEBOY] - ID %lu %s", id_recibido, msg_string);
 		free(msg_string);
 	}
 
-	procesar_msg(tipo_msg, msg, id_recibido);
-	free_mensaje(tipo_msg, msg);
+	t_info_msg* info_msg = init_info_msg(tipo_msg, msg, id_recibido);
+	pthread_t hilo_procesamiento;
+	pthread_create(&hilo_procesamiento, NULL, (void*) procesar_msg, (void*) info_msg);
+	pthread_detach(hilo_procesamiento);
 }
 
 
@@ -99,15 +101,17 @@ void escuchar_socket(int* socket){
 				confirmar_recepcion(ip_broker, puerto_broker, cola, id, mi_socket);
 				char* msg_string = msg_as_string(cola, msg);
 				if(msg_string){
-					log_info(logger, "[MSG BROKER] - %s", msg_string);
+					log_info(logger, "[MSG BROKER] - ID %lu %s", id, msg_string);
 					free(msg_string);
 				}
-				procesar_msg(cola, msg, id);
-				free_mensaje(cola, msg);
+				t_info_msg* info_msg = init_info_msg(cola, msg, id);
+				pthread_t hilo_procesamiento;
+				pthread_create(&hilo_procesamiento, NULL, (void*) procesar_msg, (void*) info_msg);
+				pthread_detach(hilo_procesamiento);
 			}
 		} else {
 			if(pthread_mutex_trylock(&mutex_reconexion) == 0){
-				printf("Conexion con el Broker perdida\n");
+				log_info(logger, "Conexion con el Broker perdida");
 				suscribir_a_colas();
 				pthread_cond_broadcast(&cond_reconectado);
 				pthread_mutex_unlock(&mutex_reconexion);
@@ -131,10 +135,14 @@ void iniciar_hilos_escucha_broker(){
 	pthread_detach(hilo_get);
 }
 
-void procesar_msg(queue_name tipo_msg, void* msg, uint32_t id_msg){
+void procesar_msg(t_info_msg* info_msg){
 
 	char* ip_broker = config_get_string_value(config, "IP_BROKER");
 	char* puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
+
+	queue_name tipo_msg = info_msg->tipo_msg;
+	void* msg = info_msg->msg;
+	uint32_t id_msg = info_msg->id_msg;
 
 	t_pokemon pokemon;
 	switch(tipo_msg){
@@ -144,6 +152,8 @@ void procesar_msg(queue_name tipo_msg, void* msg, uint32_t id_msg){
 			new_pokemon(pokemon);
 			appeared_pokemon_msg* appeared_pok = appeared_msg(0, new_pok->nombre_pokemon, new_pok->coordenada_X, new_pok->coordenada_Y);
 			enviar_mensaje(ip_broker, puerto_broker, APPEARED_POKEMON, (void*) appeared_pok, 0, false);
+			free_mensaje(APPEARED_POKEMON, appeared_pok);
+
 			break;
 
 		case CATCH_POKEMON:;
@@ -152,6 +162,7 @@ void procesar_msg(queue_name tipo_msg, void* msg, uint32_t id_msg){
 			uint32_t resultado = catch_pokemon(pokemon);
 			caught_pokemon_msg* caught_pok = caught_msg(id_msg, resultado);
 			enviar_mensaje(ip_broker, puerto_broker, CAUGHT_POKEMON, (void*) caught_pok, 0, false);
+			free_mensaje(CAUGHT_POKEMON, caught_pok);
 
 			break;
 
@@ -162,10 +173,13 @@ void procesar_msg(queue_name tipo_msg, void* msg, uint32_t id_msg){
 			uint32_t* posiciones = get_pokemon(pokemon.nombre, &cant_posiciones);
 			localized_pokemon_msg* loc_msg = localized_msg(id_msg, get_pok->nombre_pokemon, cant_posiciones, posiciones);
 			enviar_mensaje(ip_broker, puerto_broker, LOCALIZED_POKEMON, (void*) loc_msg, 0, false);
+			free_mensaje(LOCALIZED_POKEMON, loc_msg);
 
 			break;
 
 		default:
 			printf("msg erroneo\n");
 	}
+
+	free_info_msg(info_msg);
 }

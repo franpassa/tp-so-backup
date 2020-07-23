@@ -55,11 +55,10 @@ typedef struct {
 } t_pokemon;
 
 typedef struct {
-	char* nombre;
-	char* contenido;
-	t_list* bloques;
-	uint32_t file_size;
-} t_file;
+	queue_name tipo_msg;
+	void* msg;
+	uint32_t id_msg;
+} t_info_msg;
 
 
 // -------- Globales --------
@@ -111,6 +110,8 @@ void esperar_tiempo_retardo();
 void free_array(char** array);
 bool id_en_lista(t_list* lista, uint32_t id);
 void agregar_id(t_list* lista, uint32_t id);
+t_info_msg* init_info_msg(queue_name tipo, void* msg, uint32_t id);
+void free_info_msg(t_info_msg* info);
 
 // --- Filesystem ---
 
@@ -170,7 +171,7 @@ bool restar_coordenada(t_list* lista_coordenadas, t_coordenada coordenada);
 int escuchar_gameboy();
 void esperar_conexion(int socket_sv);
 void manejar_msg_gameboy(int* socket_gameboy);
-void procesar_msg(queue_name tipo_msg, void* msg, uint32_t id_msg);
+void procesar_msg(t_info_msg* info_msg);
 void iniciar_hilos_escucha_broker();
 
 
