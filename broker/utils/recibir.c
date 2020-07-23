@@ -247,9 +247,9 @@ uint32_t revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido,
 			if (es_el_mismo_mensaje(tipo_msg, msg2, msg_a_comparar)) {
 				mensaje_nuevo = elemento_a_testear->id_mensaje; // asignas el id del que ya esta en la cola y se lo das al sub
 			}
-			free(msg);
+//			free(msg);
 			free_mensaje(tipo_msg, msg2);
-			free(mensaje_en_cola_buffer->stream);
+//			free(mensaje_en_cola_buffer->stream);
 			free(mensaje_en_cola_buffer);
 		}
 	}

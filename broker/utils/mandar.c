@@ -71,9 +71,9 @@ void recorrer_struct_s(){
 			continue;
 		}
 
-		for(int j = 0; i < list_size(lista_suscriptores); j++){
+		for(int j = 0; j < list_size(lista_suscriptores); j++){
 
-			uint32_t* suscriptor = list_get(lista_suscriptores, i);
+			uint32_t* suscriptor = list_get(lista_suscriptores, j);
 
 			uint32_t* sub = malloc(sizeof(uint32_t));
 			memcpy(sub, (void*) suscriptor, sizeof(uint32_t));
@@ -103,8 +103,6 @@ void recorrer_struct_s(){
 							list_remove_and_destroy_by_condition(int_a_nombre_cola(particion->tipo_mensaje)->lista_suscriptores,es_igual_a, free);
 						}
 					}
-
-					free(mensaje);
 
 					particion->auxiliar = f_cont_lru();
 					if (!esta_en_lista(particion->a_quienes_fue_enviado, sub) && sub_suscrito) {
