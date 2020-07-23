@@ -64,7 +64,7 @@ void recorrer_struct_s(){
 
 		t_cola_de_mensajes* cola_mensajes;
 		t_list* lista_suscriptores;
-		if(0 < tipo_msg && tipo_msg < 6){
+		if(0 <= tipo_msg && tipo_msg < 6){
 			cola_mensajes = int_a_nombre_cola(tipo_msg);
 			lista_suscriptores = cola_mensajes->lista_suscriptores;
 		} else {

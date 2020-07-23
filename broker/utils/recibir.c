@@ -157,7 +157,8 @@ bool es_el_mismo_mensaje(queue_name id, void* mensaje, void* otro_mensaje) {
 		appeared_pokemon_msg* msg_appeared = (appeared_pokemon_msg*) mensaje;
 		appeared_pokemon_msg* otro_msg_appeared = (appeared_pokemon_msg*) otro_mensaje;
 		return (msg_appeared->coordenada_X == otro_msg_appeared->coordenada_X && msg_appeared->coordenada_Y == otro_msg_appeared->coordenada_Y
-				&& string_equals_ignore_case(msg_appeared->nombre_pokemon,otro_msg_appeared->nombre_pokemon) && msg_appeared->tamanio_nombre == otro_msg_appeared->tamanio_nombre);
+				&& string_equals_ignore_case(msg_appeared->nombre_pokemon,otro_msg_appeared->nombre_pokemon) && msg_appeared->tamanio_nombre == otro_msg_appeared->tamanio_nombre
+				&& msg_appeared->id_correlativo == otro_msg_appeared->id_correlativo);
 
 		break;
 
@@ -220,20 +221,36 @@ uint32_t revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido,
 
 	for (int i = 0; i < list_size(lista_de_particiones); i++) {
 		elemento_a_testear = list_get(lista_de_particiones,i);
-		t_buffer* mensaje_en_cola_buffer = malloc(sizeof(t_buffer));
-		msg = sacar_mensaje_de_memoria(elemento_a_testear->bit_inicio,elemento_a_testear->tamanio);
-		mensaje_en_cola_buffer->stream = msg;
-		mensaje_en_cola_buffer->size = elemento_a_testear->tamanio;
-		msg2 = deserializar_buffer(id, mensaje_en_cola_buffer, false);
+		if (elemento_a_testear->tipo_mensaje >= 0 && elemento_a_testear->tipo_mensaje < 6){
+			t_buffer* mensaje_en_cola_buffer = malloc(sizeof(t_buffer));
+			msg = sacar_mensaje_de_memoria(elemento_a_testear->bit_inicio,elemento_a_testear->tamanio);
 
-		if (es_el_mismo_mensaje(id, msg2, msg_a_comparar)) {
+			if (id == 1 || id == 3 || id == 5 ){
+
+				void* stream_a_mandar = malloc(elemento_a_testear->tamanio + sizeof(uint32_t));
+				memcpy(stream_a_mandar,&elemento_a_testear->id_correlativo,sizeof(uint32_t));
+				memcpy(stream_a_mandar + sizeof(uint32_t), msg, elemento_a_testear->tamanio);
+
+				mensaje_en_cola_buffer->stream = stream_a_mandar;
+				mensaje_en_cola_buffer->size = elemento_a_testear->tamanio + sizeof(uint32_t);
+				msg2 = deserializar_buffer(id, mensaje_en_cola_buffer, false);
+				free(stream_a_mandar);
+
+			}else{
+				mensaje_en_cola_buffer->stream = msg;
+				mensaje_en_cola_buffer->size = elemento_a_testear->tamanio;
+				msg2 = deserializar_buffer(id, mensaje_en_cola_buffer, false);
+			}
+
+			if (es_el_mismo_mensaje(id, msg2, msg_a_comparar)) {
 				mensaje_nuevo = elemento_a_testear->id_mensaje; // asignas el id del que ya esta en la cola y se lo das al sub
+			}
+			free(msg);
+			free_mensaje(id, msg2);
+			free(mensaje_en_cola_buffer->stream);
+			free(mensaje_en_cola_buffer);
 		}
-
-		free_mensaje(id, msg2);
-		free(mensaje_en_cola_buffer->stream);
-		free(mensaje_en_cola_buffer);
-		}
+	}
 
 	pthread_mutex_unlock(&(semaforo_struct_s));
 
