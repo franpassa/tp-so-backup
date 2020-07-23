@@ -81,7 +81,7 @@ void recorrer_struct_s(){
 			if (list_size(int_a_nombre_cola(particion->tipo_mensaje)->lista_suscriptores) != 0){
 				if (!esta_en_lista(particion->quienes_lo_recibieron, sub)) {
 
-					void* mensaje = sacar_mensaje_de_memoria(particion->bit_inicio,particion->tamanio);
+					void* mensaje = sacar_mensaje_de_memoria(particion->bit_inicio, particion->tamanio);
 
 					bool es_igual_a(void* uno) {
 						uint32_t nro = *(uint32_t*) uno;

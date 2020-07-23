@@ -113,7 +113,7 @@ void print_list_sockets_de_un_mensaje(void*);
 void print_list_sockets_ACK_de_un_mensaje(void*);
 void recorrer_cola_de_mensajes_para_mostrar(t_cola_de_mensajes*);
 void free_queue(t_cola_de_mensajes*);
-
+void free_particion(void*);
 // FUNCIONES DE LOG Y CONFIG
 
 t_log* iniciar_logger(void);
