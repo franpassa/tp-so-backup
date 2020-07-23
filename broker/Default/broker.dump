@@ -1,4 +1,0 @@
-Date:Wed Jul 22 15:36:25 2020
- Particion 0:0x0 - 0x10.	 [L]	 Size:16 b 
-Particion 1:0x10 - 0x20.	 [X]	 Size:16 b 	 LRU:4 	 Cola:2 	 Id:4 
-Particion 2:0x20 - 0x36.	 [X]	 Size:22 b 	 LRU:5 	 Cola:2 	 Id:5 

@@ -174,8 +174,7 @@ void setearEnCeroEntrenador (t_entrenador* unEntrenador)
 // devuelve el pokemon de la lista que esta mas cerca a un entrenador
 t_pokemon*  pokemonMasCercano (t_entrenador* unEntrenador, t_list* pokemons)
 {
-	t_pokemon* pokemonFlag = malloc(sizeof(t_pokemon));
-	igualarPokemons(pokemonFlag,list_get(pokemons,0));
+	t_pokemon* pokemonFlag = list_get(pokemons,0);
 
 	uint32_t distanciaDelPrimero = distanciaEntrenadorPokemon(unEntrenador->posicionX,unEntrenador->posicionY,pokemonFlag->posicionX,pokemonFlag->posicionY);
 
