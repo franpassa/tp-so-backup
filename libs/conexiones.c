@@ -150,7 +150,7 @@ uint32_t enviar_mensaje(char* ip, char* puerto, queue_name cola, void* estructur
 	case GET_POKEMON:;
 		get_pokemon_msg* msg_get = (get_pokemon_msg*) estructura_mensaje;
 
-		paquete->buffer->size = sizeof(uint32_t) * 2 + msg_get->tamanio_nombre;
+		paquete->buffer->size = sizeof(uint32_t) + msg_get->tamanio_nombre;
 		stream = malloc(paquete->buffer->size);
 
 		memcpy(stream + offset, &(msg_get->tamanio_nombre), sizeof(uint32_t));
@@ -252,7 +252,7 @@ void* serializar_paquete(t_paquete* paquete, int bytes) {
 	offset += sizeof(queue_name);
 	memcpy(a_enviar + offset, &(paquete->buffer->size), sizeof(uint32_t));
 	offset += sizeof(uint32_t);
-	memcpy(a_enviar + offset, paquete->buffer->stream, paquete->buffer->size);
+	memcpy(a_enviar + offset, paquete->buffer->stream, bytes - sizeof(queue_name) - sizeof(uint32_t));
 
 	return a_enviar;
 }
