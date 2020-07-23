@@ -287,6 +287,8 @@ void pasar_a_ready(){
 
 		t_list* entrenadoresAPlanificar = todosLosEntrenadoresAPlanificar();
 
+		list_iterate(pokemons_recibidos,mostrarPokemon);
+
 		pthread_mutex_lock(&mutexPokemonsRecibidos);
 		t_entrenador* entrenadorTemporal = entrenadorAReady(entrenadoresAPlanificar,pokemons_recibidos);
 		pthread_mutex_unlock(&mutexPokemonsRecibidos);
@@ -343,7 +345,6 @@ void recibirAppeared(){
 	while(1){
 
 		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_appeared,&idRecibido,&colaMensaje,&mi_socket);
-		//confirmar_recepcion();
 
 		if (mensaje_recibido_appeared != NULL) {
 			log_info(logger,"Nuevo mensaje recibido: APPEARED_POKEMON %s, en la posicion (%d,%d).",mensaje_recibido_appeared->nombre_pokemon,mensaje_recibido_appeared->coordenada_X,mensaje_recibido_appeared->coordenada_Y);
@@ -353,11 +354,13 @@ void recibirAppeared(){
 				agregarAppearedRecibidoALista(pokemons_recibidos,mensaje_recibido_appeared);
 				pthread_mutex_unlock(&mutexPokemonsRecibidos);
 
-				sem_post(&semPokemonsRecibidos);
-
 				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
 				agregarAppearedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_appeared);
 				pthread_mutex_unlock(&mutexPokemonsRecibidosHistoricos);
+
+				if(!list_is_empty(pokemons_recibidos)){
+					sem_post(&semPokemonsRecibidos);
+				}
 			}
 		} else {
 			if(pthread_mutex_trylock(&mutexReconexion)==0){
@@ -392,11 +395,13 @@ void recibirLocalized(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 				agregarLocalizedRecibidoALista(pokemons_recibidos,mensaje_recibido_localized);
 				pthread_mutex_unlock(&mutexPokemonsRecibidos);
 
-				sem_post(&semPokemonsRecibidos);
-
 				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
 				agregarLocalizedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_localized);
 				pthread_mutex_unlock(&mutexPokemonsRecibidosHistoricos);
+
+				if(!list_is_empty(pokemons_recibidos)){
+					sem_post(&semPokemonsRecibidos);
+				}
 			}
 		} else {
 			if(pthread_mutex_trylock(&mutexReconexion)==0){
