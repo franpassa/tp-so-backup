@@ -21,8 +21,6 @@ int iniciar_servidor(char* ip, char* puerto) {
 
 			listen(server_socket, SOMAXCONN);
 			freeaddrinfo(serverInfo);
-			printf("Servidor corriendo en %s:%s - SOCKET: %d\n", ip, puerto,
-					server_socket);
 
 			return server_socket;
 		}
