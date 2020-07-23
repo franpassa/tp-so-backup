@@ -163,7 +163,7 @@ void recorrer_cola_de_mensajes_para_mostrar(t_cola_de_mensajes* queue_a_mostrar)
 		t_struct_secundaria* particion =  (t_struct_secundaria*) uno;
 		return particion->tipo_mensaje == queue_a_mostrar->tipo_cola;
 	}
-	t_list* lista_aux = list_filter(lista_de_particiones,esCola());
+	t_list* lista_aux = list_filter(lista_de_particiones,esCola);
 
 	pthread_mutex_lock(&(semaforo_struct_s));
 
@@ -210,7 +210,7 @@ void print_mensaje_de_cola(t_struct_secundaria* particion){
 		free(stream_a_mandar);
 	}else{
 		mensaje_en_buffer->stream = msg;
-		mensaje_en_buffer->size = de_id_mensaje_a_size(id_mensaje);
+		mensaje_en_buffer->size = particion->tamanio;
 		msg_deserializado = deserializar_buffer(id_cola, mensaje_en_buffer, false);
 		print_msg(id_cola, msg_deserializado);
 	}

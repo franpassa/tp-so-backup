@@ -88,7 +88,7 @@ void recorrer_struct_s(){
 						free(sub);
 					}
 				}
-
+				particion->auxiliar = f_cont_lru();
 				if (!esta_en_lista(particion->a_quienes_fue_enviado, sub) && sub_suscrito) {
 					list_add(particion->a_quienes_fue_enviado, sub);
 				}
