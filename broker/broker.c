@@ -1,6 +1,5 @@
 #include "utils/broker.h"
 
-
 int main(){
 
 	inicializar();

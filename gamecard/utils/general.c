@@ -10,7 +10,7 @@ t_config* get_config(char* config_path){
 }
 
 t_log* crear_log(char* log_path){
-	t_log* mi_log = log_create(log_path, "Game Card", 0, LOG_LEVEL_INFO);
+	t_log* mi_log = log_create(log_path, "Gamecard", true, LOG_LEVEL_INFO);
 	if(mi_log == NULL){
 		printf("Error creando el log\n");
 		exit(-1);
@@ -24,7 +24,12 @@ void esperar_tiempo_retardo(){
 }
 
 void terminar_aplicacion(char* mensaje){
-	printf("ERROR: %s\n", mensaje);
+	char* msg_error = string_new();
+	string_append_with_format(&msg_error, "ERROR: %s\n", mensaje);
+	printf("%s\n", msg_error);
+	log_error(logger, msg_error);
+	free(msg_error);
+
 	abort();
 }
 
@@ -130,8 +135,6 @@ void free_array(char** array){
 	}
 	free(array);
 }
-
-
 
 
 

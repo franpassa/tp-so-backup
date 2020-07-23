@@ -56,44 +56,63 @@ int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size 
 
 void recorrer_struct_s(){
 	bool sub_suscrito = true;
-	t_struct_secundaria* particion;
+
 	for ( int i=0 ; i < list_size(lista_de_particiones); i++){
 
-		particion = list_get(lista_de_particiones, i);
-		uint32_t* sub = malloc(sizeof(uint32_t));
-		memcpy(sub, list_get(int_a_nombre_cola(particion->tipo_mensaje)->lista_suscriptores,i), sizeof(uint32_t));
+		t_struct_secundaria* particion = (t_struct_secundaria*) list_get(lista_de_particiones, i);
+		uint32_t tipo_msg = particion->tipo_mensaje;
 
-		if (list_size(int_a_nombre_cola(particion->tipo_mensaje)->lista_suscriptores) != 0){
-			if (!esta_en_lista(particion->quienes_lo_recibieron, sub)) {
+		t_cola_de_mensajes* cola_mensajes;
+		t_list* lista_suscriptores;
+		if(0 < tipo_msg && tipo_msg < 6){
+			cola_mensajes = int_a_nombre_cola(tipo_msg);
+			lista_suscriptores = cola_mensajes->lista_suscriptores;
+		} else {
+			continue;
+		}
 
-				void* mensaje = sacar_mensaje_de_memoria(particion->bit_inicio,particion->tamanio);
+		for(int j = 0; i < list_size(lista_suscriptores); j++){
 
-				bool es_igual_a(void* uno) {
-					uint32_t nro = *(uint32_t*) uno;
-					return nro == *sub;
-				}
-				if (!list_any_satisfy(particion->a_quienes_fue_enviado, es_igual_a)){
-					if (mandar(particion->tipo_mensaje, mensaje, particion->id_mensaje, *sub, particion->tamanio, particion->id_correlativo) == -1) {
+			uint32_t* suscriptor = list_get(lista_suscriptores, i);
 
-						sub_suscrito = false;
+			uint32_t* sub = malloc(sizeof(uint32_t));
+			memcpy(sub, (void*) suscriptor, sizeof(uint32_t));
 
-						for (int a = 0; a < list_size(lista_de_particiones);
-								a++) {
-							t_struct_secundaria* particion_n = list_get(lista_de_particiones, a);
-							list_remove_by_condition(particion_n->a_quienes_fue_enviado,es_igual_a);
-							list_remove_by_condition(particion_n->quienes_lo_recibieron,es_igual_a);
+			if (list_size(int_a_nombre_cola(particion->tipo_mensaje)->lista_suscriptores) != 0){
+				if (!esta_en_lista(particion->quienes_lo_recibieron, sub)) {
+
+					void* mensaje = sacar_mensaje_de_memoria(particion->bit_inicio,particion->tamanio);
+
+					bool es_igual_a(void* uno) {
+						uint32_t nro = *(uint32_t*) uno;
+						return nro == *sub;
+					}
+
+					if (!list_any_satisfy(particion->a_quienes_fue_enviado, es_igual_a)){
+						if (mandar(particion->tipo_mensaje, mensaje, particion->id_mensaje, *sub, particion->tamanio, particion->id_correlativo) == -1) {
+
+							sub_suscrito = false;
+
+							for (int a = 0; a < list_size(lista_de_particiones);
+									a++) {
+								t_struct_secundaria* particion_n = list_get(lista_de_particiones, a);
+								list_remove_by_condition(particion_n->a_quienes_fue_enviado,es_igual_a);
+								list_remove_by_condition(particion_n->quienes_lo_recibieron,es_igual_a);
+							}
+
+							list_remove_and_destroy_by_condition(int_a_nombre_cola(particion->tipo_mensaje)->lista_suscriptores,es_igual_a, free);
 						}
+					}
 
-						list_remove_and_destroy_by_condition(int_a_nombre_cola(particion->tipo_mensaje)->lista_suscriptores,es_igual_a, free);
-						free(sub);
+					particion->auxiliar = f_cont_lru();
+					if (!esta_en_lista(particion->a_quienes_fue_enviado, sub) && sub_suscrito) {
+						list_add(particion->a_quienes_fue_enviado, sub);
+						return;
 					}
 				}
-				particion->auxiliar = f_cont_lru();
-				if (!esta_en_lista(particion->a_quienes_fue_enviado, sub) && sub_suscrito) {
-					list_add(particion->a_quienes_fue_enviado, sub);
-				}
-			}
 
+			}
+			free(sub);
 		}
 	}
 }

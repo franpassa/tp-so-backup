@@ -197,7 +197,6 @@ void new_pokemon(t_pokemon pokemon){
 	int bytes_file;
 
 	if(existe_pokemon(pokemon.nombre)){
-		printf("Trato de obtener semaforo\n");
 		pthread_mutex_t* mutex_file = esperar_acceso(pokemon.nombre);
 		get_pokemon_blocks_and_coordenadas(pokemon.nombre, &bloques, &coordenadas);
 		add_coordenada(coordenadas, pokemon.posicion);
@@ -205,7 +204,6 @@ void new_pokemon(t_pokemon pokemon){
 		esperar_tiempo_retardo();
 		actualizar_metadata_y_ceder_acceso(pokemon.nombre, bytes_file, bloques, mutex_file);
 	} else {
-		printf("Creo semaforo\n");
 		pthread_mutex_t* mutex_file = inicializar_pokemon(pokemon.nombre, true);
 		bloques = list_create();
 		coordenadas = list_create();

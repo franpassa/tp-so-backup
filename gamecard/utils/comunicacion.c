@@ -34,13 +34,18 @@ void manejar_msg_gameboy(int* socket_gameboy){
 	uint32_t id_recibido, mi_socket;
 	queue_name tipo_msg;
 	void* msg = recibir_mensaje(*socket_gameboy, &id_recibido, &tipo_msg, &mi_socket);
-	// confirmar_mensaje()...
+	close(*socket_gameboy);
 	free(socket_gameboy); // Se libera ya que se cierra dsp de enviar el msg.
+
+	char* msg_string = msg_as_string(tipo_msg, msg);
+	if(msg_string){
+		log_info(logger, "[MSG GAMEBOY] - %s", msg_string);
+		free(msg_string);
+	}
 
 	procesar_msg(tipo_msg, msg, id_recibido);
 	free_mensaje(tipo_msg, msg);
 }
-
 
 
 void suscribir_a_colas(){
@@ -48,18 +53,30 @@ void suscribir_a_colas(){
 	char* puerto_broker = config_get_string_value(config, "PUERTO_BROKER");
 	int segundos_reintento = config_get_int_value(config, "TIEMPO_DE_REINTENTO_CONEXION");
 
+	bool primer_intento = true;
 	bool conexion_exitosa = false;
 
 	while(!conexion_exitosa){
+
 		socket_new = suscribirse_a_cola(NEW_POKEMON, ip_broker, puerto_broker);
 		socket_catch = suscribirse_a_cola(CATCH_POKEMON, ip_broker, puerto_broker);
 		socket_get = suscribirse_a_cola(GET_POKEMON, ip_broker, puerto_broker);
 
-		if(socket_new != -1 && socket_catch != -1 && socket_get != -1){
-			printf("Conexión con el Broker exitosa\n");
+		bool sockets_ok = socket_new != -1 && socket_catch != -1 && socket_get != -1;
+		if(sockets_ok){
+			char* msg = "Se establecio la conexion con el Broker";
+			printf("%s\n", msg);
+			log_info(logger, msg);
+
 			conexion_exitosa = true;
 		} else {
-			printf("Falló la conexión con el Broker, reintentando en %d segundos...\n", segundos_reintento);
+			if(primer_intento){
+
+				printf("Fallo la conexion con el Broker, se reintentara cada %d segundos\n", segundos_reintento);
+				log_info(logger, "Fallo la conexion con el Broker, se reintentara cada %d segundos", segundos_reintento);
+				primer_intento = false;
+			}
+
 			sleep(segundos_reintento);
 		}
 	}
@@ -80,11 +97,17 @@ void escuchar_socket(int* socket){
 			if(id != 0 && mi_socket != 0 && !id_en_lista(ids, id)){
 				agregar_id(ids, id);
 				confirmar_recepcion(ip_broker, puerto_broker, cola, id, mi_socket);
+				char* msg_string = msg_as_string(cola, msg);
+				if(msg_string){
+					log_info(logger, "[MSG BROKER] - %s", msg_string);
+					free(msg_string);
+				}
 				procesar_msg(cola, msg, id);
+				free_mensaje(cola, msg);
 			}
 		} else {
 			if(pthread_mutex_trylock(&mutex_reconexion) == 0){
-				printf("Falló la conexión con el Broker, reintentando...\n");
+				printf("Conexion con el Broker perdida\n");
 				suscribir_a_colas();
 				pthread_cond_broadcast(&cond_reconectado);
 				pthread_mutex_unlock(&mutex_reconexion);
@@ -109,9 +132,6 @@ void iniciar_hilos_escucha_broker(){
 }
 
 void procesar_msg(queue_name tipo_msg, void* msg, uint32_t id_msg){
-	char* msg_string = msg_as_string(tipo_msg, msg);
-	if(msg_string) printf("%s\n", msg_string);
-	free(msg_string);
 
 	char* ip_broker = config_get_string_value(config, "IP_BROKER");
 	char* puerto_broker = config_get_string_value(config, "PUERTO_BROKER");

@@ -42,7 +42,7 @@ void init_fs(){
 	if(bitmap_file){
 		// Caso bitmap existente
 		fclose(bitmap_file);
-		printf("Bitmap.bin existente\n");
+		log_info(logger, "Se detectó un FS existente");
 		inicializar_pokemons();
 
 	} else {
@@ -459,6 +459,7 @@ void inicializar_pokemons(){
 	while((dp = readdir(dir)) != NULL){
 		if(!string_starts_with(dp->d_name, ".")){
 			inicializar_pokemon(dp->d_name, false);
+			log_info(logger, "File %s existente en FS", dp->d_name);
 		}
 	}
 

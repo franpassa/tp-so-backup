@@ -57,7 +57,9 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 		estructura_memoria->id_mensaje = id_mensaje;
 		estructura_memoria->tamanio = size;
 		estructura_memoria->tipo_mensaje = id_cola;
-
+		estructura_memoria->id_correlativo = id_correlativo;
+		estructura_memoria->a_quienes_fue_enviado = list_create();
+		estructura_memoria->quienes_lo_recibieron = list_create();
         pthread_mutex_lock(&(semaforo_memoria));
         memmove(memoria + estructura_memoria->bit_inicio, mensaje, size);
         pthread_mutex_unlock(&(semaforo_memoria));
@@ -66,6 +68,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
         log_info(logger, "MENSAJE ALMACENADO EN PARTICION:%d -- BIT DE INICIO:%d", entra, estructura_memoria->bit_inicio); // LOG 6 en HEXA
 
         pthread_mutex_unlock(&(semaforo_struct_s));
+
 
 	} else if(string_equals_ignore_case(algoritmo_memoria,"BS")) {
 

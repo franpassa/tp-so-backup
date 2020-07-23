@@ -83,9 +83,9 @@ void recibir_mensajes_para_broker(uint32_t* socket_escucha){
 
 		free(stream_a_agarrar);
 
-		pthread_mutex_lock(&(semaforo_struct_s));
+		pthread_mutex_lock(&semaforo_struct_s);
 		confirmar_mensaje(id_cola, id_mensaje, socket_sub);
-		pthread_mutex_unlock(&(semaforo_struct_s));
+		pthread_mutex_unlock(&semaforo_struct_s);
 
 	}
 }
@@ -100,7 +100,7 @@ void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, uint32_t socket_
 	int contador =0;
 
 	do {
-		particion = list_get(lista_de_particiones,contador);
+		particion = list_get(lista_de_particiones, contador);
 
 		if (particion->id_mensaje == id_mensaje) {
 			control = 1;
