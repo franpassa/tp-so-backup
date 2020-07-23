@@ -21,8 +21,6 @@ int iniciar_servidor(char* ip, char* puerto) {
 
 			listen(server_socket, SOMAXCONN);
 			freeaddrinfo(serverInfo);
-			printf("Servidor corriendo en %s:%s - SOCKET: %d\n", ip, puerto,
-					server_socket);
 
 			return server_socket;
 		}
@@ -511,13 +509,19 @@ char* msg_as_string(queue_name cola, void* msg){
 		case LOCALIZED_POKEMON:;
 			localized_pokemon_msg* msg_localized = (localized_pokemon_msg*) msg;
 			char* pares_coordenadas = string_new();
-			for(int i = 0; i < msg_localized->cantidad_posiciones*2; i++){
-				if(i % 2 == 0){
-					string_append_with_format(&pares_coordenadas, "(%d,", msg_localized->pares_coordenadas[i]);
-				} else {
-					string_append_with_format(&pares_coordenadas, "%d) ", msg_localized->pares_coordenadas[i]);
+
+			if(msg_localized->cantidad_posiciones == 0){
+				string_append(&pares_coordenadas, "n/a");
+			} else {
+				for(int i = 0; i < msg_localized->cantidad_posiciones*2; i++){
+					if(i % 2 == 0){
+						string_append_with_format(&pares_coordenadas, "(%d,", msg_localized->pares_coordenadas[i]);
+					} else {
+						string_append_with_format(&pares_coordenadas, "%d) ", msg_localized->pares_coordenadas[i]);
+					}
 				}
 			}
+
 			string_trim_right(&pares_coordenadas);
 			string_append_with_format(&string_msg, "LOCALIZED_POKEMON {ID correlativo: %d, Nombre: %s, Cantidad posiciones: %d, Pares coordenadas: %s}",
 													msg_localized->id_correlativo, msg_localized->nombre_pokemon,

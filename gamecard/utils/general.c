@@ -3,8 +3,7 @@
 t_config* get_config(char* config_path){
 	t_config* mi_config = config_create(config_path);
 	if(mi_config == NULL){
-		printf("Error abriendo el archivo de configuración\n");
-		exit(-1);
+		terminar_aplicacion("Error abriendo el archivo de configuración\n");
 	}
 	return mi_config;
 }
@@ -12,8 +11,7 @@ t_config* get_config(char* config_path){
 t_log* crear_log(char* log_path){
 	t_log* mi_log = log_create(log_path, "Gamecard", true, LOG_LEVEL_INFO);
 	if(mi_log == NULL){
-		printf("Error creando el log\n");
-		exit(-1);
+		terminar_aplicacion("Error creando el log\n");
 	}
 		return mi_log;
 }
@@ -25,8 +23,7 @@ void esperar_tiempo_retardo(){
 
 void terminar_aplicacion(char* mensaje){
 	char* msg_error = string_new();
-	string_append_with_format(&msg_error, "ERROR: %s\n", mensaje);
-	printf("%s\n", msg_error);
+	string_append_with_format(&msg_error, "ERROR: %s", mensaje);
 	log_error(logger, msg_error);
 	free(msg_error);
 
@@ -93,7 +90,6 @@ char* get_file_as_text(char* file_path){
 
 		return file_text;
 	} else {
-		printf("BYTES LEIDOS %d\n", bytes_read);
 		return NULL;
 	}
 }
@@ -134,6 +130,21 @@ void free_array(char** array){
 		index++;
 	}
 	free(array);
+}
+
+t_info_msg* init_info_msg(queue_name tipo, void* msg, uint32_t id){
+	t_info_msg* info_msg = malloc(sizeof(t_info_msg));
+
+	info_msg->tipo_msg = tipo;
+	info_msg->msg = msg;
+	info_msg->id_msg = id;
+
+	return info_msg;
+}
+
+void free_info_msg(t_info_msg* info){
+	free(info->msg);
+	free(info);
 }
 
 
