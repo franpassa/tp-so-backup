@@ -35,7 +35,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 		pthread_mutex_lock(&(semaforo_struct_s));
 		t_struct_secundaria* estructura_memoria = (t_struct_secundaria*) list_get(lista_de_particiones, entra); // en lista
 
-		if (estructura_memoria->tamanio > mayor_entre_Min_y_tam(size) && estructura_memoria->tamanio - mayor_entre_Min_y_tam(size) >= tamanio_minimo ){
+		if (estructura_memoria->tamanio > mayor_entre_Min_y_tam(size)){
 			t_struct_secundaria* est_nueva = duplicar_estructura(estructura_memoria);
 			est_nueva->tamanio = estructura_memoria->tamanio - mayor_entre_Min_y_tam(size);
 			est_nueva->bit_inicio = estructura_memoria->bit_inicio + mayor_entre_Min_y_tam(size);
