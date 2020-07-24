@@ -90,8 +90,6 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 		} else {
 			printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 		}
-//		printf("lleno particion: %d\n",entra);
-//		printf("particion aux: %d\n",particion_a_llenar_con_msg->auxiliar);
 
 
 		pthread_mutex_lock(&(semaforo_memoria));
@@ -396,7 +394,6 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 }
 
 int elegir_bit_aux_mas_viejo(){
-//	printf("LRU\n");
 	t_struct_secundaria* particion_a_sacar;
 	int orden = 0;
 	int orden_menor = 0;
@@ -405,35 +402,23 @@ int elegir_bit_aux_mas_viejo(){
 	pthread_mutex_lock(&(semaforo_struct_s));
 	for(int i = 0; i< list_size(lista_de_particiones); i++ ){
 		particion_a_sacar = list_get(lista_de_particiones,i);
-//		printf("particion numero =%d\n",i);
-//		printf("particion tipo =%d\n",particion_a_sacar->tipo_mensaje);
-//		printf("particion bit aux =%d\n",particion_a_sacar->auxiliar);
 		if(i == a && particion_a_sacar->tipo_mensaje != 6 ){
 			orden_menor = particion_a_sacar->auxiliar;
 			a_sacar = i;
-//			printf("Orden Menor=%d\n",orden_menor);
-//			printf("A sacar = %d\n",a_sacar);
 		} else if(i == a){
-//			printf("primera particion vacia\n");
 			a += 1;
-//			printf("a =%d\n",a);
 		}
 		if(particion_a_sacar->tipo_mensaje != 6 ){
-//			printf("particion no vacio\n");
 			orden = particion_a_sacar->auxiliar;
 		}else{
-//			printf("particion vacia\n");
 		}
-//		printf("Orden despues de if=%d\n",orden);
+
 		if (orden_menor > orden && particion_a_sacar->tipo_mensaje != 6){
-			orden_menor = orden;
-//			printf("Orden menor=%d\n",orden_menor);
+			orden_menor = orden;;
 			a_sacar = i;
-//			printf("A sacar REAL=%d\n",a_sacar);
 		}
 	}
 	pthread_mutex_unlock(&(semaforo_struct_s));
-//	printf("A sacar final=%d\n",a_sacar);
 	return a_sacar;
 }
 
@@ -497,7 +482,6 @@ void dump_de_cache(int sig) {
 					fprintf(dump_file, "[L]\t Size:%d b \n",
 							particion_a_mostrar->tamanio);
 				} else {
-					//VER LRU Depende del algoritmo, igual esta puesto.
 					fprintf(dump_file,
 							"[X]\t Size:%d b \t %s:%d \t Cola:%d \t Id:%d \n",
 							particion_a_mostrar->tamanio,

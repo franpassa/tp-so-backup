@@ -106,7 +106,7 @@ void recorrer_struct_s(){
 							free(sub);
 						}
 					}
-
+					//free(mensaje) Este rompe invalid
 					if(string_equals_ignore_case(algoritmo_remplazo,"LRU")){
 						printf("Actualizo bit de particion=%d\n",i);
 						particion->auxiliar = f_cont_lru();
