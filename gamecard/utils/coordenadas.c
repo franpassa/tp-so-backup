@@ -61,17 +61,19 @@ t_coordenada* find_coordenada(t_list* lista_coordenadas, t_coordenada coordenada
 }
 
 // Si ya existe en la lista le suma la cantidad, si no lo crea y lo agrega.
-void add_coordenada(t_list* lista_coordenadas, t_coordenada coordenada){
+void add_coordenada(t_list** lista_coordenadas, t_coordenada coordenada){
+
+	if(lista_coordenadas == NULL) *lista_coordenadas = list_create();
 
 	t_coordenada* coordenada_en_lista = NULL;
-	if(!list_is_empty(lista_coordenadas)) coordenada_en_lista = find_coordenada(lista_coordenadas, coordenada);
+	if(!list_is_empty(*lista_coordenadas)) coordenada_en_lista = find_coordenada(*lista_coordenadas, coordenada);
 
 	if(coordenada_en_lista != NULL){
 		coordenada_en_lista->cantidad += coordenada.cantidad;
 	} else {
 		t_coordenada* nueva_coordenada = malloc(sizeof(t_coordenada));
 		*nueva_coordenada = coordenada;
-		list_add(lista_coordenadas, nueva_coordenada);
+		list_add(*lista_coordenadas, nueva_coordenada);
 	}
 }
 

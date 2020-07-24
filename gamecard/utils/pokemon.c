@@ -199,17 +199,15 @@ void new_pokemon(t_pokemon pokemon){
 	if(existe_pokemon(pokemon.nombre)){
 		pthread_mutex_t* mutex_file = esperar_acceso(pokemon.nombre);
 		get_pokemon_blocks_and_coordenadas(pokemon.nombre, &bloques, &coordenadas);
-		add_coordenada(coordenadas, pokemon.posicion);
-		bytes_file = escribir_en_filesystem(bloques, coordenadas);
+		add_coordenada(&coordenadas, pokemon.posicion);
+		bytes_file = escribir_en_filesystem(&bloques, coordenadas);
 		esperar_tiempo_retardo();
 		actualizar_metadata_y_ceder_acceso(pokemon.nombre, bytes_file, bloques, mutex_file);
 	} else {
 		pthread_mutex_t* mutex_file = inicializar_pokemon(pokemon.nombre, true);
-		bloques = list_create();
-		coordenadas = list_create();
-		add_coordenada(coordenadas, pokemon.posicion);
+		add_coordenada(&coordenadas, pokemon.posicion);
 
-		bytes_file = escribir_en_filesystem(bloques, coordenadas);
+		bytes_file = escribir_en_filesystem(&bloques, coordenadas);
 		esperar_tiempo_retardo();
 		actualizar_metadata_y_ceder_acceso(pokemon.nombre, bytes_file, bloques, mutex_file);
 	}
@@ -232,7 +230,7 @@ uint32_t catch_pokemon(t_pokemon pokemon){
 			resultado = 0;
 		} else {
 			resultado = restar_coordenada(coordenadas, pokemon.posicion);
-			bytes_file = escribir_en_filesystem(bloques, coordenadas);
+			bytes_file = escribir_en_filesystem(&bloques, coordenadas);
 			esperar_tiempo_retardo();
 			actualizar_metadata_y_ceder_acceso(pokemon.nombre, bytes_file, bloques, mutex_file);
 		}
