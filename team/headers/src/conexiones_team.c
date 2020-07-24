@@ -286,8 +286,6 @@ void pasar_a_ready(){
 
 		t_list* entrenadoresAPlanificar = todosLosEntrenadoresAPlanificar();
 
-		list_iterate(pokemons_recibidos,mostrarPokemon);
-
 		pthread_mutex_lock(&mutexPokemonsRecibidos);
 		t_entrenador* entrenadorTemporal = entrenadorAReady(entrenadoresAPlanificar,pokemons_recibidos);
 		pthread_mutex_unlock(&mutexPokemonsRecibidos);
