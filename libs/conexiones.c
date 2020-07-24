@@ -339,7 +339,11 @@ void free_mensaje(queue_name tipo_msg, void* msg){
 		case LOCALIZED_POKEMON:;
 			localized_pokemon_msg* localized_pok = (localized_pokemon_msg*) msg;
 			free(localized_pok->nombre_pokemon);
-			free(localized_pok->pares_coordenadas);
+
+			if(localized_pok->pares_coordenadas != NULL){
+				free(localized_pok->pares_coordenadas);
+			}
+
 			break;
 
 		case CATCH_POKEMON:;
