@@ -222,24 +222,29 @@ uint32_t catch_pokemon(t_pokemon pokemon){
 	t_list* bloques = NULL;
 	int bytes_file;
 
-	uint32_t resultado;
+	uint32_t catch_exitoso;
 	if(existe_pokemon(pokemon.nombre)){
 		pthread_mutex_t* mutex_file = esperar_acceso(pokemon.nombre);
 		get_pokemon_blocks_and_coordenadas(pokemon.nombre, &bloques, &coordenadas);
 		if(bloques == NULL) {
 			esperar_tiempo_retardo();
 			ceder_acceso(pokemon.nombre, mutex_file);
-			resultado = 0;
+			catch_exitoso = 0;
 		} else {
-			resultado = restar_coordenada(coordenadas, pokemon.posicion);
-			bytes_file = escribir_en_filesystem(bloques, coordenadas);
-			esperar_tiempo_retardo();
-			actualizar_metadata_y_ceder_acceso(pokemon.nombre, bytes_file, bloques, mutex_file);
+			catch_exitoso = restar_coordenada(coordenadas, pokemon.posicion);
+			if(catch_exitoso) {
+				bytes_file = escribir_en_filesystem(bloques, coordenadas);
+				esperar_tiempo_retardo();
+				actualizar_metadata_y_ceder_acceso(pokemon.nombre, bytes_file, bloques, mutex_file);
+			} else {
+				esperar_tiempo_retardo();
+				ceder_acceso(pokemon.nombre, mutex_file);
+			}
 		}
 	} else {
-		resultado = 0;
+		catch_exitoso = 0;
 	}
-	return resultado;
+	return catch_exitoso;
 }
 
 uint32_t* get_pokemon(char* nombre_pokemon, uint32_t* cant_posiciones){
