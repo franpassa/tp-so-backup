@@ -56,7 +56,8 @@ t_coordenada* find_coordenada(t_list* lista_coordenadas, t_coordenada coordenada
 		return mismaX && mismaY;
 	}
 
-	return (t_coordenada*) list_find(lista_coordenadas, (void*) es_la_misma);
+	t_coordenada* coordenada_encontrada = (t_coordenada*) list_find(lista_coordenadas, (void*) es_la_misma);
+	return coordenada_encontrada;
 }
 
 // Si ya existe en la lista le suma la cantidad, si no lo crea y lo agrega.
