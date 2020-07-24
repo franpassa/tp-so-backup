@@ -389,21 +389,23 @@ int rmrf(char *path){
     return nftw(path, unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
 }
 
+void eliminar_file(char* nombre_file){
+	char* file_path = string_duplicate(fspaths->files_folder);
+	string_append_with_format(&file_path, "/%s", nombre_file);
+	rmrf(file_path);
+	free(file_path);
+}
+
 void eliminar_files(){
 	struct dirent *dp;
 	DIR *dir = opendir(fspaths->files_folder);
 	if(!dir) return;
 
-	char* file_path;
 	while((dp = readdir(dir)) != NULL){
 		if(!string_starts_with(dp->d_name, ".")){
-			file_path = string_duplicate(fspaths->files_folder);
-			string_append_with_format(&file_path, "/%s", dp->d_name);
-			rmrf(file_path);
-			free(file_path);
+			eliminar_file(dp->d_name);
 		}
 	}
-
 	closedir(dir);
 }
 

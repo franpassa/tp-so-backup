@@ -142,6 +142,7 @@ int crear_file(char* nombre_pokemon, bool bloquear);
 bool files_folder_exists();
 void create_files_folder();
 void inicializar_pokemons();
+void eliminar_file(char* nombre_file);
 
 // --- Pokemons ---
 t_coordenada init_coordenada(uint32_t x, uint32_t y, uint32_t cantidad);

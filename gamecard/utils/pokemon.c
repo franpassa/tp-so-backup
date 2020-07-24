@@ -190,6 +190,10 @@ pthread_mutex_t* inicializar_pokemon(char* nombre_pokemon, bool new_file){
 	return mx_pokemon;
 }
 
+void eliminar_pokemon(){
+
+}
+
 
 void new_pokemon(t_pokemon pokemon){
 	t_list* coordenadas = NULL;
@@ -234,6 +238,9 @@ uint32_t catch_pokemon(t_pokemon pokemon){
 			catch_exitoso = restar_coordenada(coordenadas, pokemon.posicion);
 			if(catch_exitoso) {
 				bytes_file = escribir_en_filesystem(bloques, coordenadas);
+				if(bytes_file == 0){
+					eliminar_file(pokemon.nombre);
+				}
 				esperar_tiempo_retardo();
 				actualizar_metadata_y_ceder_acceso(pokemon.nombre, bytes_file, bloques, mutex_file);
 			} else {
