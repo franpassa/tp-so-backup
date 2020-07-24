@@ -59,7 +59,7 @@ void init_fs(){
 			create_files_folder();
 		}
 
-		log_info(logger, "Se crearon %d bloques\n", cantidad_bloques);
+		log_info(logger, "Se crearon %d bloques", cantidad_bloques);
 	}
 }
 
