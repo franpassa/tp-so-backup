@@ -240,7 +240,7 @@ uint32_t revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido,
 			}
 			free(msg); // rompe en grupal
 			free_mensaje(tipo_msg, msg2);
-			//free(mensaje_en_cola_buffer->stream); // invalid
+			//free(mensaje_en_cola_buffer->stream); Invalid
 			free(mensaje_en_cola_buffer);
 		}
 	}
