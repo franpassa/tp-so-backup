@@ -340,7 +340,7 @@ int agregar_posicion_pokemon(t_pokemon pokemon){
 	char* contenido_bloques = get_blocks_content(bloques); // Se puede meter función intermedia para abstraer esta lógica
 	t_list* coordenadas = string_to_coordenadas(contenido_bloques);
 	free(contenido_bloques);
-	add_coordenada(&coordenadas, pokemon.posicion);
+	add_coordenada(coordenadas, pokemon.posicion);
 	obtener_bloques_necesarios(bloques, coordenadas);
 	t_list* strings_por_bloque = obtener_strings_por_bloque(coordenadas);
 
@@ -349,14 +349,13 @@ int agregar_posicion_pokemon(t_pokemon pokemon){
 }
 
 // Devuelve la cantidad de bytes escritos y actualiza la lista 'bloques' con los bloques utilizados.
-int escribir_en_filesystem(t_list** bloques, t_list* coordenadas){
+int escribir_en_filesystem(t_list* bloques, t_list* coordenadas){
 	int bytes_escritos;
 	t_list* strings_por_bloque = NULL;
 
-	if(*bloques == NULL) *bloques = list_create();
-	obtener_bloques_necesarios(*bloques, coordenadas);
+	obtener_bloques_necesarios(bloques, coordenadas);
 	strings_por_bloque = obtener_strings_por_bloque(coordenadas);
-	bytes_escritos = escribir_bloques(strings_por_bloque, *bloques);
+	bytes_escritos = escribir_bloques(strings_por_bloque, bloques);
 
 	list_destroy_and_destroy_elements(strings_por_bloque, free);
 

@@ -132,7 +132,7 @@ void actualizar_metadata(char* nombre_pokemon, uint32_t file_size, t_list* bloqu
 void eliminar_files();
 char* get_blocks_content(t_list* blocks);
 t_list* string_to_coordenadas(char* string_coordenadas);
-int escribir_en_filesystem(t_list** bloques, t_list* coordenadas);
+int escribir_en_filesystem(t_list* bloques, t_list* coordenadas);
 t_list* get_pokemon_blocks(char* nombre_pokemon);
 int agregar_posicion_pokemon(t_pokemon pokemon);
 void obtener_bloques_necesarios(t_list* bloques_actuales, t_list* coordenadas);
@@ -163,7 +163,7 @@ uint32_t* get_pokemon(char* nombre_pokemon, uint32_t* cant_posiciones);
 t_coordenada string_to_coordenada(char* string_coordenada);
 t_list* string_to_coordenadas(char* string_coordenadas);
 char* coordenadas_to_string(t_list* coordenadas);
-void add_coordenada(t_list** lista_coordenadas, t_coordenada coordenada);
+void add_coordenada(t_list* lista_coordenadas, t_coordenada coordenada);
 uint32_t* obtener_coordenadas(t_list* coordenadas, uint32_t* cant_coordenadas);
 bool restar_coordenada(t_list* lista_coordenadas, t_coordenada coordenada);
 
