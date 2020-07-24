@@ -64,7 +64,7 @@ t_coordenada* find_coordenada(t_list* lista_coordenadas, t_coordenada coordenada
 void add_coordenada(t_list* lista_coordenadas, t_coordenada coordenada){
 
 	t_coordenada* coordenada_en_lista = NULL;
-	if(!list_is_empty(lista_coordenadas)) coordenada_en_lista = find_coordenada(lista_coordenadas, coordenada);
+	if(lista_coordenadas->elements_count > 0) coordenada_en_lista = find_coordenada(lista_coordenadas, coordenada);
 
 	if(coordenada_en_lista != NULL){
 		coordenada_en_lista->cantidad += coordenada.cantidad;
