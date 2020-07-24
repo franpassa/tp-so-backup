@@ -1,4 +1,3 @@
 #!/bin/sh
 cd /home/utnso/workspace/tp-2020-1c-Cuarenteam/gameboy
-make clean 
-make all 
+bash new_pokemon_antes_team.sh
