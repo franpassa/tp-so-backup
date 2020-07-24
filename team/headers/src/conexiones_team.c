@@ -146,10 +146,9 @@ void esperar_cliente(int* socket_servidor){
 				agregarAppearedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_appeared);
 				pthread_mutex_unlock(&mutexPokemonsRecibidosHistoricos);
 			}
-		}
 
-		free(mensaje_recibido_appeared->nombre_pokemon);
-		free(mensaje_recibido_appeared);
+			free_mensaje(APPEARED_POKEMON,mensaje_recibido_appeared);
+		}
 	}
 }
 
@@ -347,6 +346,9 @@ void recibirAppeared(){
 		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_appeared,&idRecibido,&colaMensaje,&mi_socket);
 
 		if (mensaje_recibido_appeared != NULL) {
+
+			confirmar_recepcion(ip_broker,puerto_broker,colaMensaje,idRecibido,mi_socket);
+
 			log_info(logger,"Nuevo mensaje recibido: APPEARED_POKEMON %s, en la posicion (%d,%d).",mensaje_recibido_appeared->nombre_pokemon,mensaje_recibido_appeared->coordenada_X,mensaje_recibido_appeared->coordenada_Y);
 			if (estaEnLaLista(mensaje_recibido_appeared->nombre_pokemon,objetivos_posta) && noSuperaElMaximoQuePuedoRecibir(mensaje_recibido_appeared->nombre_pokemon)) {
 
@@ -358,10 +360,11 @@ void recibirAppeared(){
 				agregarAppearedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_appeared);
 				pthread_mutex_unlock(&mutexPokemonsRecibidosHistoricos);
 
-				if(!list_is_empty(pokemons_recibidos)){
-					sem_post(&semPokemonsRecibidos);
-				}
+				sem_post(&semPokemonsRecibidos);
 			}
+
+			free_mensaje(APPEARED_POKEMON,mensaje_recibido_appeared);
+
 		} else {
 			if(pthread_mutex_trylock(&mutexReconexion)==0){
 				suscripcion_a_colas();
@@ -386,23 +389,27 @@ void recibirLocalized(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 		localized_pokemon_msg* mensaje_recibido_localized = recibir_mensaje(socket_localized,&id,&colaMensaje,&mi_socket); //Devuelve NULL si falla, falta manejar eso para que vuelva a reintentar la conexion.
 
 		if (mensaje_recibido_localized != NULL) {
-			log_info(logger,"Nuevo mensaje recibido: LOCALIZED_POKEMON %s, en %d posiciones.",mensaje_recibido_localized->nombre_pokemon,mensaje_recibido_localized->cantidad_posiciones);
-			if ((estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),objetivos_posta))&&
-					(!(estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),pokemons_recibidos_historicos)))&&
-					necesitoElMensaje(mensaje_recibido_localized->id_correlativo)){
 
-				pthread_mutex_lock(&mutexPokemonsRecibidos);
-				agregarLocalizedRecibidoALista(pokemons_recibidos,mensaje_recibido_localized);
-				pthread_mutex_unlock(&mutexPokemonsRecibidos);
+			confirmar_recepcion(ip_broker,puerto_broker,colaMensaje,id,mi_socket);
 
-				pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
-				agregarLocalizedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_localized);
-				pthread_mutex_unlock(&mutexPokemonsRecibidosHistoricos);
+			if(mensaje_recibido_localized->cantidad_posiciones > 0){
+				log_info(logger,"Nuevo mensaje recibido: LOCALIZED_POKEMON %s, en %d posiciones.",mensaje_recibido_localized->nombre_pokemon,mensaje_recibido_localized->cantidad_posiciones);
+				if ((estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),objetivos_posta))&&
+						(!(estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),pokemons_recibidos_historicos)))&&
+						necesitoElMensaje(mensaje_recibido_localized->id_correlativo)){
 
-				if(!list_is_empty(pokemons_recibidos)){
+					pthread_mutex_lock(&mutexPokemonsRecibidos);
+					agregarLocalizedRecibidoALista(pokemons_recibidos,mensaje_recibido_localized);
+					pthread_mutex_unlock(&mutexPokemonsRecibidos);
+
+					pthread_mutex_lock(&mutexPokemonsRecibidosHistoricos);
+					agregarLocalizedRecibidoALista(pokemons_recibidos_historicos,mensaje_recibido_localized);
+					pthread_mutex_unlock(&mutexPokemonsRecibidosHistoricos);
+
 					sem_post(&semPokemonsRecibidos);
 				}
 			}
+			free_mensaje(LOCALIZED_POKEMON,mensaje_recibido_localized);
 		} else {
 			if(pthread_mutex_trylock(&mutexReconexion)==0){
 				suscripcion_a_colas();
@@ -427,6 +434,9 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 		caught_pokemon_msg* mensaje_recibido = recibir_mensaje(socket_caught,&idRecibido,&colaMensaje,&mi_socket);
 
 		if(mensaje_recibido != NULL){ //Verifico si recibo el mensaje.
+
+			confirmar_recepcion(ip_broker,puerto_broker,colaMensaje,idRecibido,mi_socket);
+
 			if(mensaje_recibido->resultado){log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: Atrapado.");}else{log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: No Atrapado.");}
 			//if(mensaje_recibido->resultado){log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: SI");}else{log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: NO");}
 			if(necesitoElMensaje(mensaje_recibido->id_correlativo)){ //Busco el entrenador que mando el mensaje.
@@ -469,6 +479,8 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 						pthread_mutex_lock(&mutexEstadoReady);
 						list_add(estado_ready,entrenador);
 						pthread_mutex_unlock(&mutexEstadoReady);
+
+						sem_post(&semEstadoExec);
 					}
 				} else {
 
@@ -485,6 +497,8 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 					entrenador->motivoBloqueo = MOTIVO_NADA;
 				}
 			}
+
+			free_mensaje(CAUGHT_POKEMON,mensaje_recibido);
 		} else {
 			if(pthread_mutex_trylock(&mutexReconexion)==0){
 				suscripcion_a_colas();

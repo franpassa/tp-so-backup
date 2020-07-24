@@ -35,7 +35,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 		pthread_mutex_lock(&(semaforo_struct_s));
 		t_struct_secundaria* estructura_memoria = (t_struct_secundaria*) list_get(lista_de_particiones, entra); // en lista
 
-		if (estructura_memoria->tamanio > mayor_entre_Min_y_tam(size) && estructura_memoria->tamanio - mayor_entre_Min_y_tam(size) >= tamanio_minimo ){
+		if (estructura_memoria->tamanio > mayor_entre_Min_y_tam(size)){
 			t_struct_secundaria* est_nueva = duplicar_estructura(estructura_memoria);
 			est_nueva->tamanio = estructura_memoria->tamanio - mayor_entre_Min_y_tam(size);
 			est_nueva->bit_inicio = estructura_memoria->bit_inicio + mayor_entre_Min_y_tam(size);
@@ -90,6 +90,7 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 		} else {
 			printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 		}
+
 
 		pthread_mutex_lock(&(semaforo_memoria));
 		memcpy(memoria + particion_a_llenar_con_msg->bit_inicio, mensaje, size);
@@ -199,30 +200,28 @@ bool son_buddies(t_struct_secundaria* particion_A, t_struct_secundaria* particio
 }
 
 bool es_potencia_de_dos(int numero){
-	printf("Es potencia\n");
 	return ((numero!=0) && ((numero & (numero-1)) == 0)); // & = OPERACION LOGICA AND
 }
 
 void consolidar_particiones_en_bs(int posicion_a_liberar) { // Consolido cada vez que se libera una particion y sigo consolidando hasta que no pueda mas
-
+	int posicion = posicion_a_liberar;
 	pthread_mutex_lock(&(semaforo_struct_s));
 	t_struct_secundaria* particion_a_consolidar = list_get(lista_de_particiones, posicion_a_liberar);
 	int tam_lista = list_size(lista_de_particiones);
 	for (int i = 0; i < tam_lista; i++) {
 		t_struct_secundaria* particion_a_comparar_si_es_buddy = list_get(lista_de_particiones, i);
 		if(son_buddies(particion_a_consolidar, particion_a_comparar_si_es_buddy) && particion_a_comparar_si_es_buddy->tipo_mensaje == 6) {
+			log_info(logger,"ASOCIACION DE PARTICION:%d -- BIT DE INICIO:%d y PARTICION:%d -- BIT DE INICIO:%d ",
+							posicion, particion_a_consolidar->bit_inicio, i, particion_a_comparar_si_es_buddy->bit_inicio);
 			if(particion_a_consolidar->bit_inicio > particion_a_comparar_si_es_buddy->bit_inicio){
 				particion_a_consolidar->bit_inicio = particion_a_comparar_si_es_buddy->bit_inicio;
+				posicion -= 1;
 			}
 			particion_a_consolidar->tamanio = particion_a_comparar_si_es_buddy->tamanio + particion_a_consolidar->tamanio;
-			log_info(logger,
-					"ASOCIACION DE PARTICION:%d -- BIT DE INCICIO:%d y PARTICION:%d -- BIT DE INCICIO:%d ",
-					posicion_a_liberar, particion_a_comparar_si_es_buddy->bit_inicio, i,
-					particion_a_consolidar->bit_inicio); // LOG 8
 			list_remove_and_destroy_element(lista_de_particiones, i, free);
-			tam_lista -=1;
+			tam_lista -= 1;
 			i -= 2;
-			if (i<0){
+			if (i < 0){
 				i = -1;
 			}
 		}
@@ -373,20 +372,19 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 
 	pthread_mutex_lock(&(semaforo_struct_s));
 	t_struct_secundaria* particion_a_sacar = list_get(lista_de_particiones, a_sacar);
-
-	log_info(logger,"ELIMINO PARTICION:%d -- BIT DE INCICIO:%d", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
+	log_info(logger,"ELIMINO PARTICION:%d -- BIT DE INICIO:%d", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
 	particion_a_sacar->id_mensaje = 0;
 	particion_a_sacar->tipo_mensaje = 6;
 	particion_a_sacar->id_correlativo = 0;
-	list_destroy_and_destroy_elements(particion_a_sacar->a_quienes_fue_enviado,free);
-	list_destroy_and_destroy_elements(particion_a_sacar->quienes_lo_recibieron,free);
+	list_destroy_and_destroy_elements(particion_a_sacar->a_quienes_fue_enviado, free);
+	list_destroy_and_destroy_elements(particion_a_sacar->quienes_lo_recibieron, free);
 
 
 	while (!es_potencia_de_dos(particion_a_sacar->tamanio)) { // Le sumo 1 hasta ver si es potencia de 2 ya que la estructura >= al size que tenia antes (ejemplo: tamanio = 6 entonces 7 ..8 para ahi)
 		particion_a_sacar->tamanio += 1;
 	}
 	particion_a_sacar->tamanio = mayor_entre_Min_y_tam(particion_a_sacar->tamanio);
-	particion_a_sacar->auxiliar = 0;
+	particion_a_sacar->auxiliar = -1;
 	pthread_mutex_unlock(&(semaforo_struct_s));
 
 	consolidar_particiones_en_bs(a_sacar);
@@ -405,12 +403,15 @@ int elegir_bit_aux_mas_viejo(){
 		if(i == a && particion_a_sacar->tipo_mensaje != 6 ){
 			orden_menor = particion_a_sacar->auxiliar;
 			a_sacar = i;
-		} else {
+		} else if(i == a){
 			a += 1;
 		}
-		orden = particion_a_sacar->auxiliar;
+		if(particion_a_sacar->tipo_mensaje != 6 ){
+			orden = particion_a_sacar->auxiliar;
+		}
+
 		if (orden_menor > orden && particion_a_sacar->tipo_mensaje != 6){
-			orden_menor = orden;
+			orden_menor = orden;;
 			a_sacar = i;
 		}
 	}
@@ -478,7 +479,6 @@ void dump_de_cache(int sig) {
 					fprintf(dump_file, "[L]\t Size:%d b \n",
 							particion_a_mostrar->tamanio);
 				} else {
-					//VER LRU Depende del algoritmo, igual esta puesto.
 					fprintf(dump_file,
 							"[X]\t Size:%d b \t %s:%d \t Cola:%d \t Id:%d \n",
 							particion_a_mostrar->tamanio,

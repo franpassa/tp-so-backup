@@ -114,8 +114,8 @@ void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, uint32_t socket_
 				particion->id_mensaje = 0;
 				particion->tamanio = mayor_entre_Min_y_tam(particion->tamanio);
 				particion->tipo_mensaje = 6;
-				list_destroy_and_destroy_elements(particion->a_quienes_fue_enviado,free);
-				list_destroy_and_destroy_elements(particion->quienes_lo_recibieron,free);
+				list_destroy_and_destroy_elements(particion->a_quienes_fue_enviado, free);
+				list_destroy_and_destroy_elements(particion->quienes_lo_recibieron, free);
 			}
 
 		}
@@ -240,7 +240,7 @@ uint32_t revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido,
 			}
 			free(msg); // rompe en grupal
 			free_mensaje(tipo_msg, msg2);
-			free(mensaje_en_cola_buffer->stream); // invalid
+			//free(mensaje_en_cola_buffer->stream); Invalid
 			free(mensaje_en_cola_buffer);
 		}
 	}
