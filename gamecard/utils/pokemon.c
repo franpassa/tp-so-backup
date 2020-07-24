@@ -173,11 +173,17 @@ pthread_mutex_t* inicializar_pokemon(char* nombre_pokemon, bool new_file){
 	char* lowered_nombre = string_duplicate(nombre_pokemon);
 	string_to_lower(lowered_nombre);
 
-	pthread_mutex_t* mx_pokemon = malloc(sizeof(pthread_mutex_t));
-	pthread_mutex_init(mx_pokemon, NULL);
+	pthread_mutex_t* mx_pokemon;
+	pthread_mutex_lock(&mutex_dict);
+	if(dictionary_has_key(sem_files, lowered_nombre)){
+		mx_pokemon = (pthread_mutex_t*) dictionary_get(sem_files, lowered_nombre);
+	} else {
+		mx_pokemon = malloc(sizeof(pthread_mutex_t));
+		pthread_mutex_init(mx_pokemon, NULL);
+	}
+
 	pthread_mutex_lock(mx_pokemon);
 
-	pthread_mutex_lock(&mutex_dict);
 	dictionary_put(sem_files, lowered_nombre, mx_pokemon);
 	pthread_mutex_unlock(&mutex_dict);
 
@@ -240,8 +246,9 @@ uint32_t catch_pokemon(t_pokemon pokemon){
 				bytes_file = escribir_en_filesystem(bloques, coordenadas);
 				if(bytes_file == 0){
 					eliminar_file(pokemon.nombre);
+					esperar_tiempo_retardo();
+					return catch_exitoso;
 				}
-				esperar_tiempo_retardo();
 				actualizar_metadata_y_ceder_acceso(pokemon.nombre, bytes_file, bloques, mutex_file);
 			} else {
 				esperar_tiempo_retardo();
