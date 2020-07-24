@@ -479,6 +479,8 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 						pthread_mutex_lock(&mutexEstadoReady);
 						list_add(estado_ready,entrenador);
 						pthread_mutex_unlock(&mutexEstadoReady);
+
+						sem_post(&semEstadoExec);
 					}
 				} else {
 
