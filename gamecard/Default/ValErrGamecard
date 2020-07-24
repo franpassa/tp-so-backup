@@ -1,0 +1,150 @@
+==7897== Memcheck, a memory error detector
+==7897== Copyright (C) 2002-2015, and GNU GPL'd, by Julian Seward et al.
+==7897== Using Valgrind-3.11.0 and LibVEX; rerun with -h for copyright info
+==7897== Command: ./gamecard
+==7897== Parent PID: 4790
+==7897== 
+==7897== Thread 2:
+==7897== Invalid write of size 1
+==7897==    at 0x804A59D: coordenadas_to_string (coordenadas.c:46)
+==7897==    by 0x804B2DD: obtener_strings_por_bloque (filesystem.c:328)
+==7897==    by 0x804B70B: escribir_en_filesystem (filesystem.c:357)
+==7897==    by 0x804C5F7: catch_pokemon (pokemon.c:246)
+==7897==    by 0x8049E70: procesar_msg (comunicacion.c:164)
+==7897==    by 0x405C294: start_thread (pthread_create.c:333)
+==7897==    by 0x41640AD: clone (clone.S:114)
+==7897==  Address 0x45eba7f is 1 bytes before a block of size 1 alloc'd
+==7897==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==7897==    by 0x40F22C5: strdup (strdup.c:42)
+==7897==    by 0x407609A: string_duplicate (in /usr/lib/libcommons.so)
+==7897==    by 0x407612F: string_new (in /usr/lib/libcommons.so)
+==7897==    by 0x804A51D: coordenadas_to_string (coordenadas.c:36)
+==7897==    by 0x804B2DD: obtener_strings_por_bloque (filesystem.c:328)
+==7897==    by 0x804B70B: escribir_en_filesystem (filesystem.c:357)
+==7897==    by 0x804C5F7: catch_pokemon (pokemon.c:246)
+==7897==    by 0x8049E70: procesar_msg (comunicacion.c:164)
+==7897==    by 0x405C294: start_thread (pthread_create.c:333)
+==7897==    by 0x41640AD: clone (clone.S:114)
+==7897== 
+==7897== 
+==7897== Process terminating with default action of signal 2 (SIGINT)
+==7897==    at 0x405D3FB: pthread_join (pthread_join.c:90)
+==7897==    by 0x8049AAE: main (gamecard.c:40)
+==7897== 
+==7897== HEAP SUMMARY:
+==7897==     in use at exit: 4,352 bytes in 314 blocks
+==7897==   total heap usage: 26,700 allocs, 26,386 frees, 3,506,025 bytes allocated
+==7897== 
+==7897== Thread 1:
+==7897== 78 bytes in 10 blocks are definitely lost in loss record 26 of 48
+==7897==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==7897==    by 0x4052DEB: deserializar_buffer (conexiones.c:451)
+==7897==    by 0x4052913: recibir_mensaje (conexiones.c:310)
+==7897==    by 0x804A11A: escuchar_socket (comunicacion.c:97)
+==7897==    by 0x405C294: start_thread (pthread_create.c:333)
+==7897==    by 0x41640AD: clone (clone.S:114)
+==7897== 
+==7897== 80 (32 direct, 48 indirect) bytes in 4 blocks are definitely lost in loss record 30 of 48
+==7897==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==7897==    by 0x4076E01: list_create (in /usr/lib/libcommons.so)
+==7897==    by 0x804B156: get_pokemon_blocks (filesystem.c:276)
+==7897==    by 0x804C0A5: get_pokemon_blocks_and_coordenadas (pokemon.c:81)
+==7897==    by 0x804C6A4: get_pokemon (pokemon.c:271)
+==7897==    by 0x8049DF5: procesar_msg (comunicacion.c:176)
+==7897==    by 0x405C294: start_thread (pthread_create.c:333)
+==7897==    by 0x41640AD: clone (clone.S:114)
+==7897== 
+==7897== 80 bytes in 10 blocks are definitely lost in loss record 31 of 48
+==7897==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==7897==    by 0x4076E01: list_create (in /usr/lib/libcommons.so)
+==7897==    by 0x804B156: get_pokemon_blocks (filesystem.c:276)
+==7897==    by 0x804C0A5: get_pokemon_blocks_and_coordenadas (pokemon.c:81)
+==7897==    by 0x804C5BD: catch_pokemon (pokemon.c:238)
+==7897==    by 0x8049E70: procesar_msg (comunicacion.c:164)
+==7897==    by 0x405C294: start_thread (pthread_create.c:333)
+==7897==    by 0x41640AD: clone (clone.S:114)
+==7897== 
+==7897== 80 bytes in 10 blocks are definitely lost in loss record 32 of 48
+==7897==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==7897==    by 0x4076E01: list_create (in /usr/lib/libcommons.so)
+==7897==    by 0x804A40B: string_to_coordenadas (coordenadas.c:12)
+==7897==    by 0x804C0C1: get_pokemon_blocks_and_coordenadas (pokemon.c:85)
+==7897==    by 0x804C5BD: catch_pokemon (pokemon.c:238)
+==7897==    by 0x8049E70: procesar_msg (comunicacion.c:164)
+==7897==    by 0x405C294: start_thread (pthread_create.c:333)
+==7897==    by 0x41640AD: clone (clone.S:114)
+==7897== 
+==7897== 112 (32 direct, 80 indirect) bytes in 4 blocks are definitely lost in loss record 33 of 48
+==7897==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==7897==    by 0x4076E01: list_create (in /usr/lib/libcommons.so)
+==7897==    by 0x804A40B: string_to_coordenadas (coordenadas.c:12)
+==7897==    by 0x804C0C1: get_pokemon_blocks_and_coordenadas (pokemon.c:85)
+==7897==    by 0x804C6A4: get_pokemon (pokemon.c:271)
+==7897==    by 0x8049DF5: procesar_msg (comunicacion.c:176)
+==7897==    by 0x405C294: start_thread (pthread_create.c:333)
+==7897==    by 0x41640AD: clone (clone.S:114)
+==7897== 
+==7897== 136 bytes in 1 blocks are possibly lost in loss record 36 of 48
+==7897==    at 0x402E0B8: calloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==7897==    by 0x4011726: allocate_dtv (dl-tls.c:322)
+==7897==    by 0x401214B: _dl_allocate_tls (dl-tls.c:539)
+==7897==    by 0x405CCC3: allocate_stack (allocatestack.c:588)
+==7897==    by 0x405CCC3: pthread_create@@GLIBC_2.1 (pthread_create.c:539)
+==7897==    by 0x8049AA1: main (gamecard.c:39)
+==7897== 
+==7897== 136 bytes in 1 blocks are possibly lost in loss record 37 of 48
+==7897==    at 0x402E0B8: calloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==7897==    by 0x4011726: allocate_dtv (dl-tls.c:322)
+==7897==    by 0x401214B: _dl_allocate_tls (dl-tls.c:539)
+==7897==    by 0x405CCC3: allocate_stack (allocatestack.c:588)
+==7897==    by 0x405CCC3: pthread_create@@GLIBC_2.1 (pthread_create.c:539)
+==7897==    by 0x804A2AD: iniciar_hilos_escucha_broker (comunicacion.c:130)
+==7897==    by 0x405C294: start_thread (pthread_create.c:333)
+==7897==    by 0x41640AD: clone (clone.S:114)
+==7897== 
+==7897== 136 bytes in 1 blocks are possibly lost in loss record 38 of 48
+==7897==    at 0x402E0B8: calloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==7897==    by 0x4011726: allocate_dtv (dl-tls.c:322)
+==7897==    by 0x401214B: _dl_allocate_tls (dl-tls.c:539)
+==7897==    by 0x405CCC3: allocate_stack (allocatestack.c:588)
+==7897==    by 0x405CCC3: pthread_create@@GLIBC_2.1 (pthread_create.c:539)
+==7897==    by 0x804A2CF: iniciar_hilos_escucha_broker (comunicacion.c:132)
+==7897==    by 0x405C294: start_thread (pthread_create.c:333)
+==7897==    by 0x41640AD: clone (clone.S:114)
+==7897== 
+==7897== 136 bytes in 1 blocks are possibly lost in loss record 39 of 48
+==7897==    at 0x402E0B8: calloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==7897==    by 0x4011726: allocate_dtv (dl-tls.c:322)
+==7897==    by 0x401214B: _dl_allocate_tls (dl-tls.c:539)
+==7897==    by 0x405CCC3: allocate_stack (allocatestack.c:588)
+==7897==    by 0x405CCC3: pthread_create@@GLIBC_2.1 (pthread_create.c:539)
+==7897==    by 0x804A2F3: iniciar_hilos_escucha_broker (comunicacion.c:134)
+==7897==    by 0x405C294: start_thread (pthread_create.c:333)
+==7897==    by 0x41640AD: clone (clone.S:114)
+==7897== 
+==7897== 464 bytes in 29 blocks are definitely lost in loss record 47 of 48
+==7897==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==7897==    by 0x4052645: serializar_paquete (conexiones.c:246)
+==7897==    by 0x4052772: confirmar_recepcion (conexiones.c:275)
+==7897==    by 0x804A179: escuchar_socket (comunicacion.c:101)
+==7897==    by 0x405C294: start_thread (pthread_create.c:333)
+==7897==    by 0x41640AD: clone (clone.S:114)
+==7897== 
+==7897== 696 (232 direct, 464 indirect) bytes in 29 blocks are definitely lost in loss record 48 of 48
+==7897==    at 0x402C17C: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==7897==    by 0x40526E7: confirmar_recepcion (conexiones.c:262)
+==7897==    by 0x804A179: escuchar_socket (comunicacion.c:101)
+==7897==    by 0x405C294: start_thread (pthread_create.c:333)
+==7897==    by 0x41640AD: clone (clone.S:114)
+==7897== 
+==7897== LEAK SUMMARY:
+==7897==    definitely lost: 998 bytes in 96 blocks
+==7897==    indirectly lost: 592 bytes in 74 blocks
+==7897==      possibly lost: 544 bytes in 4 blocks
+==7897==    still reachable: 2,218 bytes in 140 blocks
+==7897==         suppressed: 0 bytes in 0 blocks
+==7897== Reachable blocks (those to which a pointer was found) are not shown.
+==7897== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==7897== 
+==7897== For counts of detected and suppressed errors, rerun with: -v
+==7897== ERROR SUMMARY: 21 errors from 12 contexts (suppressed: 0 from 0)

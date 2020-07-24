@@ -32,7 +32,7 @@ void inicializar_colas(){
 }
 
 t_log* iniciar_logger(){
-	t_log* mi_logger= log_create("log", "broker", 1, LOG_LEVEL_INFO);
+	t_log* mi_logger= log_create("broker.log", "broker", 1, LOG_LEVEL_INFO);
 	 if(mi_logger == NULL){
 		 printf("Error inicializando logger");
 		 exit(-1);
