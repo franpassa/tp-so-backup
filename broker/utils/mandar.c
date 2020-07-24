@@ -48,7 +48,6 @@ int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size 
 
 	free_paquete(paquete);
 	free(a_enviar);
-	printf("Salgo del mandar\n");
 	return control;
 
 }
@@ -84,7 +83,6 @@ void recorrer_struct_s(){
 				if (!esta_en_lista(particion->quienes_lo_recibieron, sub)) {
 
 					void* mensaje = sacar_mensaje_de_memoria(particion->bit_inicio, particion->tamanio);
-					printf("Es igual a\n");
 					bool es_igual_a(void* uno) {
 						uint32_t nro = *(uint32_t*) uno;
 						return nro == *sub;
@@ -95,11 +93,13 @@ void recorrer_struct_s(){
 
 							sub_suscrito = false;
 
-							for (int a = 0; a < list_size(lista_de_particiones);
-									a++) {
+							for (int a = 0; a < list_size(lista_de_particiones); a++) {
 								t_struct_secundaria* particion_n = list_get(lista_de_particiones, a);
-								list_remove_by_condition(particion_n->a_quienes_fue_enviado,es_igual_a);
-								list_remove_by_condition(particion_n->quienes_lo_recibieron,es_igual_a);
+								if(particion_n->tipo_mensaje != 6){
+									list_remove_by_condition(particion_n->a_quienes_fue_enviado, es_igual_a);
+									list_remove_by_condition(particion_n->quienes_lo_recibieron, es_igual_a);
+								}
+
 							}
 
 							list_remove_and_destroy_by_condition(int_a_nombre_cola(particion->tipo_mensaje)->lista_suscriptores,es_igual_a, free);

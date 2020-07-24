@@ -218,11 +218,10 @@ void consolidar_particiones_en_bs(int posicion_a_liberar) { // Consolido cada ve
 				posicion -= 1;
 			}
 			particion_a_consolidar->tamanio = particion_a_comparar_si_es_buddy->tamanio + particion_a_consolidar->tamanio;
-			 // LOG 8
 			list_remove_and_destroy_element(lista_de_particiones, i, free);
-			tam_lista -=1;
+			tam_lista -= 1;
 			i -= 2;
-			if (i<0){
+			if (i < 0){
 				i = -1;
 			}
 		}
@@ -373,13 +372,12 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 
 	pthread_mutex_lock(&(semaforo_struct_s));
 	t_struct_secundaria* particion_a_sacar = list_get(lista_de_particiones, a_sacar);
-
-	log_info(logger,"ELIMINO PARTICION:%d -- BIT DE INCICIO:%d", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
+	log_info(logger,"ELIMINO PARTICION:%d -- BIT DE INICIO:%d", a_sacar, particion_a_sacar->bit_inicio); // LOG 7
 	particion_a_sacar->id_mensaje = 0;
 	particion_a_sacar->tipo_mensaje = 6;
 	particion_a_sacar->id_correlativo = 0;
-	list_destroy_and_destroy_elements(particion_a_sacar->a_quienes_fue_enviado,free);
-	list_destroy_and_destroy_elements(particion_a_sacar->quienes_lo_recibieron,free);
+	list_destroy_and_destroy_elements(particion_a_sacar->a_quienes_fue_enviado, free);
+	list_destroy_and_destroy_elements(particion_a_sacar->quienes_lo_recibieron, free);
 
 
 	while (!es_potencia_de_dos(particion_a_sacar->tamanio)) { // Le sumo 1 hasta ver si es potencia de 2 ya que la estructura >= al size que tenia antes (ejemplo: tamanio = 6 entonces 7 ..8 para ahi)
@@ -410,7 +408,6 @@ int elegir_bit_aux_mas_viejo(){
 		}
 		if(particion_a_sacar->tipo_mensaje != 6 ){
 			orden = particion_a_sacar->auxiliar;
-		}else{
 		}
 
 		if (orden_menor > orden && particion_a_sacar->tipo_mensaje != 6){
