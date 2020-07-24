@@ -46,7 +46,8 @@ int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size 
 
 	log_info(logger, "MENSAJE CON ID:%d -- ENVIADO A SUSCRIPTOR:%d ", id, socket_receptor);
 
-	free_paquete(paquete);
+	free(paquete->buffer);
+	free(paquete);
 	free(a_enviar);
 	return control;
 
@@ -106,7 +107,7 @@ void recorrer_struct_s(){
 							free(sub);
 						}
 					}
-					//free(mensaje) Este rompe invalid
+					free(mensaje);
 					if(string_equals_ignore_case(algoritmo_remplazo,"LRU")){
 						printf("Actualizo bit de particion=%d\n",i);
 						particion->auxiliar = f_cont_lru();

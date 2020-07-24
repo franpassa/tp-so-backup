@@ -51,7 +51,7 @@ void recibir_mensajes_para_broker(uint32_t* socket_escucha){
 
 			if (id_cola == 1 || id_cola == 3 || id_cola == 5 ){
 				int size_a_guardar = paquete->buffer->size - sizeof(uint32_t);
-				printf("Size A Guardar en memoria=%d\n",size_a_guardar);
+
 				void* stream_a_guardar = malloc(size_a_guardar);
 				memcpy(stream_a_guardar, paquete->buffer->stream + sizeof(uint32_t) , size_a_guardar);
 
@@ -62,7 +62,7 @@ void recibir_mensajes_para_broker(uint32_t* socket_escucha){
 				free(stream_a_guardar);
 
 			}else{
-				printf("Size A Guardar en memoria=%d\n",paquete->buffer->size);
+
 				almacenar(paquete->buffer->stream, id_cola, id_mensaje, paquete->buffer->size, 0);
 			}
 			//free(stream_a_comparar);
