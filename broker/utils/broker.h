@@ -15,7 +15,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <signal.h>
-
+#include <math.h>
 // CONEXIONES
 #include <sys/socket.h>
 #include <conexiones.h>
@@ -170,5 +170,5 @@ void capturar_senial();
 int mayor_entre_Min_y_tam(int);
 int f_cont_lru();
 void* sacar_mensaje_de_memoria(uint32_t,uint32_t);
-
+int potencia (int base,int expo);
 #endif /* BROKER_H_ */

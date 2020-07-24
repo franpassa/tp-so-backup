@@ -112,6 +112,11 @@ void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, uint32_t socket_
 			if (list_size(particion->quienes_lo_recibieron) == list_size(queue->lista_suscriptores)) {
 				particion->id_correlativo = 0;
 				particion->id_mensaje = 0;
+				if (string_equals_ignore_case(algoritmo_memoria,"BS")){
+					while (!es_potencia_de_dos(particion->tamanio)) { // Le sumo 1 hasta ver si es potencia de 2 ya que la estructura >= al size que tenia antes (ejemplo: tamanio = 6 entonces 7 ..8 para ahi)
+						particion->tamanio += 1;
+					}
+				}
 				particion->tamanio = mayor_entre_Min_y_tam(particion->tamanio);
 				particion->tipo_mensaje = 6;
 				list_destroy_and_destroy_elements(particion->a_quienes_fue_enviado, free);
@@ -214,12 +219,12 @@ uint32_t revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido,
 			continue;
 		}
 
-		if (tipo_msg >= 0 && tipo_msg < 6){
+		if (tipo_msg >= 0 && tipo_msg < 6) {
 			t_buffer* mensaje_en_cola_buffer = malloc(sizeof(t_buffer));
 			void* msg = sacar_mensaje_de_memoria(elemento_a_testear->bit_inicio, elemento_a_testear->tamanio);
 			void* msg2;
 
-			if (tipo_msg == 1 || tipo_msg == 3 || tipo_msg == 5 ){
+			if (tipo_msg == 1 || tipo_msg == 3 || tipo_msg == 5) {
 
 				void* stream_a_mandar = malloc(elemento_a_testear->tamanio + sizeof(uint32_t));
 				memcpy(stream_a_mandar,&(elemento_a_testear->id_correlativo),sizeof(uint32_t));
@@ -229,7 +234,7 @@ uint32_t revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido,
 				mensaje_en_cola_buffer->size = elemento_a_testear->tamanio + sizeof(uint32_t);
 				msg2 = deserializar_buffer(tipo_msg, mensaje_en_cola_buffer, true);
 
-			}else{
+			} else {
 				mensaje_en_cola_buffer->stream = msg;
 				mensaje_en_cola_buffer->size = elemento_a_testear->tamanio;
 				msg2 = deserializar_buffer(tipo_msg, mensaje_en_cola_buffer, false);
@@ -238,7 +243,7 @@ uint32_t revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido,
 			if (es_el_mismo_mensaje(tipo_msg, msg2, msg_a_comparar)) {
 				mensaje_nuevo = elemento_a_testear->id_mensaje; // asignas el id del que ya esta en la cola y se lo das al sub
 			}
-			free(msg); // rompe en grupal
+			//free(msg); // rompe en grupal
 			free_mensaje(tipo_msg, msg2);
 			//free(mensaje_en_cola_buffer->stream); Invalid
 			free(mensaje_en_cola_buffer);
