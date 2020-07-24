@@ -77,6 +77,7 @@ void liberarArray(char** posicionesEntrenadores);
 void liberarEntrenador(void* entrenador);
 void mostrarEntrenador(void* entrenador);
 void mostrarCiclos(t_entrenador* entrenador);
+void loguearCiclos(t_entrenador* entrenador);
 
 // listas nuevas / modificar listas
 t_list* insertarPokesEntrenador(uint32_t nroEntrenador, t_list* pokemons, char** pokesEntrenadores);

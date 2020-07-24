@@ -692,7 +692,9 @@ void mostrarCiclos(t_entrenador* entrenador){
 	printf("Los ciclos de CPU consumidos por el entrenador %d son: %d\n",entrenador->idEntrenador,entrenador->ciclosAcumulados);
 }
 
-
+void loguearCiclos(t_entrenador* entrenador){
+	log_info(logger,"Los ciclos de CPU consumidos por el entrenador %d son: %d",entrenador->idEntrenador,entrenador->ciclosAcumulados);
+}
 
 
 

@@ -623,6 +623,11 @@ void deadlock()
 	printf("\nLa cantidad de deadlocks producidos y resueltos es: %d\n", cantidadDeadlocks);
 	printf("\nLa cantidad de ciclos de CPU totales consumidos es: %d\n",ciclosConsumidos);
 	printf("\nLa cantidad de cambios de contexto realizados es: %d\n\n",cambiosDeContexto);
+
+	list_iterate(estado_exit,(void*)loguearCiclos);
+	log_info(logger,"La cantidad de deadlocks producidos y resueltos es: %d", cantidadDeadlocks);
+	log_info(logger,"La cantidad de ciclos de CPU totales consumidos es: %d",ciclosConsumidos);
+	log_info(logger,"La cantidad de cambios de contexto realizados es: %d",cambiosDeContexto);
 }
 
 
