@@ -148,6 +148,7 @@ void procesar_msg(t_info_msg* info_msg){
 	switch(tipo_msg){
 		case NEW_POKEMON:;
 			new_pokemon_msg* new_pok = (new_pokemon_msg*) msg;
+			string_to_lower(new_pok->nombre_pokemon);
 			pokemon = init_pokemon(new_pok->nombre_pokemon, new_pok->coordenada_X, new_pok->coordenada_Y, new_pok->cantidad_pokemon);
 			new_pokemon(pokemon);
 			appeared_pokemon_msg* appeared_pok = appeared_msg(0, new_pok->nombre_pokemon, new_pok->coordenada_X, new_pok->coordenada_Y);
@@ -158,6 +159,7 @@ void procesar_msg(t_info_msg* info_msg){
 
 		case CATCH_POKEMON:;
 			catch_pokemon_msg* catch_pok = (catch_pokemon_msg*) msg;
+			string_to_lower(catch_pok->nombre_pokemon);
 			pokemon = init_pokemon(catch_pok->nombre_pokemon, catch_pok->coordenada_X, catch_pok->coordenada_Y, 1); // Lo inicializo con cantidad en uno ya que es lo que va a restar
 			uint32_t resultado = catch_pokemon(pokemon);
 			caught_pokemon_msg* caught_pok = caught_msg(id_msg, resultado);
@@ -168,6 +170,7 @@ void procesar_msg(t_info_msg* info_msg){
 
 		case GET_POKEMON:;
 			get_pokemon_msg* get_pok = (get_pokemon_msg*) msg;
+			string_to_lower(get_pok->nombre_pokemon);
 			pokemon = init_pokemon(get_pok->nombre_pokemon, 0, 0, 0);
 			uint32_t cant_posiciones;
 			uint32_t* posiciones = get_pokemon(pokemon.nombre, &cant_posiciones);
