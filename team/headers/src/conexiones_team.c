@@ -347,6 +347,9 @@ void recibirAppeared(){
 		appeared_pokemon_msg* mensaje_recibido_appeared = recibir_mensaje(socket_appeared,&idRecibido,&colaMensaje,&mi_socket);
 
 		if (mensaje_recibido_appeared != NULL) {
+
+			confirmar_recepcion(ip_broker,puerto_broker,colaMensaje,idRecibido,mi_socket);
+
 			log_info(logger,"Nuevo mensaje recibido: APPEARED_POKEMON %s, en la posicion (%d,%d).",mensaje_recibido_appeared->nombre_pokemon,mensaje_recibido_appeared->coordenada_X,mensaje_recibido_appeared->coordenada_Y);
 			if (estaEnLaLista(mensaje_recibido_appeared->nombre_pokemon,objetivos_posta) && noSuperaElMaximoQuePuedoRecibir(mensaje_recibido_appeared->nombre_pokemon)) {
 
@@ -386,6 +389,9 @@ void recibirLocalized(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 		localized_pokemon_msg* mensaje_recibido_localized = recibir_mensaje(socket_localized,&id,&colaMensaje,&mi_socket); //Devuelve NULL si falla, falta manejar eso para que vuelva a reintentar la conexion.
 
 		if (mensaje_recibido_localized != NULL) {
+
+			confirmar_recepcion(ip_broker,puerto_broker,colaMensaje,id,mi_socket);
+
 			log_info(logger,"Nuevo mensaje recibido: LOCALIZED_POKEMON %s, en %d posiciones.",mensaje_recibido_localized->nombre_pokemon,mensaje_recibido_localized->cantidad_posiciones);
 			if ((estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),objetivos_posta))&&
 					(!(estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),pokemons_recibidos_historicos)))&&
@@ -427,6 +433,9 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 		caught_pokemon_msg* mensaje_recibido = recibir_mensaje(socket_caught,&idRecibido,&colaMensaje,&mi_socket);
 
 		if(mensaje_recibido != NULL){ //Verifico si recibo el mensaje.
+
+			confirmar_recepcion(ip_broker,puerto_broker,colaMensaje,idRecibido,mi_socket);
+
 			if(mensaje_recibido->resultado){log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: Atrapado.");}else{log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: No Atrapado.");}
 			//if(mensaje_recibido->resultado){log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: SI");}else{log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: NO");}
 			if(necesitoElMensaje(mensaje_recibido->id_correlativo)){ //Busco el entrenador que mando el mensaje.
