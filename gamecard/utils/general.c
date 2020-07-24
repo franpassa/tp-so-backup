@@ -63,6 +63,8 @@ long get_file_size(FILE* file_ptr){
 }
 
 char* list_to_string(t_list* list){
+	if(list_is_empty(list)) return "[]";
+
 	char* string = string_new();
 
 	for(int i = 0; i < list_size(list); i++){

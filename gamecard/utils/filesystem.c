@@ -234,8 +234,10 @@ void crear_metadata(char* nombre_pokemon, uint32_t file_size, t_list* blocks, bo
 
 void actualizar_metadata(char* nombre_pokemon, uint32_t file_size, t_list* bloques, bool open_flag){
 	char* metadata_path = get_metadata_path(nombre_pokemon);
+
 	char* blocks_string = list_to_string(bloques);
 	char* open_value;
+
 	if(open_flag){
 		open_value = string_duplicate("Y");
 	} else {
