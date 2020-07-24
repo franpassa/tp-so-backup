@@ -151,6 +151,7 @@ void procesar_msg(t_info_msg* info_msg){
 			string_to_lower(new_pok->nombre_pokemon);
 			pokemon = init_pokemon(new_pok->nombre_pokemon, new_pok->coordenada_X, new_pok->coordenada_Y, new_pok->cantidad_pokemon);
 			new_pokemon(pokemon);
+			string_capitalized(new_pok->nombre_pokemon);
 			appeared_pokemon_msg* appeared_pok = appeared_msg(0, new_pok->nombre_pokemon, new_pok->coordenada_X, new_pok->coordenada_Y);
 			enviar_mensaje(ip_broker, puerto_broker, APPEARED_POKEMON, (void*) appeared_pok, 0, false);
 			free_mensaje(APPEARED_POKEMON, appeared_pok);
@@ -174,6 +175,7 @@ void procesar_msg(t_info_msg* info_msg){
 			pokemon = init_pokemon(get_pok->nombre_pokemon, 0, 0, 0);
 			uint32_t cant_posiciones;
 			uint32_t* posiciones = get_pokemon(pokemon.nombre, &cant_posiciones);
+			string_capitalized(get_pok->nombre_pokemon);
 			localized_pokemon_msg* loc_msg = localized_msg(id_msg, get_pok->nombre_pokemon, cant_posiciones, posiciones);
 			enviar_mensaje(ip_broker, puerto_broker, LOCALIZED_POKEMON, (void*) loc_msg, 0, false);
 			free_mensaje(LOCALIZED_POKEMON, loc_msg);
