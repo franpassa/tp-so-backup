@@ -91,7 +91,7 @@ void recorrer_struct_s(){
 					}
 
 					if (!list_any_satisfy(particion->a_quienes_fue_enviado, es_igual_a)){
-						if (mandar(particion->tipo_mensaje, mensaje, particion->id_mensaje, *sub, particion->tamanio, particion->id_correlativo) == -1) {
+						if (mandar(particion->tipo_mensaje, mensaje, particion->id_mensaje, *sub, particion->tamanio, particion->id_correlativo) == -1){
 
 							sub_suscrito = false;
 
@@ -103,21 +103,23 @@ void recorrer_struct_s(){
 							}
 
 							list_remove_and_destroy_by_condition(int_a_nombre_cola(particion->tipo_mensaje)->lista_suscriptores,es_igual_a, free);
+							free(sub);
 						}
 					}
-					//free(mensaje)
 
-					particion->auxiliar = f_cont_lru();
+					if(string_equals_ignore_case(algoritmo_remplazo,"LRU")){
+						printf("Actualizo bit de particion=%d\n",i);
+						particion->auxiliar = f_cont_lru();
+				    }
 
 					if (!esta_en_lista(particion->a_quienes_fue_enviado, sub) && sub_suscrito) {
-
 						list_add(particion->a_quienes_fue_enviado, sub);
-						return;
+
 					}
 				}
 
 			}
-			free(sub);
+
 		}
 	}
 

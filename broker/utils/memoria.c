@@ -90,6 +90,9 @@ void almacenar(void* mensaje, uint32_t id_cola, uint32_t id_mensaje, uint32_t si
 		} else {
 			printf("Error en broker.config ALGORITMO_REEMPLAZO no valido");
 		}
+//		printf("lleno particion: %d\n",entra);
+//		printf("particion aux: %d\n",particion_a_llenar_con_msg->auxiliar);
+
 
 		pthread_mutex_lock(&(semaforo_memoria));
 		memcpy(memoria + particion_a_llenar_con_msg->bit_inicio, mensaje, size);
@@ -199,26 +202,25 @@ bool son_buddies(t_struct_secundaria* particion_A, t_struct_secundaria* particio
 }
 
 bool es_potencia_de_dos(int numero){
-	printf("Es potencia\n");
 	return ((numero!=0) && ((numero & (numero-1)) == 0)); // & = OPERACION LOGICA AND
 }
 
 void consolidar_particiones_en_bs(int posicion_a_liberar) { // Consolido cada vez que se libera una particion y sigo consolidando hasta que no pueda mas
-
+	int posicion = posicion_a_liberar;
 	pthread_mutex_lock(&(semaforo_struct_s));
 	t_struct_secundaria* particion_a_consolidar = list_get(lista_de_particiones, posicion_a_liberar);
 	int tam_lista = list_size(lista_de_particiones);
 	for (int i = 0; i < tam_lista; i++) {
 		t_struct_secundaria* particion_a_comparar_si_es_buddy = list_get(lista_de_particiones, i);
 		if(son_buddies(particion_a_consolidar, particion_a_comparar_si_es_buddy) && particion_a_comparar_si_es_buddy->tipo_mensaje == 6) {
+			log_info(logger,"ASOCIACION DE PARTICION:%d -- BIT DE INICIO:%d y PARTICION:%d -- BIT DE INICIO:%d ",
+							posicion, particion_a_consolidar->bit_inicio, i, particion_a_comparar_si_es_buddy->bit_inicio);
 			if(particion_a_consolidar->bit_inicio > particion_a_comparar_si_es_buddy->bit_inicio){
 				particion_a_consolidar->bit_inicio = particion_a_comparar_si_es_buddy->bit_inicio;
+				posicion -= 1;
 			}
 			particion_a_consolidar->tamanio = particion_a_comparar_si_es_buddy->tamanio + particion_a_consolidar->tamanio;
-			log_info(logger,
-					"ASOCIACION DE PARTICION:%d -- BIT DE INCICIO:%d y PARTICION:%d -- BIT DE INCICIO:%d ",
-					posicion_a_liberar, particion_a_comparar_si_es_buddy->bit_inicio, i,
-					particion_a_consolidar->bit_inicio); // LOG 8
+			 // LOG 8
 			list_remove_and_destroy_element(lista_de_particiones, i, free);
 			tam_lista -=1;
 			i -= 2;
@@ -386,7 +388,7 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 		particion_a_sacar->tamanio += 1;
 	}
 	particion_a_sacar->tamanio = mayor_entre_Min_y_tam(particion_a_sacar->tamanio);
-	particion_a_sacar->auxiliar = 0;
+	particion_a_sacar->auxiliar = -1;
 	pthread_mutex_unlock(&(semaforo_struct_s));
 
 	consolidar_particiones_en_bs(a_sacar);
@@ -394,6 +396,7 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 }
 
 int elegir_bit_aux_mas_viejo(){
+//	printf("LRU\n");
 	t_struct_secundaria* particion_a_sacar;
 	int orden = 0;
 	int orden_menor = 0;
@@ -402,19 +405,35 @@ int elegir_bit_aux_mas_viejo(){
 	pthread_mutex_lock(&(semaforo_struct_s));
 	for(int i = 0; i< list_size(lista_de_particiones); i++ ){
 		particion_a_sacar = list_get(lista_de_particiones,i);
+//		printf("particion numero =%d\n",i);
+//		printf("particion tipo =%d\n",particion_a_sacar->tipo_mensaje);
+//		printf("particion bit aux =%d\n",particion_a_sacar->auxiliar);
 		if(i == a && particion_a_sacar->tipo_mensaje != 6 ){
 			orden_menor = particion_a_sacar->auxiliar;
 			a_sacar = i;
-		} else {
+//			printf("Orden Menor=%d\n",orden_menor);
+//			printf("A sacar = %d\n",a_sacar);
+		} else if(i == a){
+//			printf("primera particion vacia\n");
 			a += 1;
+//			printf("a =%d\n",a);
 		}
-		orden = particion_a_sacar->auxiliar;
+		if(particion_a_sacar->tipo_mensaje != 6 ){
+//			printf("particion no vacio\n");
+			orden = particion_a_sacar->auxiliar;
+		}else{
+//			printf("particion vacia\n");
+		}
+//		printf("Orden despues de if=%d\n",orden);
 		if (orden_menor > orden && particion_a_sacar->tipo_mensaje != 6){
 			orden_menor = orden;
+//			printf("Orden menor=%d\n",orden_menor);
 			a_sacar = i;
+//			printf("A sacar REAL=%d\n",a_sacar);
 		}
 	}
 	pthread_mutex_unlock(&(semaforo_struct_s));
+//	printf("A sacar final=%d\n",a_sacar);
 	return a_sacar;
 }
 
