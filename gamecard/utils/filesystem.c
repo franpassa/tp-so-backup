@@ -362,6 +362,8 @@ int escribir_en_filesystem(t_list* bloques, t_list* coordenadas){
 
 
 int calcular_bloques_necesarios(t_list* lista_coordenadas){
+	if(list_is_empty(lista_coordenadas)) return 0;
+
 	int blocks_max_size = config_get_int_value(metadata_config, "BLOCK_SIZE");
 	char* string_coordenadas = coordenadas_to_string(lista_coordenadas);
 	int largo_coordenadas = string_length(string_coordenadas);
