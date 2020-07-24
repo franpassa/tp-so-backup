@@ -269,7 +269,7 @@ void planificacion()
 				pthread_mutex_lock(&mutexEstadoBloqueado);
 				list_add(estado_bloqueado, entrenador);
 				pthread_mutex_unlock(&mutexEstadoBloqueado);
-				log_info(logger,"Cambio del entrenador %d a la cola BLOQUEADO, esperando respueta del mensaje CATCH.",entrenador->idEntrenador);
+				log_info(logger,"Cambio del entrenador %d a la cola BLOQUEADO, esperando respuesta del mensaje CATCH.",entrenador->idEntrenador);
 			}
 			free(mensaje);
 		}
@@ -349,7 +349,7 @@ void recibirAppeared(){
 
 			confirmar_recepcion(ip_broker,puerto_broker,colaMensaje,idRecibido,mi_socket);
 
-			log_info(logger,"Nuevo mensaje recibido: APPEARED_POKEMON %s, en la posicion (%d,%d).",mensaje_recibido_appeared->nombre_pokemon,mensaje_recibido_appeared->coordenada_X,mensaje_recibido_appeared->coordenada_Y);
+			log_info(logger,"Nuevo mensaje recibido: APPEARED_POKEMON %s. Posicion (%d,%d).",mensaje_recibido_appeared->nombre_pokemon,mensaje_recibido_appeared->coordenada_X,mensaje_recibido_appeared->coordenada_Y);
 			if (estaEnLaLista(mensaje_recibido_appeared->nombre_pokemon,objetivos_posta) && noSuperaElMaximoQuePuedoRecibir(mensaje_recibido_appeared->nombre_pokemon)) {
 
 				pthread_mutex_lock(&mutexPokemonsRecibidos);
@@ -393,7 +393,7 @@ void recibirLocalized(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 			confirmar_recepcion(ip_broker,puerto_broker,colaMensaje,id,mi_socket);
 
 			if(mensaje_recibido_localized->cantidad_posiciones > 0){
-				log_info(logger,"Nuevo mensaje recibido: LOCALIZED_POKEMON %s, en %d posiciones.",mensaje_recibido_localized->nombre_pokemon,mensaje_recibido_localized->cantidad_posiciones);
+				log_info(logger,"Nuevo mensaje recibido: LOCALIZED_POKEMON %s, Cantidad de posiciones: %d, ID correlativo: %d",mensaje_recibido_localized->nombre_pokemon,mensaje_recibido_localized->cantidad_posiciones,mensaje_recibido_localized->id_correlativo);
 				if ((estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),objetivos_posta))&&
 						(!(estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),pokemons_recibidos_historicos)))&&
 						necesitoElMensaje(mensaje_recibido_localized->id_correlativo)){
@@ -437,8 +437,8 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 
 			confirmar_recepcion(ip_broker,puerto_broker,colaMensaje,idRecibido,mi_socket);
 
-			if(mensaje_recibido->resultado){log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: Atrapado.");}else{log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: No Atrapado.");}
-			//if(mensaje_recibido->resultado){log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: SI");}else{log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: NO");}
+			if(mensaje_recibido->resultado){log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: Atrapado. ID correlativo: %d",mensaje_recibido->id_correlativo);}else{log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: No Atrapado. ID correlativo: %d",mensaje_recibido->id_correlativo);}
+
 			if(necesitoElMensaje(mensaje_recibido->id_correlativo)){ //Busco el entrenador que mando el mensaje.
 
 				t_entrenador* entrenador = (t_entrenador*) buscarEntrenador(mensaje_recibido->id_correlativo);
