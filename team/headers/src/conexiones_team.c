@@ -269,7 +269,7 @@ void planificacion()
 				pthread_mutex_lock(&mutexEstadoBloqueado);
 				list_add(estado_bloqueado, entrenador);
 				pthread_mutex_unlock(&mutexEstadoBloqueado);
-				log_info(logger,"Cambio del entrenador %d a la cola BLOQUEADO, esperando respueta del mensaje CATCH.",entrenador->idEntrenador);
+				log_info(logger,"Cambio del entrenador %d a la cola BLOQUEADO, esperando respuesta del mensaje CATCH.",entrenador->idEntrenador);
 			}
 			free(mensaje);
 		}
@@ -285,8 +285,6 @@ void pasar_a_ready(){
 		sem_wait(&semEntrenadoresAPlanificar);
 
 		t_list* entrenadoresAPlanificar = todosLosEntrenadoresAPlanificar();
-
-		list_iterate(pokemons_recibidos,mostrarPokemon);
 
 		pthread_mutex_lock(&mutexPokemonsRecibidos);
 		t_entrenador* entrenadorTemporal = entrenadorAReady(entrenadoresAPlanificar,pokemons_recibidos);
@@ -349,7 +347,7 @@ void recibirAppeared(){
 
 			confirmar_recepcion(ip_broker,puerto_broker,colaMensaje,idRecibido,mi_socket);
 
-			log_info(logger,"Nuevo mensaje recibido: APPEARED_POKEMON %s, en la posicion (%d,%d).",mensaje_recibido_appeared->nombre_pokemon,mensaje_recibido_appeared->coordenada_X,mensaje_recibido_appeared->coordenada_Y);
+			log_info(logger,"Nuevo mensaje recibido: APPEARED_POKEMON %s. Posicion (%d,%d).",mensaje_recibido_appeared->nombre_pokemon,mensaje_recibido_appeared->coordenada_X,mensaje_recibido_appeared->coordenada_Y);
 			if (estaEnLaLista(mensaje_recibido_appeared->nombre_pokemon,objetivos_posta) && noSuperaElMaximoQuePuedoRecibir(mensaje_recibido_appeared->nombre_pokemon)) {
 
 				pthread_mutex_lock(&mutexPokemonsRecibidos);
@@ -393,7 +391,7 @@ void recibirLocalized(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 			confirmar_recepcion(ip_broker,puerto_broker,colaMensaje,id,mi_socket);
 
 			if(mensaje_recibido_localized->cantidad_posiciones > 0){
-				log_info(logger,"Nuevo mensaje recibido: LOCALIZED_POKEMON %s, en %d posiciones.",mensaje_recibido_localized->nombre_pokemon,mensaje_recibido_localized->cantidad_posiciones);
+				log_info(logger,"Nuevo mensaje recibido: LOCALIZED_POKEMON %s, Cantidad de posiciones: %d, ID correlativo: %d",mensaje_recibido_localized->nombre_pokemon,mensaje_recibido_localized->cantidad_posiciones,mensaje_recibido_localized->id_correlativo);
 				if ((estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),objetivos_posta))&&
 						(!(estaEnLaLista((mensaje_recibido_localized->nombre_pokemon),pokemons_recibidos_historicos)))&&
 						necesitoElMensaje(mensaje_recibido_localized->id_correlativo)){
@@ -437,8 +435,8 @@ void recibirCaught(){ // FALTA TESTEAR AL RECIBIR MENSAJE DE BROKER
 
 			confirmar_recepcion(ip_broker,puerto_broker,colaMensaje,idRecibido,mi_socket);
 
-			if(mensaje_recibido->resultado){log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: Atrapado.");}else{log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: No Atrapado.");}
-			//if(mensaje_recibido->resultado){log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: SI");}else{log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: NO");}
+			if(mensaje_recibido->resultado){log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: Atrapado. ID correlativo: %d",mensaje_recibido->id_correlativo);}else{log_info(logger,"Nuevo mensaje recibido: CAUGHT_POKEMON. Resultado: No Atrapado. ID correlativo: %d",mensaje_recibido->id_correlativo);}
+
 			if(necesitoElMensaje(mensaje_recibido->id_correlativo)){ //Busco el entrenador que mando el mensaje.
 
 				t_entrenador* entrenador = (t_entrenador*) buscarEntrenador(mensaje_recibido->id_correlativo);
@@ -625,6 +623,11 @@ void deadlock()
 	printf("\nLa cantidad de deadlocks producidos y resueltos es: %d\n", cantidadDeadlocks);
 	printf("\nLa cantidad de ciclos de CPU totales consumidos es: %d\n",ciclosConsumidos);
 	printf("\nLa cantidad de cambios de contexto realizados es: %d\n\n",cambiosDeContexto);
+
+	list_iterate(estado_exit,(void*)loguearCiclos);
+	log_info(logger,"La cantidad de deadlocks producidos y resueltos es: %d", cantidadDeadlocks);
+	log_info(logger,"La cantidad de ciclos de CPU totales consumidos es: %d",ciclosConsumidos);
+	log_info(logger,"La cantidad de cambios de contexto realizados es: %d",cambiosDeContexto);
 }
 
 

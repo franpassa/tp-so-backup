@@ -211,6 +211,7 @@ void new_pokemon(t_pokemon pokemon){
 		get_pokemon_blocks_and_coordenadas(pokemon.nombre, &bloques, &coordenadas);
 		add_coordenada(coordenadas, pokemon.posicion);
 		bytes_file = escribir_en_filesystem(bloques, coordenadas);
+		log_info(logger, "NEW exitoso - Pokemon %s existente, se agregaron %d posiciones en la coordenada (%d, %d)", pokemon.nombre, pokemon.posicion.cantidad, pokemon.posicion.x, pokemon.posicion.y);
 		esperar_tiempo_retardo();
 		actualizar_metadata_y_ceder_acceso(pokemon.nombre, bytes_file, bloques, mutex_file);
 	} else {
@@ -218,8 +219,9 @@ void new_pokemon(t_pokemon pokemon){
 		bloques = list_create();
 		coordenadas = list_create();
 		add_coordenada(coordenadas, pokemon.posicion);
-
 		bytes_file = escribir_en_filesystem(bloques, coordenadas);
+		log_info(logger, "NEW exitoso - Se creo el Pokemon %s con %d posiciones en la coordenada (%d, %d)", pokemon.nombre, pokemon.posicion.cantidad, pokemon.posicion.x, pokemon.posicion.y);
+
 		esperar_tiempo_retardo();
 		actualizar_metadata_y_ceder_acceso(pokemon.nombre, bytes_file, bloques, mutex_file);
 	}
@@ -243,14 +245,17 @@ uint32_t catch_pokemon(t_pokemon pokemon){
 		} else {
 			catch_exitoso = restar_coordenada(coordenadas, pokemon.posicion);
 			if(catch_exitoso) {
+				log_info(logger, "CATCH exitoso - Se atrapo a %s", pokemon.nombre);
 				bytes_file = escribir_en_filesystem(bloques, coordenadas);
 				if(bytes_file == 0){
 					eliminar_file(pokemon.nombre);
+					log_info(logger, "Eliminando Pokemon %s - No hay posiciones restantes", pokemon.nombre);
 					esperar_tiempo_retardo();
 					return catch_exitoso;
 				}
 				actualizar_metadata_y_ceder_acceso(pokemon.nombre, bytes_file, bloques, mutex_file);
 			} else {
+				log_info(logger, "CATCH fallido", pokemon.nombre);
 				esperar_tiempo_retardo();
 				ceder_acceso(pokemon.nombre, mutex_file);
 			}
@@ -270,9 +275,11 @@ uint32_t* get_pokemon(char* nombre_pokemon, uint32_t* cant_posiciones){
 		pthread_mutex_t* mutex_file = esperar_acceso(nombre_pokemon);
 		get_pokemon_blocks_and_coordenadas(nombre_pokemon, &bloques, &coordenadas);
 		if(bloques == NULL && coordenadas == NULL){
+			log_info(logger, "GET fallido - No existe el Pokemon %s", nombre_pokemon);
 			posiciones = NULL;
 			*cant_posiciones = 0;
 		} else {
+			log_info(logger, "GET exitoso - Informando posiciones de %s", nombre_pokemon);
 			posiciones = obtener_coordenadas(coordenadas, cant_posiciones);
 		}
 		esperar_tiempo_retardo();
