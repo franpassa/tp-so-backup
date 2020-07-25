@@ -200,9 +200,6 @@ bool son_buddies(t_struct_secundaria* particion_A, t_struct_secundaria* particio
 	return particion_A->tamanio == particion_B->tamanio && xorA_B && xorB_A;
 }
 
-//bool es_potencia_de_dos(int numero){
-//	return ((numero!=0) && ((numero & (numero-1)) == 0)); // & = OPERACION LOGICA AND
-//}
 
 bool es_potencia_de_dos(int numero){
 	int a =1;
@@ -269,9 +266,9 @@ void buscar_particion_en_particiones_dinamicas(){
 		if (entra == -1){
 			if (flag == frecuencia_compactacion){
 				compactar();
-			}else if (frecuencia_compactacion == -1 && flag == -1){
+			} else if (frecuencia_compactacion == -1 && flag == -1) {
 				compactar();
-			}else{
+			} else {
 				flag += 1;
 				elegir_victima_para_eliminar_mediante_FIFO_o_LRU_particiones();
 			}
@@ -284,7 +281,7 @@ void buscar_particion_en_particiones_dinamicas(){
 		for (int i = 0; i< list_size(lista_de_particiones); i++ ){
 			nueva_est = list_get(lista_de_particiones,i);
 			if (nueva_est->tipo_mensaje == 6){
-				if(nueva_est->tamanio >= mayor_entre_Min_y_tam(tamanio_a_ocupar) ){
+				if (nueva_est->tamanio >= mayor_entre_Min_y_tam(tamanio_a_ocupar)) {
 					sobra = (nueva_est->tamanio - mayor_entre_Min_y_tam(tamanio_a_ocupar));
 					if (sobra < sobra_menor){
 						sobra_menor = sobra;
@@ -315,8 +312,8 @@ void compactar(){
 	t_struct_secundaria* estructura1;
 	int tamanio_lista_actual = list_size(lista_de_particiones);
 	pthread_mutex_lock(&(semaforo_struct_s));
-	for (int i = 0; i < tamanio_lista_actual; i++ ){
-		estructura1 = list_get(lista_de_particiones,i);
+	for (int i = 0; i < tamanio_lista_actual; i++){
+		estructura1 = list_get(lista_de_particiones, i);
 		if (estructura1->tipo_mensaje == 6 && i+1 < tamanio_lista_actual){
 
 			log_info(logger, "COMPACTACION DE PARTICION:%d -- BIT DE INCICIO:%d",i ,estructura1->bit_inicio); // LOG 8
@@ -329,12 +326,11 @@ void compactar(){
 
 			if(nuevo_bit_inicio < 0){
 				nuevo_bit_inicio = 0;
-				printf("ARREGLAMOS ESTO\n");
 			}
 			estructura1->bit_inicio = nuevo_bit_inicio;
 
 			list_add(lista_de_particiones, estructura1);
-			list_remove(lista_de_particiones,i);
+			list_remove(lista_de_particiones, i);
 			tamanio_lista_actual-=1;
 			i-=1;
 		}
@@ -411,15 +407,12 @@ void elegir_victima_para_eliminar_mediante_FIFO_o_LRU_bs() {
 
 	int a_sacar = elegir_bit_aux_mas_viejo();
 	if (a_sacar == -1) {
-		printf("Entra bien al if\n");
 		int k = list_size(lista_de_particiones);
 		for(int l = 0 ; l < k; l++){
 			consolidar_particiones_en_bs(l);
 			k = list_size(lista_de_particiones);
 		}
-		printf("Salgo del For\n");
 		buscar_particion_en_bs();
-		printf("Termino de buscar en bs\n");
 	} else {
 		pthread_mutex_lock(&(semaforo_struct_s));
 		t_struct_secundaria* particion_a_sacar = list_get(lista_de_particiones,
@@ -460,9 +453,6 @@ int elegir_bit_aux_mas_viejo(){
 		return particion_a_comparar->tipo_mensaje == 6;
 	}
 
-	if (list_all_satisfy(lista_de_particiones, esVacio)){
-		printf("ENTRA MAL ESTAN TODAS VACIAS\n");
-	}
 	for(int i = 0; i< list_size(lista_de_particiones); i++ ){
 		particion_a_sacar = list_get(lista_de_particiones,i);
 		if(i == a && particion_a_sacar->tipo_mensaje != 6 ){
@@ -481,7 +471,6 @@ int elegir_bit_aux_mas_viejo(){
 		}
 	}
 	pthread_mutex_unlock(&(semaforo_struct_s));
-	printf(" A SACAR = %d \n",a_sacar);
 	return a_sacar;
 }
 
@@ -495,7 +484,6 @@ void actualizar_bit_inicio(int a_sacar){ // actualiza el bit de inicio y lo elim
 
 		if(nuevo_bit_inicio < 0){
 			nuevo_bit_inicio = 0;
-			printf("ARREGLAMOS ESTO\n");
 		}
 		particion_actual->bit_inicio = nuevo_bit_inicio; // bit de inicio del siguinte le resta el tamanio del a sacar
 	}

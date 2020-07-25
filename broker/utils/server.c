@@ -118,7 +118,6 @@ int suscribir_a_cola(int socket_cliente, queue_name cola) {
 
 		default:
 			free(socket_cola);
-			// manejar error: codigo bien pero es invalido
 			retorno = -1;
 			break;
 

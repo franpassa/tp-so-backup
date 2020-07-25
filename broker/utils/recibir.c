@@ -28,7 +28,6 @@ void recibir_mensajes_para_broker(uint32_t* socket_escucha){
 
 	paquete->buffer = malloc(sizeof(t_buffer));
 	recv(*socket_escucha, &(paquete->buffer->size), sizeof(uint32_t), MSG_WAITALL);
-	printf("TAMANIO BUFFER:%d\n ",paquete->buffer->size);
 
 	if (paquete->buffer->size != 0){
 
@@ -46,7 +45,6 @@ void recibir_mensajes_para_broker(uint32_t* socket_escucha){
 
 			send(*socket_escucha, &id_mensaje, sizeof(uint32_t), 0);
 
-			//printf("MENSAJE NUEVO -- ID: %d -- COLA: %s\n", id_mensaje, nombres_colas[id_cola]);
 			log_info(logger, " MENSAJE NUEVO CON ID: %d -- COLA: %s ", id_mensaje, nombres_colas[id_cola]); // LOG 3
 
 			if (id_cola == 1 || id_cola == 3 || id_cola == 5 ){
@@ -65,7 +63,7 @@ void recibir_mensajes_para_broker(uint32_t* socket_escucha){
 
 				almacenar(paquete->buffer->stream, id_cola, id_mensaje, paquete->buffer->size, 0);
 			}
-			//free(stream_a_comparar);
+
 			free_paquete(paquete);
 			sem_post(&binario_mandar);
 		} else {
@@ -78,7 +76,7 @@ void recibir_mensajes_para_broker(uint32_t* socket_escucha){
 		uint32_t id_mensaje;
 		uint32_t socket_sub;
 		uint32_t* stream_a_agarrar = malloc(sizeof(uint32_t) * 2);
-		recv(*socket_escucha, (void*) stream_a_agarrar, sizeof(uint32_t)*2, MSG_WAITALL);
+		recv(*socket_escucha, (void*) stream_a_agarrar, sizeof(uint32_t) * 2, MSG_WAITALL);
 
 		id_mensaje = stream_a_agarrar[0];
 		socket_sub = stream_a_agarrar[1];
@@ -228,7 +226,7 @@ uint32_t revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido,
 			if (tipo_msg == 1 || tipo_msg == 3 || tipo_msg == 5) {
 
 				void* stream_a_mandar = malloc(elemento_a_testear->tamanio + sizeof(uint32_t));
-				memcpy(stream_a_mandar,&(elemento_a_testear->id_correlativo),sizeof(uint32_t));
+				memcpy(stream_a_mandar, &(elemento_a_testear->id_correlativo), sizeof(uint32_t));
 				memcpy(stream_a_mandar + sizeof(uint32_t), msg, elemento_a_testear->tamanio);
 
 				mensaje_en_cola_buffer->stream = stream_a_mandar;
@@ -244,9 +242,7 @@ uint32_t revisar_si_mensaje_no_estaba_en_cola(queue_name id, void* msg_recibido,
 			if (es_el_mismo_mensaje(tipo_msg, msg2, msg_a_comparar)) {
 				mensaje_nuevo = elemento_a_testear->id_mensaje; // asignas el id del que ya esta en la cola y se lo das al sub
 			}
-			//free(msg); // rompe en grupal
 			free_mensaje(tipo_msg, msg2);
-			//free(mensaje_en_cola_buffer->stream); Invalid
 			free(mensaje_en_cola_buffer);
 		}
 	}
