@@ -47,7 +47,7 @@ void recibir_mensajes_para_broker(uint32_t* socket_escucha){
 			send(*socket_escucha, &id_mensaje, sizeof(uint32_t), 0);
 
 			//printf("MENSAJE NUEVO -- ID: %d -- COLA: %s\n", id_mensaje, nombres_colas[id_cola]);
-			log_info(logger, " MENSAJE NUEVO CON ID: %d -- COLA: %s ", id_mensaje, nombres_colas[id_cola]); // LOG 3 hay que deserializarlo para mostrarlo
+			log_info(logger, " MENSAJE NUEVO CON ID: %d -- COLA: %s ", id_mensaje, nombres_colas[id_cola]); // LOG 3
 
 			if (id_cola == 1 || id_cola == 3 || id_cola == 5 ){
 				int size_a_guardar = paquete->buffer->size - sizeof(uint32_t);
@@ -121,6 +121,7 @@ void confirmar_mensaje(queue_name id_cola, uint32_t id_mensaje, uint32_t socket_
 				particion->tipo_mensaje = 6;
 				list_destroy_and_destroy_elements(particion->a_quienes_fue_enviado, free);
 				list_destroy_and_destroy_elements(particion->quienes_lo_recibieron, free);
+				log_info(logger, "ELIMINO PARTICION:%d -- BIT DE INCICIO:%d",i , particion->bit_inicio); // LOG 7 (Confirmar ya que elimino msg)
 			}
 
 		}

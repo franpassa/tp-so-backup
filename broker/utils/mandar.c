@@ -44,7 +44,7 @@ int mandar(queue_name cola, void* stream, int id, int socket_receptor, int size 
 
 	send(socket_receptor, &socket_receptor, sizeof(uint32_t), 0);
 
-	log_info(logger, "MENSAJE CON ID:%d -- ENVIADO A SUSCRIPTOR:%d ", id, socket_receptor);
+	log_info(logger, "MENSAJE CON ID:%d -- ENVIADO A SUSCRIPTOR:%d ", id, socket_receptor); // LOG 5
 
 	free(paquete->buffer);
 	free(paquete);

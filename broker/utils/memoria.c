@@ -526,7 +526,7 @@ void* sacar_mensaje_de_memoria(uint32_t bit_inicio,uint32_t tamanio){
 
 void dump_de_cache(int sig) {
 	if (sig == SIGUSR1) {
-		log_info(logger, "EJECUCION DE DUMP DE CACHE\n"); //LOG 9
+		log_info(logger, "EJECUCION DE DUMP DE CACHE\n"); // LOG 9
 		t_struct_secundaria* particion_a_mostrar;
 		FILE* dump_file = fopen("broker.dump", "w");
 		if (dump_file == NULL) {
